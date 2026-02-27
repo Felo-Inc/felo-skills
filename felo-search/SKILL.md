@@ -1,25 +1,25 @@
 ---
 name: felo-search
-description: 使用 Felo AI 執行智慧網路搜尋，取得 AI 生成的答案與來源引用
+description: Use Felo AI to perform intelligent web searches and get AI-generated answers with source citations
 ---
 
 # Felo Search Skill
 
-此 skill 整合 Felo Open Platform 的 Chat API，執行智慧網路搜尋並取得附帶來源引用的 AI 生成答案。
+This skill integrates Felo Open Platform's Chat API to perform intelligent web searches and retrieve AI-generated answers with source citations.
 
-## 設定
+## Setup
 
-### 1. 取得您的 API Key
+### 1. Get Your API Key
 
-1. 造訪 [felo.ai](https://felo.ai) 並登入（或註冊）
-2. 點擊右上角的頭像 → 設定
-3. 前往「API Keys」分頁
-4. 點擊「Create New Key」以產生新的 API Key
-5. 複製並安全地儲存您的 API Key
+1. Visit [felo.ai](https://felo.ai) and log in (or register)
+2. Click your avatar in the top right corner → Settings
+3. Navigate to the "API Keys" tab
+4. Click "Create New Key" to generate a new API Key
+5. Copy and save your API Key securely
 
-### 2. 設定 API Key
+### 2. Configure API Key
 
-設定 `FELO_API_KEY` 環境變數：
+Set the `FELO_API_KEY` environment variable:
 
 **Linux/macOS:**
 ```bash
@@ -36,59 +36,75 @@ $env:FELO_API_KEY="your-api-key-here"
 set FELO_API_KEY=your-api-key-here
 ```
 
-若要永久設定，請將其加入您的 shell profile（~/.bashrc、~/.zshrc）或系統環境變數。
+For permanent configuration, add it to your shell profile (~/.bashrc, ~/.zshrc) or system environment variables.
 
-## 使用時機
+## When to Use
 
-當使用者需要以下功能時使用此 skill：
-- 附帶 AI 生成完整答案的即時網路搜尋
-- 需要網路上最新/近期資料的資訊
-- 附帶來源引用和參考資料的答案
-- 查詢分析與最佳化以獲得更好的搜尋結果
+**Automatically trigger this skill when the user:**
 
-觸發語句：
-- "用 Felo 搜尋..."
+- Asks about current events, news, or recent developments (e.g., "What's happening with AI?", "Latest news about...")
+- Requests real-time information like weather, stock prices, or sports scores
+- Asks "what is..." or "tell me about..." questions that may require up-to-date information
+- Needs information about recent products, technologies, or trends
+- Asks location-based questions (e.g., "best restaurants in...", "things to do in...")
+- Requests comparisons or reviews that benefit from current data
+- Explicitly mentions searching or looking up information
+
+**Also trigger with explicit commands:**
+- "Search with Felo..."
 - "Felo search for..."
-- "使用 Felo 查詢..."
-- "/felo-search"
+- "Use Felo to search..."
+- `/felo-search`
 
-## API 設定
+**Key indicators to use this skill:**
+- Questions about "latest", "recent", "current", "today", "now"
+- Questions requiring web sources and citations
+- Questions where Claude's knowledge cutoff may be outdated
+- User explicitly asks for sources or references
 
-**端點：** `https://openapi.felo.ai/v2/chat`
+**When NOT to use:**
+- Questions about general knowledge that doesn't require current data
+- Code-related questions that can be answered without web search
+- Questions about the user's local files or codebase
+- Mathematical calculations or logical reasoning tasks
 
-**驗證：** Authorization header 中的 Bearer token（來自 `FELO_API_KEY` 環境變數）
+## API Configuration
 
-## 使用方式
+**Endpoint:** `https://openapi.felo.ai/v2/chat`
 
-當被呼叫時，此 skill 將會：
+**Authentication:** Bearer token in Authorization header (from `FELO_API_KEY` environment variable)
 
-1. 檢查 `FELO_API_KEY` 環境變數是否已設定
-2. 接受使用者的搜尋查詢
-3. 使用查詢呼叫 Felo Chat API
-4. 回傳格式化的回應，包含：
-   - AI 生成的完整答案
-   - 查詢分析（最佳化的搜尋查詢）
-   - 附帶連結、標題和摘要的來源引用
+## How to Use
 
-## 實作方式
+When invoked, this skill will:
 
-### 步驟 1：檢查 API Key
+1. Check if `FELO_API_KEY` environment variable is set
+2. Accept a search query from the user
+3. Call Felo Chat API with the query
+4. Return a formatted response including:
+   - AI-generated comprehensive answer
+   - Query analysis (optimized search queries)
+   - Source citations with links, titles, and snippets
 
-首先，驗證 API 金鑰是否已設定：
+## Implementation
+
+### Step 1: Check API Key
+
+First, verify that the API key is configured:
 
 ```bash
 if [ -z "$FELO_API_KEY" ]; then
-  echo "Error: FELO_API_KEY 環境變數未設定"
-  echo "請依照設定說明配置您的 API 金鑰"
+  echo "Error: FELO_API_KEY environment variable is not set"
+  echo "Please configure your API key following the Setup instructions"
   exit 1
 fi
 ```
 
-如果 API 金鑰未設定，請向使用者提供清楚的設定說明。
+If the API key is not set, inform the user with clear instructions on how to configure it.
 
-### 步驟 2：發送 API 請求
+### Step 2: Make API Request
 
-建立包含查詢的臨時 JSON 檔案（以處理特殊字元和編碼）：
+Create a temporary JSON file with the query (to handle special characters and encoding):
 
 ```bash
 # Create query JSON file
@@ -104,51 +120,51 @@ curl -X POST https://openapi.felo.ai/v2/chat \
 rm /tmp/felo_query.json
 ```
 
-**注意：** 使用 JSON 檔案而非內嵌 JSON 有助於正確處理中文字元和特殊字元。
+**Note:** Using a JSON file instead of inline JSON helps handle Chinese characters and special characters correctly.
 
-## 回應格式
+## Response Format
 
-以此格式向使用者呈現結果：
+Present the results to the user in this format:
 
 ```
-## 答案
-[AI 生成的答案]
+## Answer
+[AI-generated answer]
 
-## 查詢分析
-最佳化查詢：[查詢清單]
+## Query Analysis
+Optimized queries: [list of queries]
 
-## 來源
-1. [標題](連結)
-   摘要：[摘要文字]
-2. [標題](連結)
-   摘要：[摘要文字]
+## Sources
+1. [Title](link)
+   Snippet: [snippet text]
+2. [Title](link)
+   Snippet: [snippet text]
 ...
 ```
 
-## 錯誤處理
+## Error Handling
 
-### 常見錯誤代碼
+### Common Error Codes
 
-- `INVALID_API_KEY` - API Key 無效或已被撤銷
-  - 解決方案：檢查您的 API 金鑰是否正確且未被撤銷
-- `MISSING_PARAMETER` - 缺少必要參數
-  - 解決方案：確保已提供查詢參數
-- `INVALID_PARAMETER` - 參數值無效
-  - 解決方案：檢查查詢格式
-- `CHAT_FAILED` - 內部服務錯誤
-  - 解決方案：重試請求或聯絡 Felo 支援
+- `INVALID_API_KEY` - API Key is invalid or revoked
+  - Solution: Check if your API key is correct and hasn't been revoked
+- `MISSING_PARAMETER` - Required parameter is missing
+  - Solution: Ensure the query parameter is provided
+- `INVALID_PARAMETER` - Parameter value is invalid
+  - Solution: Check the query format
+- `CHAT_FAILED` - Internal service error
+  - Solution: Retry the request or contact Felo support
 
-### API Key 未設定
+### Missing API Key
 
-如果 `FELO_API_KEY` 未設定，顯示此訊息：
+If `FELO_API_KEY` is not set, display this message:
 
 ```
-❌ Felo API Key 未設定
+❌ Felo API Key not configured
 
-要使用此 skill，您需要設定 Felo API Key：
+To use this skill, you need to set up your Felo API Key:
 
-1. 從 https://felo.ai 取得您的 API 金鑰（設定 → API Keys）
-2. 設定環境變數：
+1. Get your API key from https://felo.ai (Settings → API Keys)
+2. Set the environment variable:
 
    Linux/macOS:
    export FELO_API_KEY="your-api-key-here"
@@ -156,29 +172,29 @@ rm /tmp/felo_query.json
    Windows (PowerShell):
    $env:FELO_API_KEY="your-api-key-here"
 
-3. 重新啟動 Claude Code 或重新載入環境
+3. Restart Claude Code or reload the environment
 ```
 
-## 範例
+## Examples
 
-**使用者：** "用 Felo 搜尋人工智慧的最新發展"
+**User:** "Felo search for the latest developments in quantum computing"
 
-**動作：** 使用查詢「人工智慧的最新發展」呼叫 Felo API，並格式化回應包含答案、查詢分析和來源。
+**Action:** Call Felo API with the query and format the response with answer, query analysis, and sources.
 
-**使用者：** "Felo search for the latest developments in quantum computing"
+**User:** "Search with Felo for AI trends in 2026"
 
-**動作：** 使用英文查詢呼叫 Felo API 並呈現格式化結果。
+**Action:** Call Felo API with the query and present formatted results.
 
-## 注意事項
+## Notes
 
-- API 金鑰從 `FELO_API_KEY` 環境變數讀取以確保安全性
-- API 會盡可能以查詢語言回傳結果
-- 包含所有來源引用以提供使用者資訊透明度
-- 保持回應簡潔但完整
-- 使用 JSON 檔案處理查詢以正確處理特殊字元和編碼
+- API key is read from `FELO_API_KEY` environment variable for security
+- The API returns results in the same language as the query when possible
+- Include all source citations to give users transparency about information sources
+- Keep responses concise but comprehensive
+- Use JSON files for queries to properly handle special characters and encoding
 
-## 其他資源
+## Additional Resources
 
-- [Felo Open Platform 文件](https://openapi.felo.ai)
-- [取得 API Key](https://felo.ai)（設定 → API Keys）
-- [API 參考文件](https://openapi.felo.ai/docs)
+- [Felo Open Platform Documentation](https://openapi.felo.ai)
+- [Get API Key](https://felo.ai) (Settings → API Keys)
+- [API Reference](https://openapi.felo.ai/docs)

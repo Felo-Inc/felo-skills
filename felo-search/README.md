@@ -1,97 +1,105 @@
 # Felo Search Skill for Claude Code
 
-一個整合 [Felo Open Platform](https://felo.ai) 的 Claude Code skill，可執行智慧網路搜尋並提供 AI 生成的答案與來源引用。
+A Claude Code skill that integrates [Felo Open Platform](https://felo.ai) to perform intelligent web searches with AI-generated answers and source citations.
 
-## 功能特色
+## Features
 
-- 🔍 由 Felo AI 驅動的即時網路搜尋
-- 🤖 AI 生成的完整答案
-- 📚 附帶連結和摘要的來源引用
-- 🔄 查詢分析與最佳化
-- 🌐 多語言支援（自動匹配查詢語言）
+- 🔍 Real-time web search powered by Felo AI
+- 🤖 AI-generated comprehensive answers
+- 📚 Source citations with links and snippets
+- 🔄 Query analysis and optimization
+- 🌐 Multi-language support (automatically matches query language)
 
-## 安裝方式
+## Installation
 
-1. 將 `felo-search` 資料夾複製到您的 Claude Code skills 目錄：
+### Quick Install (Recommended)
+
+```bash
+npx @claude/skills add felo-search
+```
+
+### Manual Installation
+
+1. Copy the `felo-search` folder to your Claude Code skills directory:
    - **Linux/macOS:** `~/.claude/skills/`
-   - **Windows:** `C:\Users\<您的使用者名稱>\.claude\skills\`
+   - **Windows:** `C:\Users\<YourUsername>\.claude\skills\`
 
-2. 取得您的 Felo API Key：
-   - 造訪 [felo.ai](https://felo.ai) 並登入
-   - 前往設定 → API Keys
-   - 建立新的 API 金鑰
+2. Get your Felo API Key:
+   - Visit [felo.ai](https://felo.ai) and log in
+   - Go to Settings → API Keys
+   - Create a new API key
 
-3. 將 API 金鑰設定為環境變數：
+3. Configure the API key as an environment variable:
 
    **Linux/macOS:**
    ```bash
    export FELO_API_KEY="your-api-key-here"
-   # 加入 ~/.bashrc 或 ~/.zshrc 以永久保存
+   # Add to ~/.bashrc or ~/.zshrc for persistence
    ```
 
    **Windows (PowerShell):**
    ```powershell
    $env:FELO_API_KEY="your-api-key-here"
-   # 若要永久保存，請加入系統環境變數
+   # For persistence, add to system environment variables
    ```
 
-4. 重新啟動 Claude Code
+4. Restart Claude Code
 
-## 使用方式
+## Usage
 
-使用以下任一語句觸發此 skill：
+Trigger the skill with any of these phrases:
 
-- "用 Felo 搜尋..."（繁體中文）
-- "Felo search for..."（英文）
-- "使用 Felo 查詢..."（繁體中文）
-- `/felo-search`（指令）
+- "Search with Felo..."
+- "Felo search for..."
+- "Use Felo to search..."
+- `/felo-search` (command)
 
-### 範例
+### Examples
 
 ```
-使用者：用 Felo 搜尋量子計算的最新進展
-使用者：Felo search for the latest AI trends in 2026
-使用者：/felo-search What are the best restaurants in Tokyo?
+User: Felo search for the latest AI trends in 2026
+User: Search with Felo for quantum computing developments
+User: /felo-search What are the best restaurants in Tokyo?
 ```
 
-## 回應格式
+## Response Format
 
-此 skill 會回傳：
+The skill returns:
 
-1. **答案** - AI 生成的完整答案
-2. **查詢分析** - 使用的最佳化搜尋查詢
-3. **來源** - 附帶連結和摘要的網路來源清單
+1. **Answer** - AI-generated comprehensive answer
+2. **Query Analysis** - Optimized search queries used
+3. **Sources** - List of web sources with links and snippets
 
-## 系統需求
+## Requirements
 
 - Claude Code CLI
-- Felo API Key（提供免費方案）
-- 網際網路連線
+- Felo API Key (free tier available)
+- Internet connection
 
-## 疑難排解
+## Troubleshooting
 
 ### "FELO_API_KEY environment variable is not set"
 
-請確認您已設定環境變數並重新啟動 Claude Code。
+Make sure you've set the environment variable and restarted Claude Code.
 
 ### "INVALID_API_KEY"
 
-您的 API 金鑰可能不正確或已被撤銷。請從 [felo.ai](https://felo.ai) 產生新的金鑰。
+Your API key may be incorrect or revoked. Generate a new one from [felo.ai](https://felo.ai).
 
-### 中文字元無法正常運作
+### Chinese characters not working
 
-此 skill 會自動使用 JSON 檔案處理中文字元。如果仍遇到問題，請確認您的終端機支援 UTF-8 編碼。
+The skill automatically handles Chinese characters by using JSON files. If you still encounter issues, ensure your terminal supports UTF-8 encoding.
 
-## 貢獻
+## Contributing
 
-歡迎貢獻！請隨時提交 issues 或 pull requests。
+Contributions are welcome! Please feel free to submit issues or pull requests.
 
-## 授權
+## License
 
-MIT License - 歡迎自由使用和修改。
+MIT License - feel free to use and modify as needed.
 
-## 相關連結
+## Links
 
 - [Felo Open Platform](https://felo.ai)
-- [API 文件](https://openapi.felo.ai)
+- [API Documentation](https://openapi.felo.ai)
 - [Claude Code](https://claude.ai/code)

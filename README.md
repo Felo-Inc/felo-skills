@@ -1,34 +1,42 @@
 # Felo Skills for Claude Code
 
-這是一個為 Claude Code 設計的 skills 集合，整合 Felo Open Platform 的 API 能力。
+A collection of skills for Claude Code that integrate Felo Open Platform API capabilities.
 
-## Skills 列表
+## Skills List
 
 ### felo-search
 
-使用 Felo AI 執行智慧網路搜尋，取得 AI 生成的答案與來源引用。
+Perform intelligent web searches using Felo AI and get AI-generated answers with source citations.
 
-[查看詳細說明 →](./felo-search/)
+[View Details →](./felo-search/)
 
-## 安裝方式
+## Installation
 
-1. 將 skill 資料夾複製到您的 Claude Code skills 目錄：
+### Quick Install (Recommended)
+
+```bash
+npx @claude/skills add felo-search
+```
+
+### Manual Installation
+
+1. Copy the skill folder to your Claude Code skills directory:
    - **Linux/macOS:** `~/.claude/skills/`
-   - **Windows:** `C:\Users\<您的使用者名稱>\.claude\skills\`
+   - **Windows:** `C:\Users\<YourUsername>\.claude\skills\`
 
-2. 依照各 skill 的說明文件設定所需的 API 金鑰
+2. Follow each skill's documentation to configure required API keys
 
-3. 重新啟動 Claude Code
+3. Restart Claude Code
 
-## 貢獻
+## Contributing
 
-歡迎貢獻新的 skills 或改進現有的 skills！請隨時提交 issues 或 pull requests。
+Contributions are welcome! Feel free to submit issues or pull requests to add new skills or improve existing ones.
 
-## 授權
+## License
 
 MIT License
 
-## 相關連結
+## Links
 
 - [Felo Open Platform](https://felo.ai)
 - [Claude Code](https://claude.ai/code)
