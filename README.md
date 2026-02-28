@@ -302,7 +302,7 @@ We welcome contributions! Whether you want to:
 ## Links
 
 - **[Felo Open Platform](https://openapi.felo.ai/docs/)** - Get your API key
-- **[API Documentation](https://openapi.felo.ai)** - API reference
+- **[API Documentation](https://openapi.felo.ai/docs/api-reference/v2/chat.html)** - API reference
 - **[Claude Code](https://claude.ai/code)** - AI assistant CLI
 - **[Full Examples](./docs/EXAMPLES.md)** - 40+ usage examples
 - **[FAQ](./docs/FAQ.md)** - Troubleshooting guide
