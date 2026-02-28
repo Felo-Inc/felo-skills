@@ -1,145 +1,326 @@
 # Felo Skills for Claude Code
 
-A collection of powerful skills for [Claude Code](https://claude.ai/code) that integrate [Felo Open Platform](https://felo.ai) API capabilities to enhance your AI assistant with real-time web search and intelligent information retrieval.
+**Ask anything. Get current answers powered by AI.**
 
-## 🌟 Features
+Real-time web search powered by Felo AI. Works in Chinese, English, Japanese, and Korean.
 
-- **Real-time Web Search**: Access up-to-date information from the web
-- **AI-Generated Answers**: Get comprehensive, well-structured responses
-- **Source Citations**: Every answer includes links and references
-- **Multi-language Support**: Works seamlessly in multiple languages
-- **Auto-trigger Intelligence**: Automatically detects when web search is needed
-- **Easy Integration**: Simple installation and configuration
+[![Setup Time](https://img.shields.io/badge/setup-2%20minutes-blue)]() [![License](https://img.shields.io/badge/license-MIT-green)]()
 
-## 📦 Available Skills
+---
 
-### felo-search
+## Quick Start
 
-Perform intelligent web searches using Felo AI and get AI-generated answers with source citations.
-
-**Key Capabilities:**
-- 🔍 Real-time web search powered by Felo AI
-- 🤖 AI-generated comprehensive answers
-- 📚 Source citations with links and snippets
-- 🔄 Query analysis and optimization
-- 🌐 Multi-language support (automatically matches query language)
-- ⚡ Auto-trigger for latest news, weather, and real-time data
-
-[View Details →](./felo-search/)
-
-## 🚀 Quick Start
-
-### Installation
-
-**Option 1: Quick Install (Recommended)**
-
+Install the skill:
 ```bash
 npx @claude/skills add felo-search
 ```
 
-**Option 2: Manual Installation**
+Get your API key from [felo.ai](https://felo.ai) (Settings → API Keys), then configure:
 
-1. Clone this repository or download the skill folder:
+**Linux/macOS:**
+```bash
+export FELO_API_KEY="your-api-key-here"
+# Add to ~/.bashrc or ~/.zshrc for persistence
+```
+
+**Windows (PowerShell):**
+```powershell
+$env:FELO_API_KEY="your-api-key-here"
+# For persistence, add to system environment variables
+```
+
+Test it works:
+```
+Ask Claude: "What's the weather in Tokyo today?"
+```
+
+**You're done!** The skill triggers automatically for any question needing current information.
+
+---
+
+## Usage Examples
+
+### Daily Life
+
+**Weather**
+```
+You: What's the weather in Tokyo today?
+Claude: [Current temperature, conditions, forecast]
+
+You: 杭州明天天气怎么样？
+Claude: [明天杭州天气预报，温度范围，降水概率]
+```
+
+**Restaurants & Food**
+```
+You: Best ramen in Osaka
+Claude: [Top-rated ramen shops with addresses, ratings, reviews]
+
+You: 上海哪里有好吃的小笼包？
+Claude: [推荐餐厅列表，地址，特色菜品]
+```
+
+**Shopping & Prices**
+```
+You: iPhone 15 Pro price comparison
+Claude: [Prices from different retailers with links]
+
+You: MacBook Air M3 多少钱？
+Claude: [各渠道价格对比，优惠信息]
+```
+
+**Travel**
+```
+You: Things to do in Kyoto this weekend
+Claude: [Events, attractions, seasonal activities]
+
+You: 台北有什么好玩的地方？
+Claude: [景点推荐，开放时间，交通方式]
+```
+
+### Developer Scenarios
+
+**Latest Documentation**
+```
+You: React 19 new features
+Claude: [Latest React 19 features with official docs links]
+
+You: Next.js 15 有什么新功能？
+Claude: [Next.js 15 新特性总结，文档链接]
+```
+
+**Library Comparison**
+```
+You: Vite vs Webpack 2024 comparison
+Claude: [Performance, features, use cases comparison]
+
+You: Vue 3 和 React 哪个更适合新项目？
+Claude: [对比分析，适用场景，社区生态]
+```
+
+**Tech Trends**
+```
+You: Latest AI developments January 2026
+Claude: [Recent AI breakthroughs, company announcements]
+
+You: 最近有什么重要的技术新闻？
+Claude: [近期科技动态，行业趋势]
+```
+
+### Multi-language Queries
+
+Works seamlessly in:
+- **Chinese (Simplified)**: "人工智能最新进展"
+- **Chinese (Traditional)**: "台北最近有什麼新鮮事？"
+- **Japanese**: "東京で今人気のレストランは？"
+- **Korean**: "서울 맛집 추천"
+- **Mixed**: "React 在中国的使用情况"
+
+### Complex Queries
+
+**Research & Analysis**
+```
+You: Impact of AI on software development 2024-2026
+Claude: [Comprehensive analysis with statistics, trends, expert opinions]
+
+You: 量子计算对密码学的影响
+Claude: [深度分析，技术挑战，未来展望]
+```
+
+**Comparisons**
+```
+You: Cloud providers comparison: AWS vs Azure vs GCP
+Claude: [Detailed comparison table, pricing, use cases]
+
+You: 编程语言性能对比：Python vs Go vs Rust
+Claude: [性能测试数据，适用场景，学习曲线]
+```
+
+**[See 40+ more examples →](./docs/EXAMPLES.md)**
+
+---
+
+## Installation Details
+
+### Prerequisites
+
+- [Claude Code](https://claude.ai/code) CLI installed
+- Node.js (for npx command)
+- Internet connection
+
+### Manual Installation
+
+If quick install doesn't work, install manually:
+
+1. Clone this repository:
    ```bash
    git clone https://github.com/Felo-Inc/felo-skills.git
    cd felo-skills
    ```
 
-2. Copy the skill to your Claude Code skills directory:
+2. Copy to Claude Code skills directory:
    - **Linux/macOS:** `~/.claude/skills/`
    - **Windows:** `C:\Users\<YourUsername>\.claude\skills\`
 
-3. Follow each skill's documentation to configure required API keys
-
-4. Restart Claude Code
-
-### Configuration
-
-Each skill requires its own API key. For `felo-search`:
-
-1. Get your Felo API Key from [felo.ai](https://felo.ai) (Settings → API Keys)
-2. Set the environment variable:
    ```bash
-   export FELO_API_KEY="your-api-key-here"
+   # Linux/macOS
+   cp -r felo-search ~/.claude/skills/
+
+   # Windows (PowerShell)
+   Copy-Item -Recurse felo-search "$env:USERPROFILE\.claude\skills\"
    ```
-3. Restart Claude Code
 
-See individual skill documentation for detailed setup instructions.
+3. Get API key from [felo.ai](https://felo.ai) (Settings → API Keys)
 
-## 💡 Usage Examples
+4. Set environment variable (see Quick Start section)
 
-Once installed, the skills work automatically. For example, with `felo-search`:
+5. Restart Claude Code:
+   ```bash
+   claude restart
+   ```
 
-```
-You: What's the weather in Tokyo today?
-Claude: [Automatically uses Felo to search and provides current weather with sources]
+### Verify Installation
 
-You: Latest developments in quantum computing
-Claude: [Searches and provides up-to-date information with citations]
-
-You: Best restaurants in Paris
-Claude: [Returns current recommendations with links and reviews]
+Check the skill is loaded:
+```bash
+claude skills list
 ```
 
-## 🛠️ Development
+You should see `felo-search` in the output.
 
-### Project Structure
-
+Test with a query:
 ```
-felo-skills/
-├── README.md                 # This file
-├── felo-search/             # Felo search skill
-│   ├── SKILL.md            # Skill implementation
-│   ├── README.md           # Skill documentation
-│   └── LICENSE             # MIT License
-└── .gitignore
+Ask Claude: "Latest news about quantum computing"
 ```
 
-### Adding New Skills
+If you see an AI-generated answer, it's working!
 
-We welcome contributions! To add a new skill:
+---
 
-1. Fork this repository
-2. Create a new folder for your skill
-3. Include `SKILL.md`, `README.md`, and `LICENSE`
-4. Follow the existing skill structure
-5. Submit a pull request
+## FAQ
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
+### Q: Skill not triggering automatically?
 
-## 📋 Requirements
+**A:** The skill triggers for questions needing current info (weather, news, prices, etc.). For manual trigger, use:
+```
+/felo-search your query here
+```
 
-- [Claude Code](https://claude.ai/code) CLI
-- Felo API Key (free tier available at [felo.ai](https://felo.ai))
-- Internet connection
+### Q: "FELO_API_KEY not set" error?
 
-## 🤝 Contributing
+**A:** Set the environment variable:
+```bash
+# Linux/macOS
+export FELO_API_KEY="your-key"
 
-Contributions are welcome! Whether you want to:
+# Windows PowerShell
+$env:FELO_API_KEY="your-key"
+```
 
+Then restart Claude Code.
+
+### Q: Environment variable not persisting?
+
+**A:** Add to your shell profile:
+- **bash**: Add to `~/.bashrc`
+- **zsh**: Add to `~/.zshrc`
+- **Windows**: Add to system environment variables (System Properties → Environment Variables)
+
+### Q: "INVALID_API_KEY" error?
+
+**A:** Your API key is incorrect or revoked. Generate a new one at [felo.ai](https://felo.ai) (Settings → API Keys).
+
+### Q: Does it work in Chinese/Japanese/Korean?
+
+**A:** Yes! Fully supports multi-language queries. Ask in any language, get answers in that language.
+
+### Q: What's the response format?
+
+**A:** Each response includes:
+1. **AI-generated answer** - Comprehensive, well-structured
+2. **Query analysis** - Optimized search queries used
+
+### Q: "curl: command not found" error?
+
+**A:** Install curl:
+```bash
+# Linux (Debian/Ubuntu)
+sudo apt install curl
+
+# macOS
+brew install curl
+
+# Windows
+# curl is built-in on Windows 10+
+```
+
+### Q: Rate limits?
+
+**A:** Check your Felo account tier at [felo.ai](https://felo.ai). Free tier available.
+
+### Q: Can I use it offline?
+
+**A:** No, requires internet connection to Felo API.
+
+### Q: How fast are responses?
+
+**A:** Typically 2-5 seconds depending on query complexity.
+
+**[See full FAQ →](./docs/FAQ.md)**
+
+---
+
+## Available Skills
+
+### felo-search
+
+Real-time web search with AI-generated answers.
+
+**Triggers automatically for:**
+- Current events & news
+- Weather, prices, reviews
+- Location info (restaurants, attractions)
+- Latest documentation & tech trends
+- Product comparisons
+- Any question with "latest", "recent", "best", "how to"
+
+**[View skill documentation →](./felo-search/)**
+
+---
+
+## Contributing
+
+We welcome contributions! Whether you want to:
+- Report bugs or request features
+- Improve documentation
 - Add new skills
-- Improve existing skills
-- Fix bugs
-- Enhance documentation
 
-Please feel free to submit issues or pull requests.
+**[See contributing guide →](./CONTRIBUTING.md)**
 
-## 📄 License
+---
 
-MIT License - see individual skill folders for details.
+## Links
 
-## 🔗 Links
+- **[Felo Open Platform](https://openapi.felo.ai/docs/)** - Get your API key
+- **[API Documentation](https://openapi.felo.ai)** - API reference
+- **[Claude Code](https://claude.ai/code)** - AI assistant CLI
+- **[Full Examples](./docs/EXAMPLES.md)** - 40+ usage examples
+- **[FAQ](./docs/FAQ.md)** - Troubleshooting guide
+- **[GitHub Issues](https://github.com/Felo-Inc/felo-skills/issues)** - Report bugs
 
-- [Felo Open Platform](https://felo.ai) - Get your API key
-- [Felo API Documentation](https://openapi.felo.ai) - API reference
-- [Claude Code](https://claude.ai/code) - AI assistant CLI
-- [GitHub Issues](https://github.com/Felo-Inc/felo-skills/issues) - Report bugs or request features
+---
 
-## 📞 Support
+## Support
 
-- **Documentation**: Check individual skill README files
+- **Documentation**: Check [FAQ](./docs/FAQ.md) and skill README files
 - **Issues**: [GitHub Issues](https://github.com/Felo-Inc/felo-skills/issues)
 - **Email**: support@felo.ai
+
+---
+
+## License
+
+MIT License - see [LICENSE](./felo-search/LICENSE) for details.
 
 ---
 
