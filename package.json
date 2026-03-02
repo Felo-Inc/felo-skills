@@ -1,6 +1,6 @@
 {
   "name": "felo-search",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Felo AI CLI - real-time search from the terminal",
   "type": "module",
   "main": "src/cli.js",
@@ -24,7 +24,8 @@
     "url": "https://github.com/Felo-Inc/felo-skills.git"
   },
   "dependencies": {
-    "commander": "^12.0.0"
+    "commander": "^12.0.0",
+    "felo-search": "^0.1.1"
   },
   "scripts": {
     "test": "node --test tests/"
