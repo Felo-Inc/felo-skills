@@ -10,17 +10,33 @@ Real-time web search powered by Felo AI. Works in Chinese, English, Japanese, an
 
 ## Felo CLI (Terminal)
 
-Use Felo search from the terminal without opening Claude Code:
+Use Felo search from the terminal without opening Claude Code.
+
+### Install
 
 ```bash
-# Install
-npm install -g felo
-
-# Or run without installing
-npx felo search "东京天气"
+npm install -g felo-search
 ```
 
-Configure your API key (same as the skill):
+Or run without installing (uses latest published version):
+
+```bash
+npx felo-search search "东京天气"
+```
+
+After install, the command is `felo` (from the package name `felo-search`).
+
+### Configure API key
+
+**Option 1: Persist with config (recommended)**
+
+```bash
+felo config set FELO_API_KEY your-api-key-here
+```
+
+The key is stored in `~/.felo/config.json` (Windows: `%USERPROFILE%\.felo\config.json`). You only need to set it once.
+
+**Option 2: Environment variable**
 
 ```bash
 # Linux/macOS
@@ -30,13 +46,35 @@ export FELO_API_KEY="your-api-key-here"
 $env:FELO_API_KEY="your-api-key-here"
 ```
 
-Examples:
+Get your API key from [felo.ai](https://felo.ai) (Settings → API Keys). Environment variable overrides config if both are set.
+
+### Commands
+
+| Command | Description |
+|--------|-------------|
+| `felo search "<query>"` | Search for current info (weather, news, prices, etc.) |
+| `felo config set FELO_API_KEY <key>` | Save API key to config |
+| `felo config get FELO_API_KEY` | Print stored key |
+| `felo config list` | List config keys |
+| `felo config path` | Show config file path |
+| `felo summarize` / `felo translate` | Planned; use `felo search` for now |
+
+### Examples
 
 ```bash
 felo search "东京天气"
-felo search "杭州明天天气"
-felo search "React 19 new features" --json
+felo search "MacBook Air M3 多少钱"
+felo search "React 19 new features" --verbose
+felo search "杭州明天天气" --json
+npx felo-search search "Tokyo weather"
 ```
+
+### CLI FAQ
+
+- **Key not found?** Run `felo config set FELO_API_KEY <key>` or set the `FELO_API_KEY` environment variable.
+- **Request timeout?** Use `felo search "query" --timeout 120` (default 60 seconds). 5xx errors are retried automatically with backoff.
+- **Where is config stored?** Run `felo config path` to see the file (e.g. `~/.felo/config.json`).
+- **Streaming?** Not yet; when the Felo API supports streaming, the CLI can be updated to stream output.
 
 ---
 
@@ -326,6 +364,8 @@ We welcome contributions! Whether you want to:
 - Report bugs or request features
 - Improve documentation
 - Add new skills
+
+Run CLI tests: `npm test`
 
 **[See contributing guide →](./CONTRIBUTING.md)**
 
