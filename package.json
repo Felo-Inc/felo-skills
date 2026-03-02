@@ -1,0 +1,32 @@
+{
+  "name": "felo-search",
+  "version": "0.1.0",
+  "description": "Felo AI CLI - real-time search from the terminal",
+  "type": "module",
+  "main": "src/cli.js",
+  "bin": {
+    "felo": "src/cli.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "felo",
+    "felo-ai",
+    "felo-search",
+    "search",
+    "cli",
+    "ai"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Felo-Inc/felo-skills.git"
+  },
+  "dependencies": {
+    "commander": "^12.0.0"
+  },
+  "scripts": {
+    "test": "node --test tests/"
+  }
+}
