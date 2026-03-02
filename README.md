@@ -8,7 +8,39 @@ Real-time web search powered by Felo AI. Works in Chinese, English, Japanese, an
 
 ---
 
-## Quick Start
+## Felo CLI (Terminal)
+
+Use Felo search from the terminal without opening Claude Code:
+
+```bash
+# Install
+npm install -g felo
+
+# Or run without installing
+npx felo search "东京天气"
+```
+
+Configure your API key (same as the skill):
+
+```bash
+# Linux/macOS
+export FELO_API_KEY="your-api-key-here"
+
+# Windows (PowerShell)
+$env:FELO_API_KEY="your-api-key-here"
+```
+
+Examples:
+
+```bash
+felo search "东京天气"
+felo search "杭州明天天气"
+felo search "React 19 new features" --json
+```
+
+---
+
+## Quick Start (Claude Code Skill)
 
 Install the skill:
 ```bash
