@@ -1,6 +1,6 @@
 {
   "name": "felo-search",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Felo AI CLI - real-time search from the terminal",
   "type": "module",
   "main": "src/cli.js",
