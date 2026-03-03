@@ -22,7 +22,7 @@ async function getApiKey() {
   return typeof fromConfig === 'string' ? fromConfig.trim() : '';
 }
 
-export { getApiKey };
+export { getApiKey, fetchWithTimeoutAndRetry, NO_KEY_MESSAGE };
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -62,8 +62,6 @@ async function fetchWithTimeoutAndRetry(url, options, timeoutMs = DEFAULT_TIMEOU
   }
   throw lastError;
 }
-
-export { fetchWithTimeoutAndRetry };
 
 export async function search(query, options = {}) {
   const apiKey = await getApiKey();
