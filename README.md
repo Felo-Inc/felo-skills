@@ -6,6 +6,9 @@ Felo AI 提供终端 CLI 与 Claude Code 技能，支持多语言（中/英/日/
 
 [![Setup Time](https://img.shields.io/badge/setup-2%20minutes-blue)]() [![License](https://img.shields.io/badge/license-MIT-green)]()
 
+**多语言介绍 / Intro in your language:**  
+[简体中文](README.zh-CN.md) · [English](README.en.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [繁體中文](README.zh-TW.md)
+
 ---
 
 ## 两大能力
