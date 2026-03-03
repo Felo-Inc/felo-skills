@@ -1,30 +1,63 @@
-# Felo Skills for Claude Code
+# Felo AI
 
 **Ask anything. Get current answers powered by AI.**
 
-Real-time web search powered by Felo AI. Works in Chinese, English, Japanese, and Korean.
+Felo AI 提供终端 CLI 与 Claude Code 技能，支持多语言（中/英/日/韩）。
 
 [![Setup Time](https://img.shields.io/badge/setup-2%20minutes-blue)]() [![License](https://img.shields.io/badge/license-MIT-green)]()
 
+**多语言介绍 / Intro in your language:**  
+[简体中文](README.zh-CN.md) · [English](README.en.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [繁體中文](README.zh-TW.md)
+
 ---
 
-## Felo CLI (Terminal)
+## 两大能力
 
-Use Felo search from the terminal without opening Claude Code.
+Felo AI 提供两个核心能力：**实时搜索** 与 **PPT 生成**。可在终端用 CLI 使用，也可在 Claude Code 中通过技能使用（搜索支持自动触发）。
 
-### Install
+---
+
+### 能力一：实时搜索
+
+联网搜索最新信息，由 AI 整合成可直接使用的回答。适合查天气、新闻、价格、文档、技术动态等一切需要「当下」信息的场景。
+
+- **支持多语言**：中文、英文、日文、韩文等，用你习惯的语言提问即可。
+- **使用方式**：
+  - **终端**：`felo search "你的问题"`
+  - **Claude Code**：安装技能后，问「东京今天天气」「React 19 新特性」等会自动触发搜索并返回结果；也可手动输入 `/felo-ai 你的问题`。
+- **示例**：`felo search "杭州明天天气"`、`felo search "MacBook Air M3 多少钱"`、`felo search "React 19 new features" --verbose`
+
+---
+
+### 能力二：生成 PPT
+
+根据一句描述或主题，自动生成一份 PPT。任务在云端执行，完成后返回**在线文档链接**，可直接在浏览器打开查看/编辑。
+
+- **异步生成**：提交提示后 CLI 会轮询任务状态，完成后输出 `live_doc_url`，无需本地 Office。
+- **使用方式**：
+  - **终端**：`felo slides "你的主题或描述"`
+  - 可选 `--verbose` 查看轮询进度，`--json` 输出原始 JSON（含 `task_id`、`live_doc_url`）。
+- **示例**：`felo slides "Felo 产品介绍，3 页"`、`felo slides "Introduction to React"`、`felo slides "季度复盘总结" --poll-timeout 300`
+
+---
+
+## Felo CLI（终端）
+
+在终端直接使用 Felo，无需打开 Claude Code。
+
+### 安装
 
 ```bash
-npm install -g felo-search
+npm install -g felo-ai
 ```
 
-Or run without installing (uses latest published version):
+不安装直接运行（使用最新发布版本）：
 
 ```bash
-npx felo-search search "东京天气"
+npx felo-ai search "东京天气"
 ```
 
-After install, the command is `felo` (from the package name `felo-search`).
+安装后命令为 `felo`（来自包名 `felo-ai`）。
 
 ### Configure API key
 
@@ -48,16 +81,14 @@ $env:FELO_API_KEY="your-api-key-here"
 
 Get your API key from [felo.ai](https://felo.ai) (Settings → API Keys). Environment variable overrides config if both are set.
 
-### Commands
+### 命令一览
 
-| Command | Description |
-|--------|-------------|
-| `felo search "<query>"` | Search for current info (weather, news, prices, etc.) |
-| `felo config set FELO_API_KEY <key>` | Save API key to config |
-| `felo config get FELO_API_KEY` | Print stored key |
-| `felo config list` | List config keys |
-| `felo config path` | Show config file path |
-| `felo summarize` / `felo translate` | Planned; use `felo search` for now |
+| 命令 | 说明 |
+|------|------|
+| `felo search "<query>"` | **能力一：实时搜索** — 查天气、新闻、价格、文档等，AI 整合回答 |
+| `felo slides "<prompt>"` | **能力二：生成 PPT** — 按描述生成 PPT，完成后输出在线文档链接 |
+| `felo config set FELO_API_KEY <key>` | 保存 API Key（推荐首次使用前配置） |
+| `felo config get/list/path/unset` | 查看、列出、定位或删除配置 |
 
 ### Examples
 
@@ -66,7 +97,7 @@ felo search "东京天气"
 felo search "MacBook Air M3 多少钱"
 felo search "React 19 new features" --verbose
 felo search "杭州明天天气" --json
-npx felo-search search "Tokyo weather"
+npx felo-ai search "Tokyo weather"
 ```
 
 ### CLI FAQ
@@ -78,11 +109,11 @@ npx felo-search search "Tokyo weather"
 
 ---
 
-## Quick Start (Claude Code Skill)
+## Quick Start（Claude Code 技能）
 
-Install the skill:
+安装技能：
 ```bash
-npx @claude/skills add felo-search
+npx @claude/skills add felo-ai
 ```
 
 Get your API key from [felo.ai](https://felo.ai) (Settings → API Keys), then configure:
@@ -238,6 +269,7 @@ If quick install doesn't work, install manually:
 
    # Windows (PowerShell)
    Copy-Item -Recurse felo-search "$env:USERPROFILE\.claude\skills\"
+   # 注：技能目录名可能为 felo-search，以仓库内文件夹为准
    ```
 
 3. Get API key from [felo.ai](https://felo.ai) (Settings → API Keys)
@@ -256,7 +288,7 @@ Check the skill is loaded:
 claude skills list
 ```
 
-You should see `felo-search` in the output.
+You should see `felo-ai` 或 `felo-search` in the output（取决于技能注册名）.
 
 Test with a query:
 ```
@@ -273,7 +305,7 @@ If you see an AI-generated answer, it's working!
 
 **A:** The skill triggers for questions needing current info (weather, news, prices, etc.). For manual trigger, use:
 ```
-/felo-search your query here
+/felo-ai your query here
 ```
 
 ### Q: "FELO_API_KEY not set" error?
@@ -340,21 +372,15 @@ brew install curl
 
 ---
 
-## Available Skills
+## Claude Code 技能说明
 
-### felo-search
+在 Claude Code 中安装 `felo-ai` 后，**实时搜索**会作为技能自动生效：当问题涉及天气、新闻、价格、最新文档等需要联网的信息时，会自动调用 Felo 搜索并返回回答。也可手动输入 `/felo-ai 你的问题` 触发。
 
-Real-time web search with AI-generated answers.
+**典型触发场景**：时事新闻、天气/价格/点评、地点（餐厅/景点）、最新技术文档与动态、产品对比，以及含「最新」「最近」「最好」「怎么」等的提问。
 
-**Triggers automatically for:**
-- Current events & news
-- Weather, prices, reviews
-- Location info (restaurants, attractions)
-- Latest documentation & tech trends
-- Product comparisons
-- Any question with "latest", "recent", "best", "how to"
+PPT 生成目前仅支持在终端通过 `felo slides` 使用。
 
-**[View skill documentation →](./felo-search/)**
+**[搜索技能详细文档 →](./felo-search/)**
 
 ---
 
