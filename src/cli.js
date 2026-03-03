@@ -3,6 +3,7 @@
 import { createRequire } from 'module';
 import { Command } from 'commander';
 import { search } from './search.js';
+import { slides } from './slides.js';
 import * as config from './config.js';
 
 const require = createRequire(import.meta.url);
@@ -30,6 +31,28 @@ program
       timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
     });
     process.exit(code);
+  });
+
+program
+  .command('slides')
+  .description('Generate PPT/slides from a prompt (async task, outputs live doc URL when done)')
+  .argument('<query>', 'PPT generation prompt (e.g. "Felo, 2 pages" or "Introduction to React")')
+  .option('-j, --json', 'output raw JSON with task_id and live_doc_url')
+  .option('-v, --verbose', 'show polling status')
+  .option('-t, --timeout <seconds>', 'request timeout in seconds for each API call', '60')
+  .option('--poll-timeout <seconds>', 'max seconds to wait for task completion', '600')
+  .action(async (query, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const pollTimeoutMs = parseInt(opts.pollTimeout, 10) * 1000 || 600000;
+    const code = await slides(query, {
+      json: opts.json,
+      verbose: opts.verbose,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+      pollTimeoutMs: Number.isNaN(pollTimeoutMs) ? 600000 : pollTimeoutMs,
+    });
+    process.exitCode = code;
+    // Defer exit so stderr can flush; reduces Node.js Windows assertion (UV_HANDLE_CLOSING)
+    setTimeout(() => process.exit(code), 0);
   });
 
 const configCmd = program

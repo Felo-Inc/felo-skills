@@ -53,6 +53,7 @@ Get your API key from [felo.ai](https://felo.ai) (Settings → API Keys). Enviro
 | Command | Description |
 |--------|-------------|
 | `felo search "<query>"` | Search for current info (weather, news, prices, etc.) |
+| `felo slides "<query>"` | Generate PPT from a prompt (outputs live doc URL when done) |
 | `felo config set FELO_API_KEY <key>` | Save API key to config |
 | `felo config get FELO_API_KEY` | Print stored key |
 | `felo config list` | List config keys |
