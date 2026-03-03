@@ -15,7 +15,7 @@ Trigger this skill for requests about creating presentation files:
 - Export presentation content into a shareable slide link
 
 Trigger keywords:
-- Chinese: 生成PPT, 做PPT, 幻灯片, 演示文稿, 汇报, 路演
+- Chinese prompts about making slides or presentations
 - English: slides, PPT, presentation deck, generate presentation
 - Explicit commands: `/felo-slides`, "use felo slides"
 
@@ -149,3 +149,4 @@ Timeout handling:
 
 - [Felo PPT Task API](https://openapi.felo.ai/docs/api-reference/v2/ppt-tasks.html)
 - [Felo Open Platform](https://openapi.felo.ai/docs/)
+
