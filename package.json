@@ -1,5 +1,5 @@
 {
-  "name": "felo-search",
+  "name": "felo-ai",
   "version": "0.2.0",
   "description": "Felo AI CLI - real-time search from the terminal",
   "type": "module",
@@ -13,8 +13,8 @@
   "keywords": [
     "felo",
     "felo-ai",
-    "felo-search",
     "search",
+    "slides",
     "cli",
     "ai"
   ],
