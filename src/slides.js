@@ -2,7 +2,7 @@ import { getApiKey, fetchWithTimeoutAndRetry, NO_KEY_MESSAGE } from './search.js
 
 const DEFAULT_API_BASE = 'https://openapi.felo.ai';
 const DEFAULT_REQUEST_TIMEOUT_MS = 60_000;
-const POLL_INTERVAL_MS = 3000;
+const POLL_INTERVAL_MS = 10_000;
 const MAX_POLL_TIMEOUT_MS = 600_000; // 10 minutes max wait
 
 const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
@@ -33,6 +33,10 @@ function writeStatusLine(spinnerFrame, elapsedSec) {
 
 function clearStatusLine() {
   process.stderr.write(`\r${' '.repeat(STATUS_LINE_PAD)}\r`);
+}
+
+function normalizeTaskStatus(status) {
+  return String(status || '').trim().toUpperCase();
 }
 
 /**
@@ -76,7 +80,7 @@ async function createPptTask(apiKey, query, timeoutMs, apiBase) {
 }
 
 /**
- * Get task historical info. Returns { task_status, live_doc_url? } or throws.
+ * Get task historical info. Returns { task_status, live_doc_url?, live_doc_short_id? } or throws.
  * Uses fetchWithTimeoutAndRetry for 5xx retry (per PPT Task API error codes).
  */
 async function getTaskHistorical(apiKey, taskId, timeoutMs, apiBase) {
@@ -111,8 +115,9 @@ async function getTaskHistorical(apiKey, taskId, timeoutMs, apiBase) {
   }
 
   return {
-    task_status: payload.task_status,
+    task_status: payload.task_status ?? payload.status,
     live_doc_url: payload.live_doc_url,
+    live_doc_short_id: payload.live_doc_short_id ?? payload.livedoc_short_id,
   };
 }
 
@@ -158,7 +163,8 @@ export async function slides(query, options = {}) {
       await sleep(pollIntervalMs);
 
       const historical = await getTaskHistorical(apiKey, taskId, requestTimeoutMs, apiBase);
-      lastStatus = historical.task_status;
+      const normalizedStatus = normalizeTaskStatus(historical.task_status);
+      lastStatus = normalizedStatus || historical.task_status;
 
       if (useLiveStatus) {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
@@ -166,11 +172,13 @@ export async function slides(query, options = {}) {
         writeStatusLine(SPINNER_FRAMES[spinIndex], elapsed);
       }
 
-      // Doc: historical returns task_status "COMPLETED"; polling section also mentions "SUCCESS"
-      const done = historical.task_status === 'COMPLETED' || historical.task_status === 'SUCCESS';
+      const done = normalizedStatus === 'COMPLETED' || normalizedStatus === 'SUCCESS';
       if (done) {
         if (useLiveStatus) clearStatusLine();
-        const url = historical.live_doc_url;
+        const url =
+          historical.live_doc_url ||
+          (historical.live_doc_short_id ? `https://felo.ai/livedoc/${historical.live_doc_short_id}` : null) ||
+          (createResult.livedoc_short_id ? `https://felo.ai/livedoc/${createResult.livedoc_short_id}` : null);
         if (options.json) {
           console.log(
             JSON.stringify(
@@ -178,7 +186,7 @@ export async function slides(query, options = {}) {
                 status: 'ok',
                 data: {
                   task_id: taskId,
-                  task_status: historical.task_status,
+                  task_status: normalizedStatus || historical.task_status,
                   live_doc_url: url,
                   livedoc_short_id: createResult.livedoc_short_id,
                   ppt_business_id: createResult.ppt_business_id,
@@ -201,17 +209,16 @@ export async function slides(query, options = {}) {
       }
 
       if (
-        historical.task_status === 'FAILED' ||
-        historical.task_status === 'ERROR' ||
-        (historical.task_status !== 'RUNNING' && historical.task_status !== 'PENDING')
+        normalizedStatus === 'FAILED' ||
+        normalizedStatus === 'ERROR'
       ) {
         if (useLiveStatus) clearStatusLine();
-        console.error(`Error: Task finished with status: ${historical.task_status}`);
+        console.error(`Error: Task finished with status: ${normalizedStatus || historical.task_status}`);
         return 1;
       }
 
       if (options.verbose) {
-        process.stderr.write(`  Status: ${historical.task_status}\n`);
+        process.stderr.write(`  Status: ${normalizedStatus || historical.task_status || 'UNKNOWN'}\n`);
       }
     }
 
