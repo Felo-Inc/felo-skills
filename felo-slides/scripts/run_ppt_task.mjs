@@ -2,7 +2,7 @@
 
 const DEFAULT_API_BASE = 'https://openapi.felo.ai';
 const DEFAULT_INTERVAL_SEC = 10;
-const DEFAULT_MAX_WAIT_SEC = 600;
+const DEFAULT_MAX_WAIT_SEC = 1800;
 const DEFAULT_TIMEOUT_SEC = 60;
 
 function usage() {
@@ -14,7 +14,7 @@ function usage() {
       'Options:',
       '  --query <text>        PPT prompt (required)',
       '  --interval <seconds>  Poll interval, default 10',
-      '  --max-wait <seconds>  Max wait time, default 600',
+      '  --max-wait <seconds>  Max wait time, default 1800',
       '  --timeout <seconds>   Request timeout, default 60',
       '  --json                Print JSON output',
       '  --verbose             Print polling status to stderr',
@@ -114,12 +114,18 @@ async function fetchJson(url, init, timeoutMs) {
   }
 }
 
-function extractLiveDocUrl(historicalData, createData) {
-  const url = historicalData?.live_doc_url;
-  if (url) return url;
-  const sid = historicalData?.live_doc_short_id || historicalData?.livedoc_short_id || createData?.livedoc_short_id;
-  if (sid) return `https://felo.ai/livedoc/${sid}`;
-  return '';
+function extractTaskUrls(historicalData, createData) {
+  const pptUrl = historicalData?.ppt_url || '';
+  const liveDocUrl =
+    historicalData?.live_doc_url ||
+    (historicalData?.live_doc_short_id || historicalData?.livedoc_short_id || createData?.livedoc_short_id
+      ? `https://felo.ai/livedoc/${historicalData?.live_doc_short_id || historicalData?.livedoc_short_id || createData?.livedoc_short_id}`
+      : '');
+  return {
+    pptUrl,
+    liveDocUrl,
+    displayUrl: pptUrl || liveDocUrl,
+  };
 }
 
 async function createTask(apiKey, apiBase, query, timeoutMs) {
@@ -192,7 +198,7 @@ async function main() {
   while (Date.now() - startAt <= maxWaitMs) {
     const historicalData = await queryHistorical(apiKey, apiBase, taskId, timeoutMs);
     const taskStatus = normalizeStatus(historicalData.task_status || historicalData.status);
-    const liveDocUrl = extractLiveDocUrl(historicalData, createData);
+    const urls = extractTaskUrls(historicalData, createData);
     lastStatus = taskStatus || 'UNKNOWN';
 
     if (args.verbose) {
@@ -201,8 +207,8 @@ async function main() {
     }
 
     if (taskStatus === 'COMPLETED' || taskStatus === 'SUCCESS') {
-      if (!liveDocUrl) {
-        throw new Error('Task completed but live_doc_url is missing');
+      if (!urls.displayUrl) {
+        throw new Error('Task completed but no ppt_url/live_doc_url is available');
       }
       if (args.json) {
         console.log(
@@ -212,7 +218,8 @@ async function main() {
               data: {
                 task_id: taskId,
                 task_status: taskStatus,
-                live_doc_url: liveDocUrl,
+                ppt_url: urls.pptUrl || null,
+                live_doc_url: urls.liveDocUrl || null,
                 livedoc_short_id: createData.livedoc_short_id ?? historicalData.live_doc_short_id ?? historicalData.livedoc_short_id ?? null,
                 ppt_business_id: createData.ppt_business_id ?? null,
               },
@@ -222,7 +229,7 @@ async function main() {
           )
         );
       } else {
-        console.log(liveDocUrl);
+        console.log(urls.displayUrl);
       }
       return;
     }
