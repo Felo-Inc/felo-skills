@@ -9,6 +9,31 @@ import * as config from './config.js';
 const require = createRequire(import.meta.url);
 const pkg = require('../package.json');
 
+/** Delay (ms) before process.exit to let Windows libuv finish handle cleanup. */
+const EXIT_DELAY_MS = 50;
+
+/**
+ * Flush stdout then stderr, then exit after a short delay. Avoids Node.js
+ * Windows UV_HANDLE_CLOSING assertion when process.exit() runs while streams
+ * or other handles are still closing.
+ * @param {number} code - Exit code.
+ */
+function flushStdioThenExit(code) {
+  const doExit = () => setTimeout(() => process.exit(code), EXIT_DELAY_MS);
+  const flushStderr = () => {
+    if (process.stderr?.writable && !process.stderr.destroyed) {
+      process.stderr.write('', () => doExit());
+    } else {
+      doExit();
+    }
+  };
+  if (process.stdout?.writable && !process.stdout.destroyed) {
+    process.stdout.write('', () => flushStderr());
+  } else {
+    flushStderr();
+  }
+}
+
 const program = new Command();
 
 program
@@ -31,8 +56,7 @@ program
       timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
     });
     process.exitCode = code;
-    // Defer exit so stdout/stderr can flush; avoids Node.js Windows UV_HANDLE_CLOSING assertion
-    setTimeout(() => process.exit(code), 0);
+    flushStdioThenExit(code);
   });
 
 program
@@ -53,8 +77,7 @@ program
       pollTimeoutMs: Number.isNaN(pollTimeoutMs) ? 1_200_000 : pollTimeoutMs,
     });
     process.exitCode = code;
-    // Defer exit so stderr can flush; reduces Node.js Windows assertion (UV_HANDLE_CLOSING)
-    setTimeout(() => process.exit(code), 0);
+    flushStdioThenExit(code);
   });
 
 const configCmd = program
@@ -68,9 +91,10 @@ configCmd
     try {
       await config.setConfig(key, value);
       console.log(`Set ${key}`);
+      flushStdioThenExit(0);
     } catch (e) {
       console.error('Error:', e.message);
-      process.exit(1);
+      flushStdioThenExit(1);
     }
   });
 
@@ -85,9 +109,10 @@ configCmd
       } else {
         console.log(config.maskValueForDisplay(key, value));
       }
+      flushStdioThenExit(0);
     } catch (e) {
       console.error('Error:', e.message);
-      process.exit(1);
+      flushStdioThenExit(1);
     }
   });
 
@@ -100,12 +125,13 @@ configCmd
       const keys = Object.keys(c);
       if (keys.length === 0) {
         console.log('No config set. Use: felo config set FELO_API_KEY <key>');
-        return;
+      } else {
+        keys.forEach((k) => console.log(k));
       }
-      keys.forEach((k) => console.log(k));
+      flushStdioThenExit(0);
     } catch (e) {
       console.error('Error:', e.message);
-      process.exit(1);
+      flushStdioThenExit(1);
     }
   });
 
@@ -116,9 +142,10 @@ configCmd
     try {
       await config.unsetConfig(key);
       console.log(`Unset ${key}`);
+      flushStdioThenExit(0);
     } catch (e) {
       console.error('Error:', e.message);
-      process.exit(1);
+      flushStdioThenExit(1);
     }
   });
 
@@ -127,6 +154,7 @@ configCmd
   .description('Show config file path')
   .action(() => {
     console.log(config.getConfigPath());
+    flushStdioThenExit(0);
   });
 
 program
@@ -135,7 +163,7 @@ program
   .argument('[input]', 'text or URL to summarize')
   .action(() => {
     console.error('summarize: not yet implemented. Use felo search for now.');
-    process.exit(1);
+    flushStdioThenExit(1);
   });
 
 program
@@ -144,7 +172,7 @@ program
   .argument('[text]', 'text to translate')
   .action(() => {
     console.error('translate: not yet implemented. Use felo search for now.');
-    process.exit(1);
+    flushStdioThenExit(1);
   });
 
 program.parse();
