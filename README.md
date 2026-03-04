@@ -21,7 +21,7 @@ npm install -g felo-search
 Or run without installing (uses latest published version):
 
 ```bash
-npx felo-search search "东京天气"
+npx felo-search search "Tokyo weather"
 ```
 
 After install, the command is `felo` (from the package name `felo-search`).
@@ -65,7 +65,7 @@ Get your API key from [felo.ai](https://felo.ai) (Settings → API Keys). Enviro
 felo search "Tokyo weather"
 felo search "MacBook Air M3 price"
 felo search "React 19 new features" --verbose
-felo search "杭州明天天气" --json
+felo search "Hangzhou tomorrow weather" --json
 npx felo-search search "Tokyo weather"
 ```
 
