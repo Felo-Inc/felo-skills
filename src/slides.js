@@ -3,7 +3,7 @@ import { getApiKey, fetchWithTimeoutAndRetry, NO_KEY_MESSAGE } from './search.js
 const DEFAULT_API_BASE = 'https://openapi.felo.ai';
 const DEFAULT_REQUEST_TIMEOUT_MS = 60_000;
 const POLL_INTERVAL_MS = 10_000;
-const MAX_POLL_TIMEOUT_MS = 600_000; // 10 minutes max wait
+const MAX_POLL_TIMEOUT_MS = 1_200_000; // 20 minutes max wait
 
 const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 const STATUS_LINE_PAD = 50;

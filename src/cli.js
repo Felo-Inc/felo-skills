@@ -42,15 +42,15 @@ program
   .option('-j, --json', 'output raw JSON with task_id and live_doc_url')
   .option('-v, --verbose', 'show polling status')
   .option('-t, --timeout <seconds>', 'request timeout in seconds for each API call', '60')
-  .option('--poll-timeout <seconds>', 'max seconds to wait for task completion', '600')
+  .option('--poll-timeout <seconds>', 'max seconds to wait for task completion', '1200')
   .action(async (query, opts) => {
     const timeoutMs = parseInt(opts.timeout, 10) * 1000;
-    const pollTimeoutMs = parseInt(opts.pollTimeout, 10) * 1000 || 600000;
+    const pollTimeoutMs = parseInt(opts.pollTimeout, 10) * 1000 || 1_200_000;
     const code = await slides(query, {
       json: opts.json,
       verbose: opts.verbose,
       timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
-      pollTimeoutMs: Number.isNaN(pollTimeoutMs) ? 600000 : pollTimeoutMs,
+      pollTimeoutMs: Number.isNaN(pollTimeoutMs) ? 1_200_000 : pollTimeoutMs,
     });
     process.exitCode = code;
     // Defer exit so stderr can flush; reduces Node.js Windows assertion (UV_HANDLE_CLOSING)
