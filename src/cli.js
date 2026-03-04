@@ -30,7 +30,9 @@ program
       verbose: opts.verbose,
       timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
     });
-    process.exit(code);
+    process.exitCode = code;
+    // Defer exit so stdout/stderr can flush; avoids Node.js Windows UV_HANDLE_CLOSING assertion
+    setTimeout(() => process.exit(code), 0);
   });
 
 program
