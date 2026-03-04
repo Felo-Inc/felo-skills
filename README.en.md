@@ -84,4 +84,5 @@ After setting `FELO_API_KEY`, ask Claude things like “What’s the weather in 
 
 ---
 
-**Other languages / 其他语言:** [简体中文](README.zh-CN.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [繁體中文](README.zh-TW.md)
+**Other languages:** [Chinese (Simplified)](README.zh-CN.md) | [Japanese](README.ja.md) | [Korean](README.ko.md) | [Chinese (Traditional)](README.zh-TW.md)
+

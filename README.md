@@ -1,55 +1,30 @@
-# Felo AI
+# Felo Skills for Claude Code
 
 **Ask anything. Get current answers powered by AI.**
 
-Felo AI provides a terminal CLI and Claude Code skill, with support for English, Chinese (Simplified & Traditional), Japanese, and Korean.
+Real-time web search powered by Felo AI. Works in Chinese, English, Japanese, and Korean.
 
 [![Setup Time](https://img.shields.io/badge/setup-2%20minutes-blue)]() [![License](https://img.shields.io/badge/license-MIT-green)]()
-
-**Other languages:** [简体中文](README.zh-CN.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [繁體中文](README.zh-TW.md)
-
----
-
-## Two Core Capabilities
-
-Felo AI offers two main features: **Real-time Search** and **PPT Generation**. Use them via the CLI in your terminal, or in Claude Code via the skill (search can trigger automatically).
-
-### Capability 1: Real-time Search
-
-Search the web for up-to-date information and get AI-synthesized answers. Ideal for weather, news, prices, documentation, tech updates, and any question that needs “right now” information.
-
-- **Multi-language**: Ask in your preferred language.
-- **Terminal**: `felo search "your question"`
-- **Claude Code**: After installing the skill, it triggers automatically, or type `/felo-ai your question`
-- **Examples**: `felo search "Tokyo weather"`, `felo search "React 19 new features" --verbose`
-
-### Capability 2: Generate PPT
-
-Describe a topic in one sentence and Felo generates a slideshow. The job runs in the cloud; when done, you get an **online document link** to open in your browser.
-
-- **Terminal**: `felo slides "your topic or description"`
-- **Options**: `--verbose` for polling status, `--json` for raw JSON (`task_id`, `live_doc_url`).
-- **Examples**: `felo slides "Felo product intro, 3 slides"`, `felo slides "Introduction to React"`, `felo slides "Quarterly review" --poll-timeout 300`
 
 ---
 
 ## Felo CLI (Terminal)
 
-Use Felo from the terminal without opening Claude Code.
+Use Felo search from the terminal without opening Claude Code.
 
 ### Install
 
 ```bash
-npm install -g felo-ai
+npm install -g felo-search
 ```
 
-Run without installing (latest published version):
+Or run without installing (uses latest published version):
 
 ```bash
-npx felo-ai search "Tokyo weather"
+npx felo-search search "东京天气"
 ```
 
-After install, the command is `felo` (from package name `felo-ai`).
+After install, the command is `felo` (from the package name `felo-search`).
 
 ### Configure API key
 
@@ -75,12 +50,14 @@ Get your API key from [felo.ai](https://felo.ai) (Settings → API Keys). Enviro
 
 ### Commands
 
-| Command | Description |
-|---------|-------------|
-| `felo search "<query>"` | **Real-time search** — weather, news, prices, docs, etc. |
-| `felo slides "<prompt>"` | **Generate PPT** — outputs online doc link when done |
-| `felo config set FELO_API_KEY <key>` | Save API key (recommended before first use) |
-| `felo config get/list/path/unset` | View, list, path, or remove config |
+| Command                              | Description                                           |
+| ------------------------------------ | ----------------------------------------------------- |
+| `felo search "<query>"`              | Search for current info (weather, news, prices, etc.) |
+| `felo config set FELO_API_KEY <key>` | Save API key to config                                |
+| `felo config get FELO_API_KEY`       | Print stored key                                      |
+| `felo config list`                   | List config keys                                      |
+| `felo config path`                   | Show config file path                                 |
+| `felo summarize` / `felo translate`  | Planned; use `felo search` for now                    |
 
 ### Examples
 
@@ -88,8 +65,8 @@ Get your API key from [felo.ai](https://felo.ai) (Settings → API Keys). Enviro
 felo search "Tokyo weather"
 felo search "MacBook Air M3 price"
 felo search "React 19 new features" --verbose
-felo search "Hangzhou tomorrow weather" --json
-npx felo-ai search "Tokyo weather"
+felo search "杭州明天天气" --json
+npx felo-search search "Tokyo weather"
 ```
 
 ### CLI FAQ
@@ -106,24 +83,27 @@ npx felo-ai search "Tokyo weather"
 Install the skill:
 
 ```bash
-npx @claude/skills add felo-ai
+npx @claude/skills add felo-search
 ```
 
 Get your API key from [felo.ai](https://felo.ai) (Settings → API Keys), then configure:
 
 **Linux/macOS:**
+
 ```bash
 export FELO_API_KEY="your-api-key-here"
 # Add to ~/.bashrc or ~/.zshrc for persistence
 ```
 
 **Windows (PowerShell):**
+
 ```powershell
 $env:FELO_API_KEY="your-api-key-here"
 # For persistence, add to system environment variables
 ```
 
 Test it:
+
 ```
 Ask Claude: "What's the weather in Tokyo today?"
 ```
@@ -137,24 +117,28 @@ Ask Claude: "What's the weather in Tokyo today?"
 ### Daily life
 
 **Weather**
+
 ```
 You: What's the weather in Tokyo today?
 Claude: [Current temperature, conditions, forecast]
 ```
 
 **Restaurants & food**
+
 ```
 You: Best ramen in Osaka
 Claude: [Top-rated ramen shops with addresses, ratings, reviews]
 ```
 
 **Shopping & prices**
+
 ```
 You: iPhone 15 Pro price comparison
 Claude: [Prices from different retailers with links]
 ```
 
 **Travel**
+
 ```
 You: Things to do in Kyoto this weekend
 Claude: [Events, attractions, seasonal activities]
@@ -163,18 +147,21 @@ Claude: [Events, attractions, seasonal activities]
 ### Developer scenarios
 
 **Latest documentation**
+
 ```
 You: React 19 new features
 Claude: [Latest React 19 features with official docs links]
 ```
 
 **Library comparison**
+
 ```
 You: Vite vs Webpack 2024 comparison
 Claude: [Performance, features, use cases comparison]
 ```
 
 **Tech trends**
+
 ```
 You: Latest AI developments January 2026
 Claude: [Recent AI breakthroughs, company announcements]
@@ -201,12 +188,14 @@ Works in Chinese (Simplified & Traditional), Japanese, Korean, and English. Ask 
 If quick install doesn’t work:
 
 1. Clone this repository:
+
    ```bash
    git clone https://github.com/Felo-Inc/felo-skills.git
    cd felo-skills
    ```
 
 2. Copy to Claude Code skills directory:
+
    - **Linux/macOS:** `~/.claude/skills/`
    - **Windows:** `C:\Users\<YourUsername>\.claude\skills\`
 
@@ -230,9 +219,9 @@ If quick install doesn’t work:
 claude skills list
 ```
 
-You should see `felo-ai` or `felo-search` in the output.
+You should see `felo-search` in the output.
 
-Test: ask Claude *"Latest news about quantum computing"*. If you see an AI-generated answer, it’s working.
+Test: ask Claude _"Latest news about quantum computing"_. If you see an AI-generated answer, it’s working.
 
 ---
 
@@ -240,7 +229,11 @@ Test: ask Claude *"Latest news about quantum computing"*. If you see an AI-gener
 
 ### Q: Skill not triggering automatically?
 
-**A:** The skill triggers for questions needing current info (weather, news, prices, etc.). For manual trigger, use `/felo-ai your query here`.
+**A:** The skill triggers for questions needing current info (weather, news, prices, etc.). For manual trigger, use:
+
+```
+/felo-search your query here
+```
 
 ### Q: "FELO_API_KEY not set" error?
 
@@ -274,15 +267,22 @@ Test: ask Claude *"Latest news about quantum computing"*. If you see an AI-gener
 
 ---
 
-## Claude Code skill (summary)
+## Available Skills
 
-With `felo-ai` installed, **real-time search** runs as a skill: when you ask about weather, news, prices, or latest docs, Felo search is triggered and returns an answer. You can also type `/felo-ai your question` to trigger it manually.
+### felo-search
 
-**Typical triggers:** current events, weather/prices/reviews, places (restaurants, attractions), latest tech docs and trends, product comparisons, and questions with words like “latest”, “recent”, “best”, “how to”.
+Real-time web search with AI-generated answers.
 
-PPT generation is only available in the terminal via `felo slides`.
+**Triggers automatically for:**
 
-**[Search skill details →](./felo-search/)**
+- Current events & news
+- Weather, prices, reviews
+- Location info (restaurants, attractions)
+- Latest documentation & tech trends
+- Product comparisons
+- Any question with "latest", "recent", "best", "how to"
+
+**[View skill documentation →](./felo-search/)**
 
 ---
 
