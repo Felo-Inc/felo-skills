@@ -112,8 +112,8 @@ You: What's the weather in Tokyo today?
 Claude: Currently 15°C in Tokyo with partly cloudy skies. High of 18°C,
         low of 12°C. 20% chance of rain.
 
-You: 杭州明天天气怎么样？
-Claude: 杭州明天多云转晴，气温 8-16°C，东北风 3-4 级。
+You: What's the weather in Hangzhou tomorrow?
+Claude: Hangzhou tomorrow: partly cloudy to clear, 8-16°C, NE wind 3-4.
 ```
 
 **Restaurants & Food**
@@ -124,11 +124,11 @@ Claude: Top 3 ramen shops in Osaka:
         2. Kamukura - Rich chicken broth, Michelin Bib Gourmand
         3. Menya Joroku - Tsukemen specialist
 
-You: 上海哪里有好吃的小笼包？
-Claude: 上海小笼包推荐：
-        1. 南翔馒头店 - 豫园老字号，皮薄汁多
-        2. 佳家汤包 - 黄河路网红店，性价比高
-        3. 鼎泰丰 - 台湾品牌，品质稳定
+You: Where to find the best xiaolongbao in Shanghai?
+Claude: Shanghai xiaolongbao recommendations:
+        1. Nanxiang Steamed Bun - Old brand near Yuyuan, thin skin, juicy
+        2. Jiajia Soup Dumplings - Popular on Huanghe Road, good value
+        3. Din Tai Fung - Taiwan brand, consistent quality
 ```
 
 **Shopping & Prices**
@@ -139,11 +139,11 @@ Claude: iPhone 15 Pro (128GB) prices:
         - Amazon: $979 (save $20)
         - Best Buy: $999 (with trade-in deals)
 
-You: MacBook Air M3 多少钱？
-Claude: MacBook Air M3 (13 英寸) 价格：
-        - 官网: ¥9,499 (256GB)
-        - 京东: ¥9,299 (有优惠券)
-        - 天猫: ¥9,399 (赠品多)
+You: MacBook Air M3 price
+Claude: MacBook Air M3 (13") prices:
+        - Apple: $1,099 (256GB)
+        - Amazon: $1,049 (with coupons)
+        - Best Buy: $1,079 (with perks)
 ```
 
 **Travel**
@@ -155,12 +155,12 @@ Claude: Kyoto weekend highlights:
         - Nishiki Market food tour (closes 6pm)
         - Gion district evening walk (geisha spotting)
 
-You: 台北有什么好玩的地方？
-Claude: 台北必去景点：
-        - 台北 101 - 观景台看夜景
-        - 故宫博物院 - 中华文物精品
-        - 士林夜市 - 美食天堂
-        - 九份老街 - 怀旧山城
+You: What to do in Taipei?
+Claude: Taipei must-sees:
+        - Taipei 101 - Observatory for night views
+        - National Palace Museum - Chinese art and artifacts
+        - Shilin Night Market - Food and snacks
+        - Jiufen Old Street - Nostalgic mountain town
 ```
 
 ### Developer Scenarios
@@ -174,12 +174,12 @@ Claude: React 19 key features (released Dec 2024):
         - Actions for form handling
         - use() hook for async data
 
-You: Next.js 15 有什么新功能？
-Claude: Next.js 15 主要更新：
-        - Turbopack 稳定版（构建速度提升 5x）
-        - 部分预渲染（PPR）
-        - 改进的缓存控制
-        - React 19 支持
+You: Next.js 15 new features
+Claude: Next.js 15 main updates:
+        - Turbopack stable (5x faster builds)
+        - Partial Prerendering (PPR)
+        - Improved cache control
+        - React 19 support
 ```
 
 **Library Comparison**
@@ -194,15 +194,15 @@ Claude: Vite vs Webpack (2024):
         Use Vite for: New projects, fast iteration
         Use Webpack for: Complex builds, legacy support
 
-You: Vue 3 和 React 哪个更适合新项目？
-Claude: Vue 3 vs React 对比：
+You: Vue 3 vs React for new projects
+Claude: Vue 3 vs React:
 
-        学习曲线: Vue 更平缓，React 需要 JSX
-        性能: 两者相当，Vue 略优
-        生态: React 更丰富，Vue 够用
-        就业: React 岗位更多
+        Learning curve: Vue gentler, React needs JSX
+        Performance: Similar, Vue slightly ahead
+        Ecosystem: React larger, Vue sufficient
+        Jobs: More React positions
 
-        建议: 团队熟悉 React 选 React，新手选 Vue
+        Suggestion: React if team knows it, Vue for newcomers
 ```
 
 **Tech Trends**
@@ -214,109 +214,54 @@ Claude: AI developments (Jan 2026):
         - Anthropic Claude 4 with extended context
         - Meta's open-source LLaMA 4
 
-You: 最近有什么重要的技术新闻？
-Claude: 近期科技动态（2026年2月）：
-        - 苹果发布 Vision Pro 2 代
-        - 英伟达 B100 GPU 开始量产
-        - 特斯拉 FSD v13 正式推送
-        - 微软 Windows 12 预览版发布
+You: Important tech news recently
+Claude: Recent tech (Feb 2026):
+        - Apple Vision Pro 2 announced
+        - NVIDIA B100 GPU in production
+        - Tesla FSD v13 rollout
+        - Microsoft Windows 12 preview
 ```
 
 ### Multi-language Queries
 
-**Chinese (Simplified)**
-```
-You: 人工智能最新进展
-Claude: AI 最新进展（2026年）：
-        - 大模型参数突破 10 万亿
-        - 多模态理解接近人类水平
-        - AI 编程助手普及率超 60%
-        - 具身智能机器人商业化
-        [来源: 机器之心, 量子位]
+Felo supports Chinese, Japanese, Korean, and English. Ask in any language and get answers in that language. Example in English:
 
-You: 深圳有什么好玩的地方
-Claude: 深圳旅游推荐：
-        - 世界之窗 - 微缩景观
-        - 欢乐谷 - 主题乐园
-        - 大梅沙海滨公园 - 免费沙滩
-        - 华侨城创意园 - 文艺打卡
-        [来源: 深圳文旅局, 马蜂窝]
+**Latest AI & places**
 ```
+You: Latest developments in AI
+Claude: AI developments (2026):
+        - LLM parameters exceed 10 trillion
+        - Multimodal understanding near human level
+        - AI coding assistants used by 60%+ developers
+        - Embodied AI robots commercialized
+        [Sources: industry reports]
 
-**Chinese (Traditional - Taiwan)**
-```
-You: 台北最近有什麼新鮮事？
-Claude: 台北近期新聞：
-        - 捷運環狀線北環段動工
-        - 大巨蛋正式啟用
-        - 台北燈節 2 月登場
-        - 米其林指南台北版更新
-        [來源: 聯合新聞網, 自由時報]
-
-You: 高雄美食推薦
-Claude: 高雄必吃美食：
-        - 六合夜市 - 木瓜牛奶、海產粥
-        - 瑞豐夜市 - 炸雞排、臭豆腐
-        - 旗津海產街 - 新鮮海鮮
-        - 鹽埕區 - 老字號小吃
-        [來源: 愛食記, 痞客邦]
+You: What to do in Shenzhen
+Claude: Shenzhen recommendations:
+        - Window of the World - Miniature landmarks
+        - Happy Valley - Theme park
+        - Dameisha Beach - Free beach
+        - OCT-LOFT - Arts and culture
+        [Sources: travel guides]
 ```
 
-**Japanese**
+**React adoption & comparisons**
 ```
-You: 東京で今人気のレストランは？
-Claude: 東京の人気レストラン（2026年）：
-        - Narisawa - モダン日本料理、ミシュラン2つ星
-        - Den - 革新的和食、世界のベストレストラン
-        - Florilège - フレンチ、予約困難
-        - Sushi Saito - 江戸前寿司の最高峰
-        [出典: 食べログ, ミシュランガイド]
+You: React adoption in China
+Claude: React in China:
+        - Market share: ~45% (second to Vue)
+        - Major users: Alibaba, ByteDance, Tencent
+        - Ecosystem: Ant Design, Taro, etc.
+        - Trend: Growing, Next.js popular
+        [Sources: State of JS China]
 
-You: 最新のAI技術について教えて
-Claude: 最新AI技術（2026年）：
-        - GPT-5の登場で自然言語処理が進化
-        - マルチモーダルAIが主流に
-        - エッジAIの普及が加速
-        - AI規制法が各国で施行
-        [出典: ITmedia, 日経新聞]
-```
-
-**Korean**
-```
-You: 서울 맛집 추천
-Claude: 서울 맛집 추천：
-        - 광장시장 - 전통 한식, 마약김밥
-        - 명동 - 길거리 음식, 쇼핑
-        - 강남 - 고급 레스토랑, 카페
-        - 이태원 - 세계 각국 요리
-        [출처: 망고플레이트, 네이버 블로그]
-
-You: 최신 프로그래밍 트렌드
-Claude: 최신 프로그래밍 트렌드 (2026):
-        - AI 코딩 어시스턴트 보편화
-        - Rust 인기 급상승
-        - 서버리스 아키텍처 확산
-        - WebAssembly 생태계 성장
-        [출처: Stack Overflow, GitHub Trends]
-```
-
-**Mixed Language**
-```
-You: React 在中国的使用情况
-Claude: React 在中国的使用情况：
-        - 市场份额: 约 45%（仅次于 Vue）
-        - 主要用户: 大厂（阿里、字节、腾讯）
-        - 生态: 完善，Ant Design、Taro 等
-        - 趋势: 持续增长，Next.js 受欢迎
-        [来源: State of JS China, 掘金]
-
-You: 日本のAI企業について
-Claude: 日本の主要AI企業：
-        - Preferred Networks - 深層学習フレームワーク
-        - ABEJA - エッジAIプラットフォーム
-        - PKSHA Technology - 自然言語処理
-        - Nextremer - 対話AI
-        [出典: 日経ビジネス, TechCrunch Japan]
+You: Python vs Java for beginners
+Claude: Python vs Java:
+        - Learning: Python easier to start
+        - Jobs: Both strong, Java more enterprise
+        - Use Python for: Data, scripting, prototyping
+        - Use Java for: Enterprise, Android, backend
+        [Sources: Stack Overflow, job boards]
 ```
 
 ### Complex Queries
@@ -333,15 +278,15 @@ Claude: AI's impact on software development (2024-2026):
 
         Future: AI pair programming becomes standard practice
 
-You: 量子计算对密码学的影响
-Claude: 量子计算对密码学的影响：
+You: Impact of quantum computing on cryptography
+Claude: Quantum computing and cryptography:
 
-        威胁: RSA、ECC 等传统加密算法将被破解
-        时间线: 预计 2030-2035 年实现
-        应对: 后量子密码学（PQC）标准化
-        进展: NIST 已发布 PQC 算法标准
+        Threat: RSA, ECC and similar algorithms could be broken
+        Timeline: Estimated 2030-2035
+        Response: Post-quantum cryptography (PQC) standardization
+        Progress: NIST has published PQC algorithm standards
 
-        建议: 企业应提前规划密码学迁移
+        Advice: Plan crypto migration in advance
 ```
 
 **Comparisons**
@@ -359,18 +304,18 @@ Claude: AWS vs Azure vs GCP (2026):
         Choose Azure: Microsoft integration, hybrid cloud
         Choose GCP: Data/ML workloads, cost-sensitive
 
-You: 编程语言性能对比：Python vs Go vs Rust
-Claude: Python vs Go vs Rust 性能对比：
+You: Programming language performance: Python vs Go vs Rust
+Claude: Python vs Go vs Rust:
 
-        执行速度: Rust > Go > Python (100x 差距)
-        内存占用: Rust 最小，Python 最大
-        开发效率: Python > Go > Rust
-        学习曲线: Python 最平缓，Rust 最陡
+        Speed: Rust > Go > Python (up to 100x)
+        Memory: Rust lowest, Python highest
+        Productivity: Python > Go > Rust
+        Learning curve: Python gentlest, Rust steepest
 
-        适用场景:
-        - Python: 数据科学、脚本、快速原型
-        - Go: 微服务、云原生、并发
-        - Rust: 系统编程、性能关键、安全
+        Use cases:
+        - Python: Data science, scripting, rapid prototyping
+        - Go: Microservices, cloud-native, concurrency
+        - Rust: Systems programming, performance-critical, safety
 ```
 
 **[See 40+ more examples →](../docs/EXAMPLES.md)**

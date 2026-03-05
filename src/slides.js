@@ -3,7 +3,7 @@ import { getApiKey, fetchWithTimeoutAndRetry, NO_KEY_MESSAGE } from './search.js
 const DEFAULT_API_BASE = 'https://openapi.felo.ai';
 const DEFAULT_REQUEST_TIMEOUT_MS = 60_000;
 const POLL_INTERVAL_MS = 10_000;
-const MAX_POLL_TIMEOUT_MS = 600_000; // 10 minutes max wait
+const MAX_POLL_TIMEOUT_MS = 1_200_000; // 20 minutes max wait
 
 const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 const STATUS_LINE_PAD = 50;
@@ -80,7 +80,7 @@ async function createPptTask(apiKey, query, timeoutMs, apiBase) {
 }
 
 /**
- * Get task historical info. Returns { task_status, live_doc_url?, live_doc_short_id? } or throws.
+ * Get task historical info. Returns { task_status, ppt_url?, ppt_biz_id?, live_doc_url?, live_doc_short_id? } or throws.
  * Uses fetchWithTimeoutAndRetry for 5xx retry (per PPT Task API error codes).
  */
 async function getTaskHistorical(apiKey, taskId, timeoutMs, apiBase) {
@@ -116,6 +116,8 @@ async function getTaskHistorical(apiKey, taskId, timeoutMs, apiBase) {
 
   return {
     task_status: payload.task_status ?? payload.status,
+    ppt_url: payload.ppt_url,
+    ppt_biz_id: payload.ppt_biz_id,
     live_doc_url: payload.live_doc_url,
     live_doc_short_id: payload.live_doc_short_id ?? payload.livedoc_short_id,
   };
@@ -166,19 +168,25 @@ export async function slides(query, options = {}) {
       const normalizedStatus = normalizeTaskStatus(historical.task_status);
       lastStatus = normalizedStatus || historical.task_status;
 
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
       if (useLiveStatus) {
-        const elapsed = Math.floor((Date.now() - startTime) / 1000);
         spinIndex = (spinIndex + 1) % SPINNER_FRAMES.length;
         writeStatusLine(SPINNER_FRAMES[spinIndex], elapsed);
+      } else if (!options.verbose && !options.json) {
+        process.stderr.write(`  Generating... ${elapsed}s\n`);
       }
 
       const done = normalizedStatus === 'COMPLETED' || normalizedStatus === 'SUCCESS';
       if (done) {
         if (useLiveStatus) clearStatusLine();
-        const url =
+        const pptUrl =
+          historical.ppt_url ||
+          (historical.ppt_biz_id ? `https://dev.felo.ai/slides/${historical.ppt_biz_id}` : null);
+        const liveDocUrl =
           historical.live_doc_url ||
           (historical.live_doc_short_id ? `https://felo.ai/livedoc/${historical.live_doc_short_id}` : null) ||
           (createResult.livedoc_short_id ? `https://felo.ai/livedoc/${createResult.livedoc_short_id}` : null);
+        const url = pptUrl || liveDocUrl;
         if (options.json) {
           console.log(
             JSON.stringify(
@@ -187,8 +195,10 @@ export async function slides(query, options = {}) {
                 data: {
                   task_id: taskId,
                   task_status: normalizedStatus || historical.task_status,
-                  live_doc_url: url,
-                  livedoc_short_id: createResult.livedoc_short_id,
+                  ppt_url: pptUrl,
+                  ppt_biz_id: historical.ppt_biz_id ?? createResult.ppt_business_id,
+                  live_doc_url: liveDocUrl,
+                  livedoc_short_id: historical.live_doc_short_id ?? createResult.livedoc_short_id,
                   ppt_business_id: createResult.ppt_business_id,
                 },
               },
@@ -198,10 +208,13 @@ export async function slides(query, options = {}) {
           );
         } else {
           if (url) {
-            console.log(url);
+            if (pptUrl && !options.json) {
+              process.stderr.write('PPT ready. Open this link to preview:\n');
+            }
+            console.log(pptUrl || liveDocUrl);
           } else {
             if (useLiveStatus) clearStatusLine();
-            console.error('Error: Completed but no live_doc_url in response');
+            console.error('Error: Completed but no ppt_url or live_doc_url in response');
             return 1;
           }
         }

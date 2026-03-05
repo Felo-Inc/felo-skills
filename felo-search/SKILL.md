@@ -118,16 +118,16 @@ The API returns JSON with this structure:
 Parse the JSON response and present it to the user in this format:
 
 ```
-## 回答 / Answer
+## Answer
 [Display the answer field]
 
-## 搜索分析 / Query Analysis
-优化后的搜索词: [list query_analysis items]
+## Query Analysis
+Optimized search terms: [list query_analysis items]
 ```
 
 ## Complete Examples
 
-### Example 1: English Query
+### Example 1: Weather query
 
 **User asks:** "What's the weather in Tokyo today?"
 
@@ -156,24 +156,23 @@ curl -s -X POST https://openapi.felo.ai/v2/chat \
 rm -f /tmp/felo_query.json
 ```
 
-### Example 2: Simplified Chinese (简体中文)
+### Example 2: Local news / events
 
-**User asks:** "杭州最近有什么新鲜事？"
+**User asks:** "What's new in Hangzhou recently?"
 
 **Expected response format:**
 ```
-## 回答
-杭州最近的新鲜事包括：亚运会场馆改造完成、西湖景区推出夜游项目、
-新的地铁线路开通等。详细信息...
+## Answer
+Recent news in Hangzhou: Asian Games venue upgrades completed, West Lake night tours launched, new metro lines opened. Details...
 
-## 搜索分析
-优化后的搜索词: 杭州最近新闻, 杭州近期动态, Hangzhou recent news
+## Query Analysis
+Optimized search terms: Hangzhou recent news, Hangzhou events, 杭州 最近 新闻
 ```
 
 **Bash command:**
 ```bash
 cat > /tmp/felo_query.json << 'EOF'
-{"query": "杭州最近有什么新鲜事"}
+{"query": "What's new in Hangzhou recently"}
 EOF
 
 curl -s -X POST https://openapi.felo.ai/v2/chat \
@@ -184,14 +183,14 @@ curl -s -X POST https://openapi.felo.ai/v2/chat \
 rm -f /tmp/felo_query.json
 ```
 
-### Example 3: Traditional Chinese - Taiwan (繁體中文-台灣)
+### Example 3: Travel / things to do
 
-**User asks:** "台北最近有什麼好玩的地方？"
+**User asks:** "What are the best things to do in Taipei?"
 
 **Bash command:**
 ```bash
 cat > /tmp/felo_query.json << 'EOF'
-{"query": "台北最近有什麼好玩的地方"}
+{"query": "What are the best things to do in Taipei"}
 EOF
 
 curl -s -X POST https://openapi.felo.ai/v2/chat \
@@ -202,14 +201,14 @@ curl -s -X POST https://openapi.felo.ai/v2/chat \
 rm -f /tmp/felo_query.json
 ```
 
-### Example 4: Japanese (日本語)
+### Example 4: Restaurants / recommendations
 
-**User asks:** "東京で今人気のレストランは？"
+**User asks:** "Popular restaurants in Tokyo?"
 
 **Bash command:**
 ```bash
 cat > /tmp/felo_query.json << 'EOF'
-{"query": "東京で今人気のレストランは"}
+{"query": "Popular restaurants in Tokyo"}
 EOF
 
 curl -s -X POST https://openapi.felo.ai/v2/chat \

@@ -6,7 +6,7 @@ Generate presentation slides with the Felo PPT Task API (asynchronous workflow).
 
 - Generate a PPT deck from a single prompt
 - Poll task status automatically until completion/failure/timeout
-- Return `live_doc_url` immediately when the task is completed
+- Return `ppt_url` immediately when the task is completed (fallback to `live_doc_url`)
 - Return `task_id` for follow-up tracking
 
 ## Quick Start
@@ -54,12 +54,12 @@ Based on Felo v2 PPT Task API:
 2. Query status (optional): `GET /v2/tasks/{task_id}/status`
 3. Query historical/result: `GET /v2/tasks/{task_id}/historical`
 
-The skill polls every 10 seconds (max wait 600 seconds). It stops immediately on `COMPLETED`/`SUCCESS` and returns `live_doc_url`.
+The skill polls every 10 seconds (max wait 1800 seconds). It stops immediately on `COMPLETED`/`SUCCESS` and returns `ppt_url` (fallback `live_doc_url`).
 
 Internal script example:
 
 ```bash
-node felo-slides/scripts/run_ppt_task.mjs --query "Felo product intro, 3 slides" --interval 10 --max-wait 600
+node felo-slides/scripts/run_ppt_task.mjs --query "Felo product intro, 3 slides" --interval 10 --max-wait 1800
 ```
 
 ## Troubleshooting
@@ -76,7 +76,7 @@ The key is invalid or revoked. Generate a new key from [felo.ai](https://felo.ai
 
 The task may still be processing. Retry later with the same context, or run the script with `--verbose`.
 
-### Task completed but no `live_doc_url`
+### Task completed but no `ppt_url` / `live_doc_url`
 
 Use the returned `task_id` to query historical endpoint again.
 

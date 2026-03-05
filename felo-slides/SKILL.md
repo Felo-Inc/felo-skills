@@ -1,6 +1,6 @@
 ---
 name: felo-slides
-description: "Generate PPT/slides with Felo PPT Task API in Claude Code. Use when users ask to create/make/generate/export presentations or slide decks, or when explicit commands like /felo-slides are used. Handles API key check, task creation, polling, and final live_doc_url output."
+description: "Generate PPT/slides with Felo PPT Task API in Claude Code. Use when users ask to create/make/generate/export presentations or slide decks, or when explicit commands like /felo-slides are used. Handles API key check, task creation, polling, and final ppt_url output."
 ---
 
 # Felo Slides Skill
@@ -67,7 +67,7 @@ Use the bundled script (no `jq` dependency):
 node felo-slides/scripts/run_ppt_task.mjs \
   --query "USER_PROMPT_HERE" \
   --interval 10 \
-  --max-wait 600 \
+  --max-wait 1800 \
   --timeout 60
 ```
 
@@ -77,7 +77,7 @@ Script behavior:
 - Treats `COMPLETED`/`SUCCESS` as success terminal (case-insensitive)
 - Treats `FAILED`/`ERROR` as failure terminal
 - Stops polling immediately on terminal status
-- Prints `live_doc_url` on success
+- Prints `ppt_url` on success (fallback: `live_doc_url`)
 
 Optional debug output:
 
@@ -85,7 +85,7 @@ Optional debug output:
 node felo-slides/scripts/run_ppt_task.mjs \
   --query "USER_PROMPT_HERE" \
   --interval 10 \
-  --max-wait 600 \
+  --max-wait 1800 \
   --json \
   --verbose
 ```
@@ -93,6 +93,7 @@ node felo-slides/scripts/run_ppt_task.mjs \
 This outputs structured JSON including:
 - `task_id`
 - `task_status`
+- `ppt_url`
 - `live_doc_url`
 - `livedoc_short_id`
 - `ppt_business_id`
@@ -100,7 +101,7 @@ This outputs structured JSON including:
 ### Step 4: Return structured result
 
 On success, return:
-- `live_doc_url` immediately (script default output)
+- `ppt_url` immediately (script default output, fallback `live_doc_url`)
 - if `--json` is used, also include `task_id`, terminal status, and optional metadata
 
 ## Output Format
@@ -111,7 +112,8 @@ Use this response structure:
 ## PPT Generation Result
 - Task ID: <task_id>
 - Status: <status>
-- Live Doc URL: <live_doc_url>
+- PPT URL: <ppt_url>
+- Live Doc URL: <live_doc_url or N/A>
 
 ## Notes
 - livedoc_short_id: <value or N/A>

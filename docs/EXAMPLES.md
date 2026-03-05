@@ -21,10 +21,10 @@ Current temperature, conditions, forecast
 Example: "Currently 15°C in Tokyo with partly cloudy skies..."
 ```
 
-**Query:** "杭州明天天气怎么样？"
+**Query:** "What's the weather in Hangzhou tomorrow?"
 ```
-明天杭州天气预报，温度范围，降水概率
-示例："杭州明天多云转晴，气温 8-16°C..."
+Tomorrow's forecast for Hangzhou, temperature range, precipitation probability
+Example: "Hangzhou tomorrow: partly cloudy to clear, 8-16°C..."
 ```
 
 **Query:** "Will it rain in Seattle this weekend?"
@@ -32,9 +32,9 @@ Example: "Currently 15°C in Tokyo with partly cloudy skies..."
 Weekend forecast with precipitation probability
 ```
 
-**Query:** "北京下周天气预报"
+**Query:** "Beijing weather forecast for next week"
 ```
-北京未来一周天气趋势，温度变化
+Beijing 7-day weather trend, temperature changes
 ```
 
 ### Restaurants & Food
@@ -45,10 +45,10 @@ Top-rated ramen shops with addresses, ratings, reviews
 Example: "1. Ichiran Dotonbori - Famous tonkotsu ramen..."
 ```
 
-**Query:** "上海哪里有好吃的小笼包？"
+**Query:** "Where to find the best xiaolongbao in Shanghai?"
 ```
-推荐餐厅列表，地址，特色菜品
-示例："1. 南翔馒头店 - 豫园老字号，皮薄汁多..."
+Recommended restaurants with addresses and specialties
+Example: "1. Nanxiang Steamed Bun Restaurant - Old brand near Yuyuan, thin skin, juicy..."
 ```
 
 **Query:** "Vegetarian restaurants near Times Square"
@@ -56,9 +56,9 @@ Example: "1. Ichiran Dotonbori - Famous tonkotsu ramen..."
 Nearby vegetarian options with ratings and menus
 ```
 
-**Query:** "成都火锅推荐"
+**Query:** "Best hot pot restaurants in Chengdu"
 ```
-成都特色火锅店，人气排名，特色菜品
+Chengdu-style hot pot spots, popularity ranking, signature dishes
 ```
 
 **Query:** "Best coffee shops in Portland"
@@ -66,9 +66,9 @@ Nearby vegetarian options with ratings and menus
 Top-rated coffee shops with specialties and atmosphere
 ```
 
-**Query:** "东京米其林餐厅推荐"
+**Query:** "Michelin-starred restaurants in Tokyo"
 ```
-东京米其林星级餐厅，预订方式，价格区间
+Tokyo Michelin-starred restaurants, reservation info, price range
 ```
 
 ### Shopping & Prices
@@ -79,10 +79,10 @@ Prices from different retailers with links
 Example: "Apple Store: $999, Amazon: $979..."
 ```
 
-**Query:** "MacBook Air M3 多少钱？"
+**Query:** "MacBook Air M3 price"
 ```
-各渠道价格对比，优惠信息
-示例："官网: ¥9,499, 京东: ¥9,299..."
+Price comparison across channels, discount info
+Example: "Apple: $1,099, Amazon: $1,049..."
 ```
 
 **Query:** "Best deals on noise-canceling headphones"
@@ -90,9 +90,9 @@ Example: "Apple Store: $999, Amazon: $979..."
 Current deals and discounts on popular models
 ```
 
-**Query:** "Switch OLED 哪里买最便宜？"
+**Query:** "Where to buy Nintendo Switch OLED cheapest?"
 ```
-各平台价格对比，促销活动信息
+Price comparison across platforms, promotions
 ```
 
 **Query:** "AirPods Pro 2 vs Sony WF-1000XM5"
@@ -100,9 +100,9 @@ Current deals and discounts on popular models
 Detailed comparison: features, sound quality, price
 ```
 
-**Query:** "小米14 Pro 值得买吗？"
+**Query:** "Is Xiaomi 14 Pro worth buying?"
 ```
-评测总结，优缺点分析，购买建议
+Review summary, pros and cons, buying advice
 ```
 
 ### Travel & Local Info
@@ -113,10 +113,10 @@ Events, attractions, seasonal activities
 Example: "Cherry blossom viewing at Maruyama Park..."
 ```
 
-**Query:** "台北有什么好玩的地方？"
+**Query:** "What are the best things to do in Taipei?"
 ```
-景点推荐，开放时间，交通方式
-示例："台北 101 - 观景台看夜景..."
+Attraction recommendations, opening hours, how to get there
+Example: "Taipei 101 - Observatory for night views..."
 ```
 
 **Query:** "Best time to visit Iceland"
@@ -124,9 +124,9 @@ Example: "Cherry blossom viewing at Maruyama Park..."
 Seasonal recommendations, weather, tourist seasons
 ```
 
-**Query:** "巴黎旅游攻略"
+**Query:** "Paris travel guide"
 ```
-必去景点，美食推荐，交通指南
+Must-see attractions, food recommendations, transport guide
 ```
 
 **Query:** "Cheap flights from NYC to London"
@@ -134,9 +134,9 @@ Seasonal recommendations, weather, tourist seasons
 Flight deals, best booking times, airline comparisons
 ```
 
-**Query:** "日本签证怎么办理？"
+**Query:** "How to apply for a Japan visa?"
 ```
-签证类型，申请流程，所需材料
+Visa types, application process, required documents
 ```
 
 ---
@@ -151,10 +151,10 @@ Latest React 19 features with official docs links
 Example: "React Compiler (auto-optimization)..."
 ```
 
-**Query:** "Next.js 15 有什么新功能？"
+**Query:** "Next.js 15 new features"
 ```
-Next.js 15 新特性总结，文档链接
-示例："Turbopack 稳定版（构建速度提升 5x）..."
+Next.js 15 feature summary, documentation links
+Example: "Turbopack stable (5x faster builds)..."
 ```
 
 **Query:** "Python 3.13 release notes"
@@ -162,9 +162,9 @@ Next.js 15 新特性总结，文档链接
 New features, improvements, breaking changes
 ```
 
-**Query:** "Vue 3.4 更新内容"
+**Query:** "Vue 3.4 update highlights"
 ```
-新特性，性能改进，迁移指南
+New features, performance improvements, migration guide
 ```
 
 **Query:** "TypeScript 5.4 what's new"
@@ -172,9 +172,9 @@ New features, improvements, breaking changes
 New type system features, compiler improvements
 ```
 
-**Query:** "Rust 1.76 有哪些改进？"
+**Query:** "Rust 1.76 improvements"
 ```
-语言特性更新，标准库改进
+Language feature updates, standard library improvements
 ```
 
 ### Library Comparison
@@ -185,10 +185,10 @@ Performance, features, use cases comparison
 Example: "Build Speed: Vite 10x faster (dev)..."
 ```
 
-**Query:** "Vue 3 和 React 哪个更适合新项目？"
+**Query:** "Vue 3 vs React for new projects"
 ```
-对比分析，适用场景，社区生态
-示例："学习曲线: Vue 更平缓..."
+Comparison, use cases, community ecosystem
+Example: "Learning curve: Vue gentler..."
 ```
 
 **Query:** "Tailwind CSS vs Bootstrap 2026"
@@ -196,9 +196,9 @@ Example: "Build Speed: Vite 10x faster (dev)..."
 Feature comparison, performance, ecosystem
 ```
 
-**Query:** "PostgreSQL vs MySQL 性能对比"
+**Query:** "PostgreSQL vs MySQL performance comparison"
 ```
-性能测试，适用场景，特性对比
+Benchmarks, use cases, feature comparison
 ```
 
 **Query:** "Jest vs Vitest for testing"
@@ -206,9 +206,9 @@ Feature comparison, performance, ecosystem
 Speed, features, migration difficulty
 ```
 
-**Query:** "Redux vs Zustand 状态管理对比"
+**Query:** "Redux vs Zustand state management comparison"
 ```
-复杂度，性能，学习成本对比
+Complexity, performance, learning curve
 ```
 
 ### Tech Trends & News
@@ -219,10 +219,10 @@ Recent AI breakthroughs, company announcements
 Example: "OpenAI GPT-5 preview released..."
 ```
 
-**Query:** "最近有什么重要的技术新闻？"
+**Query:** "Important tech news recently"
 ```
-近期科技动态，行业趋势
-示例："苹果发布 Vision Pro 2 代..."
+Recent tech developments, industry trends
+Example: "Apple releases Vision Pro 2..."
 ```
 
 **Query:** "Web development trends 2026"
@@ -230,9 +230,9 @@ Example: "OpenAI GPT-5 preview released..."
 Popular frameworks, tools, best practices
 ```
 
-**Query:** "人工智能最新突破"
+**Query:** "Latest breakthroughs in AI"
 ```
-AI 领域重大进展，研究成果
+Major AI advances, research results
 ```
 
 **Query:** "Cybersecurity threats 2026"
@@ -240,9 +240,9 @@ AI 领域重大进展，研究成果
 Current threats, vulnerabilities, protection methods
 ```
 
-**Query:** "区块链技术最新应用"
+**Query:** "Latest blockchain technology applications"
 ```
-区块链新应用场景，技术发展
+New blockchain use cases, technology development
 ```
 
 ### API & Tools
@@ -253,10 +253,10 @@ Setup guide, code examples, best practices
 Example: "Install SDK: pip install openai..."
 ```
 
-**Query:** "Anthropic Claude API 怎么用？"
+**Query:** "How to use Anthropic Claude API"
 ```
-API 使用指南，示例代码，定价信息
-示例："安装 SDK: pip install anthropic..."
+API usage guide, code examples, pricing info
+Example: "Install SDK: pip install anthropic..."
 ```
 
 **Query:** "GitHub Actions tutorial"
@@ -264,9 +264,9 @@ API 使用指南，示例代码，定价信息
 Workflow setup, common use cases, examples
 ```
 
-**Query:** "Docker 入门教程"
+**Query:** "Docker getting started tutorial"
 ```
-基础概念，常用命令，实战示例
+Basic concepts, common commands, practical examples
 ```
 
 **Query:** "AWS Lambda best practices"
@@ -274,9 +274,9 @@ Workflow setup, common use cases, examples
 Performance optimization, cost reduction, security
 ```
 
-**Query:** "Kubernetes 部署指南"
+**Query:** "Kubernetes deployment guide"
 ```
-集群搭建，应用部署，运维管理
+Cluster setup, app deployment, operations
 ```
 
 ### Framework Updates
@@ -287,10 +287,10 @@ New features, breaking changes, migration guide
 Example: "Async support improvements..."
 ```
 
-**Query:** "Spring Boot 3.2 更新了什么？"
+**Query:** "Spring Boot 3.2 what's new"
 ```
-新特性，改进点，升级建议
-示例："原生镜像支持增强..."
+New features, improvements, upgrade advice
+Example: "Enhanced native image support..."
 ```
 
 **Query:** "Angular 17 what's new"
@@ -298,9 +298,9 @@ Example: "Async support improvements..."
 New features, performance improvements
 ```
 
-**Query:** "Laravel 11 新功能介绍"
+**Query:** "Laravel 11 new features"
 ```
-框架更新，新特性，最佳实践
+Framework updates, new features, best practices
 ```
 
 **Query:** "Express.js vs Fastify performance"
@@ -308,158 +308,109 @@ New features, performance improvements
 Benchmark results, use cases, migration
 ```
 
-**Query:** "Rails 7.1 有哪些改进？"
+**Query:** "Rails 7.1 improvements"
 ```
-新特性，性能优化，安全更新
+New features, performance optimization, security updates
 ```
 
 ---
 
 ## Multi-language Queries
 
-### Chinese (Simplified)
+Felo supports queries in multiple languages. Below are examples in English; you can ask the same in Chinese, Japanese, or Korean and get answers in that language.
 
-**Query:** "人工智能最新进展"
-```
-AI 领域最新研究成果，应用案例
-示例："大模型参数突破 10 万亿..."
-```
+### General (English examples)
 
-**Query:** "深圳有什么好玩的地方"
+**Query:** "Latest developments in AI"
 ```
-深圳景点推荐，特色活动
-示例："世界之窗 - 微缩景观..."
+Latest AI research and applications
+Example: "LLM parameters exceed 10 trillion..."
 ```
 
-**Query:** "如何学习编程？"
+**Query:** "What to do in Shenzhen"
 ```
-编程学习路径，资源推荐，学习方法
-```
-
-**Query:** "中国新能源汽车市场分析"
-```
-市场规模，主要厂商，政策影响
+Shenzhen attraction recommendations, local activities
+Example: "Window of the World - miniature landmarks..."
 ```
 
-**Query:** "最好的在线教育平台"
+**Query:** "How to learn programming?"
 ```
-平台对比，课程质量，价格分析
-```
-
-### Chinese (Traditional - Taiwan)
-
-**Query:** "台北最近有什麼新鮮事？"
-```
-台北近期新聞，活動資訊
-示例："捷運環狀線北環段動工..."
+Learning path, resource recommendations, study methods
 ```
 
-**Query:** "高雄美食推薦"
+**Query:** "China EV market analysis"
 ```
-高雄特色餐廳，必吃美食
-示例："六合夜市 - 木瓜牛奶..."
-```
-
-**Query:** "台灣旅遊景點推薦"
-```
-熱門景點，特色體驗，交通資訊
+Market size, major players, policy impact
 ```
 
-**Query:** "如何申請台灣護照？"
+**Query:** "Best online education platforms"
 ```
-申請流程，所需文件，辦理時間
-```
-
-**Query:** "台中房價走勢"
-```
-房市分析，價格趨勢，投資建議
+Platform comparison, course quality, pricing
 ```
 
-### Japanese
-
-**Query:** "東京で今人気のレストランは？"
+**Query:** "What's new in Taipei recently?"
 ```
-東京の人気レストラン、評価、予約情報
-例："Narisawa - モダン日本料理..."
+Recent Taipei news, events
+Example: "MRT circular line northern section groundbreaking..."
 ```
 
-**Query:** "最新のAI技術について教えて"
+**Query:** "Best food in Kaohsiung"
 ```
-最新AI技術の解説、応用例
-例："GPT-5の登場で自然言語処理が進化..."
-```
-
-**Query:** "日本の観光スポット"
-```
-人気観光地、季節のおすすめ、アクセス
+Kaohsiung restaurants, must-try dishes
+Example: "Liuhe Night Market - papaya milk..."
 ```
 
-**Query:** "プログラミング学習方法"
+**Query:** "Taiwan travel attractions"
 ```
-学習ロードマップ、おすすめ教材
-```
-
-**Query:** "東京オリンピック後の変化"
-```
-インフラ整備、経済影響、都市開発
+Popular spots, experiences, transport info
 ```
 
-### Korean
-
-**Query:** "서울 맛집 추천"
+**Query:** "How to apply for Taiwan passport?"
 ```
-서울 인기 맛집, 메뉴, 위치 정보
-예시："광장시장 - 전통 한식..."
+Application process, required documents, processing time
 ```
 
-**Query:** "최신 프로그래밍 트렌드"
+**Query:** "Taichung housing market trend"
 ```
-최신 개발 트렌드, 인기 기술 스택
-예시："AI 코딩 어시스턴트 보편화..."
-```
-
-**Query:** "한국 여행 가이드"
-```
-추천 여행지, 맛집, 교통 정보
+Market analysis, price trends, investment advice
 ```
 
-**Query:** "부동산 시장 전망"
+**Query:** "Popular restaurants in Tokyo"
 ```
-시장 분석, 가격 동향, 투자 조언
-```
-
-**Query:** "K-pop 최신 소식"
-```
-신곡 발매, 콘서트 일정, 차트 순위
+Tokyo popular restaurants, ratings, reservation info
+Example: "Narisawa - modern Japanese cuisine..."
 ```
 
-### Mixed Language
-
-**Query:** "React 在中国的使用情况"
+**Query:** "Latest AI technology overview"
 ```
-React 在中国的普及度，案例分析
-示例："市场份额: 约 45%（仅次于 Vue）..."
+AI technology overview, use cases
+Example: "GPT-5 advances in natural language..."
 ```
 
-**Query:** "日本のAI企業について"
+**Query:** "Tourist spots in Japan"
 ```
-日本の主要AI企業、技術動向
-例："Preferred Networks - 深層学習..."
-```
-
-**Query:** "Python vs Java 哪个更适合初学者？"
-```
-语言对比，学习难度，就业前景
+Popular destinations, seasonal tips, access
 ```
 
-**Query:** "東京で中国語が通じる病院"
+**Query:** "How to learn programming"
 ```
-中国語対応の医療機関、診療科目
+Learning roadmap, recommended resources
 ```
 
-**Query:** "한국에서 일본 여행 가는 방법"
+**Query:** "React adoption in China"
 ```
-항공편, 비자, 여행 팁
+React popularity, case studies
+Example: "Market share: ~45% (second to Vue)..."
+```
+
+**Query:** "Python vs Java for beginners"
+```
+Language comparison, learning curve, career outlook
+```
+
+**Query:** "How to travel from Korea to Japan"
+```
+Flights, visa, travel tips
 ```
 
 ---
@@ -474,10 +425,10 @@ Comprehensive analysis with statistics, trends, expert opinions
 Example: "Productivity: 40% faster coding with AI assistants..."
 ```
 
-**Query:** "量子计算对密码学的影响"
+**Query:** "Impact of quantum computing on cryptography"
 ```
-深度分析，技术挑战，未来展望
-示例："威胁: RSA、ECC 等传统加密算法将被破解..."
+In-depth analysis, technical challenges, future outlook
+Example: "Threat: RSA, ECC and traditional crypto could be broken..."
 ```
 
 **Query:** "Climate change effects on global economy"
@@ -485,9 +436,9 @@ Example: "Productivity: 40% faster coding with AI assistants..."
 Economic impact analysis, sector-specific effects, projections
 ```
 
-**Query:** "区块链在供应链管理中的应用"
+**Query:** "Blockchain applications in supply chain management"
 ```
-应用场景，技术方案，案例分析
+Use cases, technical approaches, case studies
 ```
 
 **Query:** "Future of remote work post-pandemic"
@@ -495,9 +446,9 @@ Economic impact analysis, sector-specific effects, projections
 Trends, company policies, productivity studies
 ```
 
-**Query:** "5G 技术对物联网的影响"
+**Query:** "Impact of 5G on IoT"
 ```
-技术优势，应用场景，发展趋势
+Technical advantages, use cases, development trends
 ```
 
 ### Comparisons
@@ -508,10 +459,10 @@ Detailed comparison table, pricing, use cases
 Example: "Market Share: AWS 32%, Azure 23%..."
 ```
 
-**Query:** "编程语言性能对比：Python vs Go vs Rust"
+**Query:** "Programming language performance: Python vs Go vs Rust"
 ```
-性能测试数据，适用场景，学习曲线
-示例："执行速度: Rust > Go > Python..."
+Benchmark data, use cases, learning curve
+Example: "Execution speed: Rust > Go > Python..."
 ```
 
 **Query:** "Electric vehicles: Tesla vs BYD vs Rivian"
@@ -519,9 +470,9 @@ Example: "Market Share: AWS 32%, Azure 23%..."
 Specs, range, charging, price comparison
 ```
 
-**Query:** "在线会议软件对比：Zoom vs Teams vs Google Meet"
+**Query:** "Video conferencing comparison: Zoom vs Teams vs Google Meet"
 ```
-功能对比，价格分析，适用场景
+Feature comparison, pricing, use cases
 ```
 
 **Query:** "Database comparison: MongoDB vs PostgreSQL"
@@ -529,9 +480,9 @@ Specs, range, charging, price comparison
 Performance, scalability, use cases
 ```
 
-**Query:** "智能手机芯片对比：骁龙 vs 天玑 vs 麒麟"
+**Query:** "Smartphone chip comparison: Snapdragon vs Dimensity vs Kirin"
 ```
-性能测试，功耗对比，AI 能力
+Performance benchmarks, power consumption, AI capability
 ```
 
 ### Deep Dives
@@ -542,10 +493,10 @@ Technical explanation, architecture details, training process
 Example: "Transformer-based architecture with..."
 ```
 
-**Query:** "区块链技术原理详解"
+**Query:** "Blockchain technology explained"
 ```
-技术架构，共识机制，应用场景
-示例："分布式账本技术，通过密码学..."
+Technical architecture, consensus mechanisms, use cases
+Example: "Distributed ledger, cryptography-based..."
 ```
 
 **Query:** "Quantum computing explained"
@@ -553,9 +504,9 @@ Example: "Transformer-based architecture with..."
 Principles, qubits, quantum gates, applications
 ```
 
-**Query:** "深度学习神经网络原理"
+**Query:** "Deep learning neural network basics"
 ```
-网络结构，训练过程，优化算法
+Network structure, training process, optimization
 ```
 
 **Query:** "How does CRISPR gene editing work?"
@@ -563,9 +514,9 @@ Principles, qubits, quantum gates, applications
 Mechanism, applications, ethical considerations
 ```
 
-**Query:** "容器化技术深度解析"
+**Query:** "Container technology deep dive"
 ```
-Docker 原理，Kubernetes 架构，最佳实践
+Docker basics, Kubernetes architecture, best practices
 ```
 
 ### Market Research
@@ -576,10 +527,10 @@ Market size, growth projections, key players
 Example: "Global EV sales expected to reach 20M units..."
 ```
 
-**Query:** "中国新能源汽车市场分析"
+**Query:** "China EV market analysis"
 ```
-市场规模，主要厂商，政策影响
-示例："2026 年市场规模预计突破 1000 万辆..."
+Market size, major players, policy impact
+Example: "2026 market expected to exceed 10M units..."
 ```
 
 **Query:** "AI chip market forecast"
@@ -587,9 +538,9 @@ Example: "Global EV sales expected to reach 20M units..."
 Market size, major players, technology trends
 ```
 
-**Query:** "智能家居市场前景"
+**Query:** "Smart home market outlook"
 ```
-市场规模，消费趋势，竞争格局
+Market size, consumer trends, competitive landscape
 ```
 
 **Query:** "Cryptocurrency market analysis 2026"
@@ -597,9 +548,9 @@ Market size, major players, technology trends
 Market cap, adoption rates, regulatory landscape
 ```
 
-**Query:** "在线教育行业发展趋势"
+**Query:** "Online education industry trends"
 ```
-市场规模，用户增长，商业模式
+Market size, user growth, business models
 ```
 
 ### Product Reviews
@@ -610,10 +561,10 @@ Specs, performance, price, recommendations
 Example: "Performance: Pro 20% faster in sustained workloads..."
 ```
 
-**Query:** "小米14 Pro 和 iPhone 15 Pro 对比评测"
+**Query:** "Xiaomi 14 Pro vs iPhone 15 Pro comparison"
 ```
-详细对比，优缺点，购买建议
-示例："性能: 骁龙 8 Gen 3 vs A17 Pro..."
+Detailed comparison, pros and cons, buying advice
+Example: "Performance: Snapdragon 8 Gen 3 vs A17 Pro..."
 ```
 
 **Query:** "Best budget smartphones 2026"
@@ -621,9 +572,9 @@ Example: "Performance: Pro 20% faster in sustained workloads..."
 Top picks, specs, value analysis
 ```
 
-**Query:** "游戏笔记本电脑推荐"
+**Query:** "Gaming laptop recommendations"
 ```
-性能对比，散热测试，性价比分析
+Performance comparison, thermal tests, value analysis
 ```
 
 **Query:** "Wireless earbuds comparison 2026"
@@ -631,9 +582,9 @@ Top picks, specs, value analysis
 Sound quality, ANC, battery life, comfort
 ```
 
-**Query:** "智能手表选购指南"
+**Query:** "Smartwatch buying guide"
 ```
-功能对比，续航测试，适用人群
+Feature comparison, battery tests, target users
 ```
 
 ---
@@ -660,13 +611,13 @@ Sound quality, ANC, battery life, comfort
 
 ✅ **Natural:** "What's the weather like in Paris this weekend?"
 ✅ **Natural:** "How do I deploy a Next.js app to Vercel?"
-✅ **Natural:** "上海有什么好吃的日本料理？"
+✅ **Natural:** "Where to find good Japanese food in Shanghai?"
 
 ### Multi-language Works
 
-✅ **Mixed:** "React 在中国的使用情况"
-✅ **Mixed:** "東京で中国語が通じる病院"
-✅ **Mixed:** "Python vs Java 哪个更适合初学者？"
+✅ **Mixed:** "React adoption in China"
+✅ **Mixed:** "Hospitals in Tokyo with Chinese-speaking staff"
+✅ **Mixed:** "Python vs Java for beginners?"
 
 Felo understands context across languages!
 
