@@ -21,12 +21,9 @@ Search the web for up-to-date information and get AI-synthesized answers. Ideal 
 - **Claude Code**: After installing the skill, it triggers automatically, or type `/felo-ai your question`
 - **Examples**: `felo search "Tokyo weather"`, `felo search "React 19 new features" --verbose`
 
-### Capability 2: Generate PPT
+### Capability 2: Generate PPT (Felo Slides)
 
-Describe a topic in one sentence and Felo generates a slideshow. The job runs in the cloud; when done, you get an **online document link** to open in your browser.
-
-- **Terminal**: `felo slides "your topic or description"`
-- **Examples**: `felo slides "Felo product intro, 3 slides"`, `felo slides "Introduction to React" --poll-timeout 300`
+Terminal: `felo slides "your topic"`. In Claude Code: install `npx @claude/skills add felo-slides`, then `/felo-slides your topic`. You get an online document link when done. Examples: `felo slides "Felo product intro, 3 slides"`, `felo slides "Introduction to React"`.
 
 ---
 
@@ -62,17 +59,39 @@ Get your API key at [felo.ai](https://felo.ai) (Settings → API Keys).
 | `felo config set FELO_API_KEY <key>` | Save API key |
 | `felo config get/list/path/unset` | View / list / path / remove config |
 
----
+### Examples
 
-## Claude Code Skill
-
-Install the skill:
+**Search**
 
 ```bash
-npx @claude/skills add felo-ai
+felo search "Tokyo weather"
+felo search "MacBook Air M3 price"
+felo search "React 19 new features" --verbose
+npx felo-ai search "Tokyo weather"
 ```
 
-After setting `FELO_API_KEY`, ask Claude things like “What’s the weather in Tokyo today?” or “React 19 new features” and search will trigger automatically. PPT generation is available only via the terminal with `felo slides`.
+**Slides**
+
+```bash
+felo slides "Felo product intro, 3 slides"
+felo slides "Introduction to React"
+felo slides "Q4 2024 business review, 10 pages" --poll-timeout 300
+npx felo-ai slides "Tokyo travel guide, 5 slides"
+```
+
+---
+
+## Claude Code Skills
+
+**Search** — Install and use real-time search:
+
+```bash
+npx @claude/skills add felo-search
+```
+
+After setting `FELO_API_KEY`, ask Claude things like “What’s the weather in Tokyo today?” or “React 19 new features”; the search skill triggers automatically (or use `/felo-search your question`).
+
+**Slides (PPT)** — `npx @claude/skills add felo-slides`, then `/felo-slides your topic`. Same `FELO_API_KEY`. [Details →](./felo-slides/README.md)
 
 ---
 

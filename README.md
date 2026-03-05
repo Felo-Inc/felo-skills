@@ -1,30 +1,27 @@
-# Felo Skills for Claude Code
+# Felo AI CLI
 
-**Ask anything. Get current answers powered by AI.**
+**Ask anything. Get current answers. Generate slides from a prompt.**
 
-Real-time web search powered by Felo AI. Works in Chinese, English, Japanese, and Korean.
+[npm package: **felo-ai**](https://www.npmjs.com/package/felo-ai) — Real-time search and PPT generation from the terminal. Also works as Claude Code skills. Supports Chinese, English, Japanese, and Korean.
 
-[![Setup Time](https://img.shields.io/badge/setup-2%20minutes-blue)]() [![License](https://img.shields.io/badge/license-MIT-green)]()
+[![npm version](https://img.shields.io/npm/v/felo-ai.svg)](https://www.npmjs.com/package/felo-ai) [![License](https://img.shields.io/badge/license-MIT-green)]()
 
 ---
 
-## Felo CLI (Terminal)
-
-Use Felo search from the terminal without opening Claude Code.
-
-### Install
+## Install (CLI)
 
 ```bash
-npm install -g felo-search
+npm install -g felo-ai
 ```
 
-Or run without installing (uses latest published version):
+Run without installing:
 
 ```bash
-npx felo-search search "Tokyo weather"
+npx felo-ai search "Tokyo weather"
+npx felo-ai slides "Introduction to React, 5 slides"
 ```
 
-After install, the command is `felo` (from the package name `felo-search`).
+After install, the command is `felo` (package name: **felo-ai**).
 
 ### Configure API key
 
@@ -53,32 +50,47 @@ Get your API key from [felo.ai](https://felo.ai) (Settings → API Keys). Enviro
 | Command                              | Description                                           |
 | ------------------------------------ | ----------------------------------------------------- |
 | `felo search "<query>"`              | Search for current info (weather, news, prices, etc.) |
+| `felo slides "<prompt>"`             | Generate PPT; returns link when done                 |
 | `felo config set FELO_API_KEY <key>` | Save API key to config                                |
 | `felo config get FELO_API_KEY`       | Print stored key                                      |
 | `felo config list`                   | List config keys                                      |
 | `felo config path`                   | Show config file path                                 |
-| `felo summarize` / `felo translate`  | Planned; use `felo search` for now                    |
 
 ### Examples
+
+**Search**
 
 ```bash
 felo search "Tokyo weather"
 felo search "MacBook Air M3 price"
 felo search "React 19 new features" --verbose
 felo search "Hangzhou tomorrow weather" --json
-npx felo-search search "Tokyo weather"
+npx felo-ai search "Tokyo weather"
+```
+
+**Slides**
+
+```bash
+felo slides "Felo product intro, 3 slides"
+felo slides "Introduction to React"
+felo slides "Q4 2024 business review, 10 pages" --poll-timeout 300
+npx felo-ai slides "Tokyo travel guide, 5 slides"
 ```
 
 ### CLI FAQ
 
 - **Key not found?** Run `felo config set FELO_API_KEY <key>` or set the `FELO_API_KEY` environment variable.
 - **Request timeout?** Use `felo search "query" --timeout 120` (default 60 seconds). 5xx errors are retried automatically with backoff.
+- **Slides taking long?** Use `felo slides "topic" --poll-timeout 300` (default 1200s) to limit wait.
 - **Where is config stored?** Run `felo config path` to see the file (e.g. `~/.felo/config.json`).
-- **Streaming?** Not yet; when the Felo API supports streaming, the CLI can be updated to stream output.
 
 ---
 
-## Quick Start (Claude Code Skill)
+## Claude Code Skills (optional)
+
+This repo also provides **Claude Code** skills. If you use [Claude Code](https://claude.ai/code), you can install search and/or slides as skills so Claude can run them in chat.
+
+### Quick Start (Search skill)
 
 Install the skill:
 
@@ -109,6 +121,8 @@ Ask Claude: "What's the weather in Tokyo today?"
 ```
 
 **You're done!** The skill triggers automatically for any question needing current information.
+
+**Felo Slides (PPT):** In terminal run `felo slides "your topic"`. In Claude Code install with `npx @claude/skills add felo-slides`, then use `/felo-slides your topic`. See [felo-slides](./felo-slides/README.md).
 
 ---
 
@@ -284,6 +298,10 @@ Real-time web search with AI-generated answers.
 
 **[View skill documentation →](./felo-search/)**
 
+### felo-slides
+
+Generate PPT: in terminal use `felo slides "your topic"`, in Claude Code use `/felo-slides your topic`. **[View skill documentation →](./felo-slides/)**
+
 ---
 
 ## Contributing
@@ -302,6 +320,7 @@ Run CLI tests: `npm test`
 
 ## Links
 
+- **[npm: felo-ai](https://www.npmjs.com/package/felo-ai)** — CLI package
 - **[Felo Open Platform](https://openapi.felo.ai/docs/)** — Get your API key
 - **[API Documentation](https://openapi.felo.ai/docs/api-reference/v2/chat.html)** — API reference
 - **[Claude Code](https://claude.ai/code)** — AI assistant CLI
@@ -321,7 +340,7 @@ Run CLI tests: `npm test`
 
 ## License
 
-MIT License — see [LICENSE](./felo-search/LICENSE) for details.
+MIT — see [LICENSE](./felo-search/LICENSE) in the repo for details.
 
 ---
 
