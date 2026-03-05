@@ -1,6 +1,6 @@
 {
   "name": "felo-ai",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Felo AI CLI - real-time search and PPT generation from the terminal",
   "type": "module",
   "main": "src/cli.js",
