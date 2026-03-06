@@ -8,9 +8,9 @@ Felo AI provides a terminal CLI and Claude Code skill, with support for English,
 
 ---
 
-## Two Core Capabilities
+## Capabilities
 
-Felo AI offers two main features: **Real-time Search** and **PPT Generation**. Use them via the CLI in your terminal, or in Claude Code via the skill (search can trigger automatically).
+Felo AI offers **Real-time Search**, **PPT Generation**, **Web Page Extraction**, and **YouTube Subtitles**. Use them via the CLI in your terminal, or in Claude Code via skills (search can trigger automatically).
 
 ### Capability 1: Real-time Search
 
@@ -56,6 +56,8 @@ Get your API key at [felo.ai](https://felo.ai) (Settings → API Keys).
 |---------|-------------|
 | `felo search "<query>"` | Real-time search |
 | `felo slides "<prompt>"` | Generate PPT |
+| `felo web-extract --url <url>` | Extract webpage content (markdown/text/html) |
+| `felo youtube-subtitling -v <url-or-id>` | Fetch YouTube video subtitles |
 | `felo config set FELO_API_KEY <key>` | Save API key |
 | `felo config get/list/path/unset` | View / list / path / remove config |
 
@@ -79,6 +81,22 @@ felo slides "Q4 2024 business review, 10 pages" --poll-timeout 300
 npx felo-ai slides "Tokyo travel guide, 5 slides"
 ```
 
+**Web extract**
+
+```bash
+felo web-extract --url "https://example.com"
+felo web-extract --url "https://example.com" --format text --readability
+node felo-web-extract/scripts/run_web_extract.mjs --url "https://example.com" --format markdown
+```
+
+**YouTube subtitling**
+
+```bash
+felo youtube-subtitling -v "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+felo youtube-subtitling -v "dQw4w9WgXcQ" --language en
+node felo-youtube-subtitling/scripts/run_youtube_subtitling.mjs -v "dQw4w9WgXcQ" -l zh-CN
+```
+
 ---
 
 ## Claude Code Skills
@@ -92,6 +110,10 @@ npx @claude/skills add felo-search
 After setting `FELO_API_KEY`, ask Claude things like “What’s the weather in Tokyo today?” or “React 19 new features”; the search skill triggers automatically (or use `/felo-search your question`).
 
 **Slides (PPT)** — `npx @claude/skills add felo-slides`, then `/felo-slides your topic`. Same `FELO_API_KEY`. [Details →](./felo-slides/README.md)
+
+**Web Extract** — `felo web-extract --url "https://example.com"` or run `node felo-web-extract/scripts/run_web_extract.mjs` from repo. [Details →](./felo-web-extract/README.md)
+
+**YouTube Subtitling** — `felo youtube-subtitling -v "URL_or_VIDEO_ID"` or run `node felo-youtube-subtitling/scripts/run_youtube_subtitling.mjs` from repo. [Details →](./felo-youtube-subtitling/README.md)
 
 ---
 

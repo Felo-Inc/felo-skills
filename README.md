@@ -82,11 +82,16 @@ npx felo-ai slides "Tokyo travel guide, 5 slides"
 **Web extract** (after `npm install -g felo-ai`)
 
 ```bash
+# Packaged CLI
 felo web-extract --url "https://example.com"
 felo web-extract --url "https://example.com/article" --format markdown --readability
 felo web-extract --url "https://example.com" --target-selector "article.main" --format text
 felo web-extract --url "https://example.com" -j
 npx felo-ai web-extract --url "https://example.com" --format markdown
+
+# From repo: run script directly (no install)
+node felo-web-extract/scripts/run_web_extract.mjs --url "https://example.com" --format markdown
+node felo-web-extract/scripts/run_web_extract.mjs --url "https://example.com" --readability -f text
 ```
 
 **How to pass parameters**
