@@ -2,7 +2,7 @@
 
 **Ask anything. Get current answers. Generate slides from a prompt.**
 
-[npm package: **felo-ai**](https://www.npmjs.com/package/felo-ai) — Real-time search and PPT generation from the terminal. Also works as Claude Code skills. Supports Chinese, English, Japanese, and Korean.
+[npm package: **felo-ai**](https://www.npmjs.com/package/felo-ai) — Real-time search, PPT generation, and web page extraction from the terminal. Also works as Claude Code skills. Supports Chinese, English, Japanese, and Korean.
 
 [![npm version](https://img.shields.io/npm/v/felo-ai.svg)](https://www.npmjs.com/package/felo-ai) [![License](https://img.shields.io/badge/license-MIT-green)]()
 
@@ -51,6 +51,7 @@ Get your API key from [felo.ai](https://felo.ai) (Settings → API Keys). Enviro
 | ------------------------------------ | ----------------------------------------------------- |
 | `felo search "<query>"`              | Search for current info (weather, news, prices, etc.) |
 | `felo slides "<prompt>"`             | Generate PPT; returns link when done                 |
+| `felo web-extract --url <url>`       | Extract webpage content (markdown/text/html)          |
 | `felo config set FELO_API_KEY <key>` | Save API key to config                                |
 | `felo config get FELO_API_KEY`       | Print stored key                                      |
 | `felo config list`                   | List config keys                                      |
@@ -77,12 +78,45 @@ felo slides "Q4 2024 business review, 10 pages" --poll-timeout 300
 npx felo-ai slides "Tokyo travel guide, 5 slides"
 ```
 
+**Web extract** (after `npm install -g felo-ai`)
+
+```bash
+felo web-extract --url "https://example.com"
+felo web-extract --url "https://example.com/article" --format markdown --readability
+felo web-extract --url "https://example.com" --target-selector "article.main" --format text
+felo web-extract --url "https://example.com" -j
+npx felo-ai web-extract --url "https://example.com" --format markdown
+```
+
+**How to pass parameters**
+
+| Parameter | CLI option | Example | Description |
+|-----------|------------|---------|--------------|
+| URL (required) | `-u`, `--url` | `--url "https://example.com"` | Page to extract |
+| Output format | `-f`, `--format` | `--format text` or `-f markdown` | `html`, `text`, or `markdown` (default: markdown) |
+| Target element | `--target-selector` | `--target-selector "article.main"` | CSS selector; only this element is extracted |
+| Wait for element | `--wait-for-selector` | `--wait-for-selector ".content"` | Wait for selector before extracting (e.g. dynamic pages) |
+| Readability | `--readability` | `--readability` | Main article content only (no nav/ads) |
+| Crawl mode | `--crawl-mode` | `--crawl-mode fine` | `fast` (default) or `fine` |
+| Timeout (seconds) | `-t`, `--timeout` | `--timeout 120` or `-t 90` | Request timeout (default: 60) |
+| Full JSON response | `-j`, `--json` | `-j` or `--json` | Print full API response instead of content only |
+
+Examples with multiple options:
+
+```bash
+felo web-extract -u "https://example.com" -f text --readability -t 90
+felo web-extract --url "https://example.com" --target-selector "#main" --wait-for-selector ".loaded" --format markdown --json
+```
+
+Same `FELO_API_KEY` as search/slides.
+
 ### CLI FAQ
 
 - **Key not found?** Run `felo config set FELO_API_KEY <key>` or set the `FELO_API_KEY` environment variable.
 - **Request timeout?** Use `felo search "query" --timeout 120` (default 60 seconds). 5xx errors are retried automatically with backoff.
 - **Slides taking long?** Use `felo slides "topic" --poll-timeout 300` (default 1200s) to limit wait.
 - **Where is config stored?** Run `felo config path` to see the file (e.g. `~/.felo/config.json`).
+- **Web extract after install?** Use `felo web-extract --url "<page url>"`. Other params: `--format markdown|text|html`, `--readability`, `--target-selector "selector"`, `--wait-for-selector "selector"`, `--crawl-mode fast|fine`, `--timeout 120`, `--json`. See the "How to pass parameters" table above. Same API key as other commands.
 
 ---
 
@@ -123,6 +157,8 @@ Ask Claude: "What's the weather in Tokyo today?"
 **You're done!** The skill triggers automatically for any question needing current information.
 
 **Felo Slides (PPT):** In terminal run `felo slides "your topic"`. In Claude Code install with `npx @claude/skills add felo-slides`, then use `/felo-slides your topic`. See [felo-slides](./felo-slides/README.md).
+
+**Felo Web Extract:** In terminal run `felo web-extract --url "https://example.com"` (see [felo-web-extract](./felo-web-extract/README.md)). In Claude Code you can install the skill and use it to extract webpage content from a URL.
 
 ---
 
