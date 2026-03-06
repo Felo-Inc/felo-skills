@@ -1,7 +1,7 @@
 {
   "name": "felo-ai",
-  "version": "0.2.6",
-  "description": "Felo AI CLI - real-time search, PPT generation, web extract, and YouTube subtitles from the terminal",
+  "version": "0.2.7",
+  "description": "Felo AI CLI - real-time search, PPT generation, web fetch, and YouTube subtitles from the terminal",
   "type": "module",
   "main": "src/cli.js",
   "bin": {
@@ -15,7 +15,7 @@
     "felo-ai",
     "search",
     "slides",
-    "web-extract",
+    "web-fetch",
     "youtube-subtitles",
     "cli",
     "ai"

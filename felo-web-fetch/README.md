@@ -1,10 +1,10 @@
-# Felo Web Extract Skill
+# Felo Web Fetch Skill
 
-Extract webpage content from a URL using the [Felo Web Extract API](https://openapi.felo.ai/docs/api-reference/v2/web-extract.html).
+Fetch webpage content from a URL using the [Felo Web Extract API](https://openapi.felo.ai/docs/api-reference/v2/web-extract.html).
 
 ## Features
 
-- Extract content from any URL as **html**, **text**, or **markdown** (`--format`)
+- Fetch content from any URL as **html**, **text**, or **markdown** (`--format`)
 - **Target one element** with a CSS selector (`--target-selector`, e.g. `article.main`, `#content`)
 - Optional **readability** mode for main article content only
 - Crawl modes: `fast` (default) or `fine`
@@ -26,28 +26,28 @@ export FELO_API_KEY="your-api-key-here"
 $env:FELO_API_KEY="your-api-key-here"
 ```
 
-### 2) Run extraction
+### 2) Run fetch
 
 ```bash
-# Extract as Markdown (default)
-node felo-web-extract/scripts/run_web_extract.mjs --url "https://example.com/article"
+# Fetch as Markdown (default)
+node felo-web-fetch/scripts/run_web_fetch.mjs --url "https://example.com/article"
 
 # With readability for clean article text
-node felo-web-extract/scripts/run_web_extract.mjs --url "https://example.com" --readability --format markdown
+node felo-web-fetch/scripts/run_web_fetch.mjs --url "https://example.com" --readability --format markdown
 
 # Full JSON response
-node felo-web-extract/scripts/run_web_extract.mjs --url "https://example.com" --json
+node felo-web-fetch/scripts/run_web_fetch.mjs --url "https://example.com" --json
 
 # Only a specific element (CSS selector) and output format
-node felo-web-extract/scripts/run_web_extract.mjs --url "https://example.com" --target-selector "article.main" --format markdown
+node felo-web-fetch/scripts/run_web_fetch.mjs --url "https://example.com" --target-selector "article.main" --format markdown
 ```
 
-## Using the packaged CLI (`felo web-extract`)
+## Using the packaged CLI (`felo web-fetch`)
 
 After `npm install -g felo-ai`, you can run:
 
 ```bash
-felo web-extract --url "https://example.com"
+felo web-fetch --url "https://example.com"
 ```
 
 **All parameters (how to pass)**
@@ -66,13 +66,13 @@ felo web-extract --url "https://example.com"
 **Examples with multiple options**
 
 ```bash
-felo web-extract -u "https://example.com" -f text --readability
-felo web-extract --url "https://example.com" --target-selector "#content" --format markdown --timeout 90
-felo web-extract --url "https://example.com" --wait-for-selector "main" --readability -j
+felo web-fetch -u "https://example.com" -f text --readability
+felo web-fetch --url "https://example.com" --target-selector "#content" --format markdown --timeout 90
+felo web-fetch --url "https://example.com" --wait-for-selector "main" --readability -j
 ```
 
 ## When to use (Agent)
 
-Trigger keywords: extract webpage, scrape URL, fetch page content, url to markdown, `/felo-web-extract`.
+Trigger keywords: fetch webpage, scrape URL, fetch page content, url to markdown, `/felo-web-fetch`.
 
 See [SKILL.md](SKILL.md) for full agent instructions and API parameters.

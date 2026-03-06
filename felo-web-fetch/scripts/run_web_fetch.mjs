@@ -28,13 +28,13 @@ function usage() {
   console.error(
     [
       'Usage:',
-      '  node felo-web-extract/scripts/run_web_extract.mjs --url <url> [options]',
+      '  node felo-web-fetch/scripts/run_web_fetch.mjs --url <url> [options]',
       '',
       'Options:',
-      '  --url <url>           Page URL to extract (required)',
+      '  --url <url>           Page URL to fetch (required)',
       '  --format <format>     Output format: html, text, markdown (default: markdown)',
       '  --target-selector <s> CSS selector for target element only',
-      '  --wait-for-selector <s> Wait for selector before extract',
+      '  --wait-for-selector <s> Wait for selector before fetch',
       '  --readability         Enable readability (main content only)',
       '  --crawl-mode <mode>   fast or fine (default: fast)',
       '  --timeout <ms>        Request timeout in ms (default: 60000)',
@@ -210,7 +210,7 @@ async function main() {
     if (isEmpty) {
       stopSpinner(spinnerId);
       process.stderr.write(
-        `No content extracted from ${args.url}. The page may be empty, blocked, or the selector did not match.\n`
+        `No content fetched from ${args.url}. The page may be empty, blocked, or the selector did not match.\n`
       );
       process.exit(1);
     }
@@ -226,7 +226,7 @@ main().catch((err) => {
   const i = argv.findIndex((a) => a === '--url' || a === '-u');
   if (i >= 0 && argv[i + 1]) url = argv[i + 1];
   process.stderr.write(
-    `Web extract failed${url ? ` for ${url}` : ''}: ${err?.message || err}\n`
+    `Web fetch failed${url ? ` for ${url}` : ''}: ${err?.message || err}\n`
   );
   process.exit(1);
 });

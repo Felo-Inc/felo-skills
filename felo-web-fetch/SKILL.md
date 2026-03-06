@@ -1,23 +1,23 @@
 ---
-name: felo-web-extract
-description: "Extract web page content from a URL using Felo Web Extract API. Use when users ask to scrape/capture/fetch webpage content, extract article text from URL, convert page to markdown/text, or when explicit commands like /felo-web-extract are used. Supports html, text, markdown output and readability mode."
+name: felo-web-fetch
+description: "Fetch web page content from a URL using Felo Web Extract API. Use when users ask to scrape/capture/fetch webpage content, get article text from URL, convert page to markdown/text, or when explicit commands like /felo-web-fetch are used. Supports html, text, markdown output and readability mode."
 ---
 
-# Felo Web Extract Skill
+# Felo Web Fetch Skill
 
 ## When to Use
 
 Trigger this skill when the user wants to:
 
-- Extract or scrape content from a webpage URL
+- Fetch or scrape content from a webpage URL
 - Get article/main text from a link
 - Convert a webpage to Markdown or plain text
 - Capture readable content from a URL for summarization or processing
 
 Trigger keywords (examples):
 
-- extract webpage, scrape URL, fetch page content, web extract, url to markdown
-- Explicit: `/felo-web-extract`, "use felo web extract"
+- fetch webpage, scrape URL, fetch page content, web fetch, url to markdown
+- Explicit: `/felo-web-fetch`, "use felo web fetch"
 - Same intent in other languages (e.g. 网页抓取, 提取网页内容) also triggers this skill
 
 Do NOT use for:
@@ -55,13 +55,13 @@ $env:FELO_API_KEY="your-api-key-here"
 **Script** (from repo):
 
 ```bash
-node felo-web-extract/scripts/run_web_extract.mjs --url "https://example.com/article" [options]
+node felo-web-fetch/scripts/run_web_fetch.mjs --url "https://example.com/article" [options]
 ```
 
 **Packaged CLI** (after `npm install -g felo-ai`): same options, with short forms allowed:
 
 ```bash
-felo web-extract -u "https://example.com" [options]
+felo web-fetch -u "https://example.com" [options]
 # Short forms: -u (url), -f (format), -t (timeout, seconds), -j (json)
 ```
 
@@ -69,10 +69,10 @@ Options:
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--url` | (required) | Webpage URL to extract |
+| `--url` | (required) | Webpage URL to fetch |
 | `--format` | markdown | Output format: `html`, `text`, `markdown` |
-| `--target-selector` | - | CSS selector: extract only this element (e.g. `article.main`, `#content`) |
-| `--wait-for-selector` | - | Wait for this selector before extracting (e.g. dynamic content) |
+| `--target-selector` | - | CSS selector: fetch only this element (e.g. `article.main`, `#content`) |
+| `--wait-for-selector` | - | Wait for this selector before fetching (e.g. dynamic content) |
 | `--readability` | false | Enable readability processing (main content only) |
 | `--crawl-mode` | fast | `fast` or `fine` |
 | `--timeout` | 60000 (script) / 60 (CLI) | Request timeout: script uses **milliseconds**, CLI uses **seconds** (e.g. `-t 90`) |
@@ -82,35 +82,35 @@ Options:
 
 When the user wants a **specific part** of the page or a **specific output format**, phrase the command like this:
 
-- **Output format**: "Extract as **text**" / "Get **markdown**" / "Return **html**" → use `--format text`, `--format markdown`, or `--format html`.
-- **Target one element**: "Only the **main article**" / "Just the **content inside** `#main`" / "Extract only **article.main-content**" → use `--target-selector "article.main"` or the selector they give (e.g. `#main`, `.main-content`, `article .post`).
+- **Output format**: "Fetch as **text**" / "Get **markdown**" / "Return **html**" → use `--format text`, `--format markdown`, or `--format html`.
+- **Target one element**: "Only the **main article**" / "Just the **content inside** `#main`" / "Fetch only **article.main-content**" → use `--target-selector "article.main"` or the selector they give (e.g. `#main`, `.main-content`, `article .post`).
 
 Examples of user intents and equivalent commands:
 
 | User intent | Command |
 |-------------|---------|
-| "Extract this page as plain text" | `--url "..." --format text` |
+| "Fetch this page as plain text" | `--url "..." --format text` |
 | "Get only the main content area" | `--url "..." --target-selector "main"` or `article` |
-| "Extract the div with id=content as markdown" | `--url "..." --target-selector "#content" --format markdown` |
+| "Fetch the div with id=content as markdown" | `--url "..." --target-selector "#content" --format markdown` |
 | "Just the article body, as HTML" | `--url "..." --target-selector "article .body" --format html` |
 
 Examples:
 
 ```bash
-# Basic: extract as Markdown
-node felo-web-extract/scripts/run_web_extract.mjs --url "https://example.com"
+# Basic: fetch as Markdown
+node felo-web-fetch/scripts/run_web_fetch.mjs --url "https://example.com"
 
 # Article-style with readability
-node felo-web-extract/scripts/run_web_extract.mjs --url "https://example.com/article" --readability --format markdown
+node felo-web-fetch/scripts/run_web_fetch.mjs --url "https://example.com/article" --readability --format markdown
 
 # Raw HTML
-node felo-web-extract/scripts/run_web_extract.mjs --url "https://example.com" --format html --json
+node felo-web-fetch/scripts/run_web_fetch.mjs --url "https://example.com" --format html --json
 
 # Only the element matching a CSS selector (e.g. main article)
-node felo-web-extract/scripts/run_web_extract.mjs --url "https://example.com" --target-selector "article.main" --format markdown
+node felo-web-fetch/scripts/run_web_fetch.mjs --url "https://example.com" --target-selector "article.main" --format markdown
 
 # Specific output format + target selector
-node felo-web-extract/scripts/run_web_extract.mjs --url "https://example.com" --target-selector "#content" --format text
+node felo-web-fetch/scripts/run_web_fetch.mjs --url "https://example.com" --target-selector "#content" --format text
 ```
 
 ### Option B: Call API with curl
@@ -132,14 +132,14 @@ curl -X POST "https://openapi.felo.ai/v2/web/extract" \
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| url | string | Yes | - | Webpage URL to extract |
+| url | string | Yes | - | Webpage URL to fetch |
 | crawl_mode | string | No | fast | `fast` or `fine` |
 | output_format | string | No | html | `html`, `text`, `markdown` |
 | with_readability | boolean | No | - | Use readability (main content) |
 | with_links_summary | boolean | No | - | Include links summary |
 | with_images_summary | boolean | No | - | Include images summary |
 | target_selector | string | No | - | CSS selector for target element |
-| wait_for_selector | string | No | - | Wait for selector before extract |
+| wait_for_selector | string | No | - | Wait for selector before fetch |
 | timeout | integer | No | - | Timeout in milliseconds |
 | with_cache | boolean | No | true | Use cache |
 
@@ -157,7 +157,7 @@ Success (200):
 }
 ```
 
-Extracted content is in `data.content`; structure depends on `output_format`.
+Fetched content is in `data.content`; structure depends on `output_format`.
 
 ### Error codes
 
@@ -165,13 +165,13 @@ Extracted content is in `data.content`; structure depends on `output_format`.
 |------|------|-------------|
 | 400 | - | Parameter validation failed |
 | 401 | INVALID_API_KEY | API key invalid or revoked |
-| 500/502 | WEB_EXTRACT_FAILED | Extract failed (server or page error) |
+| 500/502 | WEB_EXTRACT_FAILED | Fetch failed (server or page error) |
 
 ## Output Format
 
 On success (script without `--json`):
 
-- Print the extracted content only (for direct use or piping).
+- Print the fetched content only (for direct use or piping).
 
 With `--json`:
 
@@ -180,7 +180,7 @@ With `--json`:
 Error response to user:
 
 ```markdown
-## Web Extract Failed
+## Web Fetch Failed
 
 - Error: <code or message>
 - URL: <requested url>

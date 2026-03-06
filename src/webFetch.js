@@ -49,7 +49,7 @@ function stringifyContent(content) {
   return String(content);
 }
 
-async function fetchExtract(apiBase, apiKey, body, timeoutMs) {
+async function fetchContent(apiBase, apiKey, body, timeoutMs) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -86,10 +86,10 @@ async function fetchExtract(apiBase, apiKey, body, timeoutMs) {
 }
 
 /**
- * Run web extract and print result. Returns exit code (0 or 1).
+ * Run web fetch and print result. Returns exit code (0 or 1).
  * @param {Object} opts - { url, format, targetSelector, waitForSelector, readability, timeoutMs, json }
  */
-export async function webExtract(opts) {
+export async function webFetch(opts) {
   const apiKey = await getApiKey();
   if (!apiKey) {
     console.error(NO_KEY_MESSAGE.trim());
@@ -119,7 +119,7 @@ export async function webExtract(opts) {
   if (opts.waitForSelector) body.wait_for_selector = opts.waitForSelector;
 
   try {
-    const payload = await fetchExtract(apiBase, apiKey, body, timeoutMs);
+    const payload = await fetchContent(apiBase, apiKey, body, timeoutMs);
     const content = payload?.data?.content;
 
     if (opts.json) {
@@ -131,7 +131,7 @@ export async function webExtract(opts) {
     const isEmpty = out == null || String(out).trim() === '';
     if (isEmpty) {
       process.stderr.write(
-        `No content extracted from ${opts.url}. The page may be empty, blocked, or the selector did not match.\n`
+        `No content fetched from ${opts.url}. The page may be empty, blocked, or the selector did not match.\n`
       );
       return 1;
     }
@@ -139,7 +139,7 @@ export async function webExtract(opts) {
     return 0;
   } catch (err) {
     process.stderr.write(
-      `Web extract failed for ${opts.url}: ${err?.message || err}\n`
+      `Web fetch failed for ${opts.url}: ${err?.message || err}\n`
     );
     return 1;
   } finally {

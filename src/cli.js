@@ -4,7 +4,7 @@ import { createRequire } from "module";
 import { Command } from "commander";
 import { search } from "./search.js";
 import { slides } from "./slides.js";
-import { webExtract } from "./webExtract.js";
+import { webFetch } from "./webFetch.js";
 import { youtubeSubtitling } from "./youtubeSubtitling.js";
 import * as config from "./config.js";
 
@@ -177,9 +177,9 @@ configCmd
   });
 
 program
-  .command("web-extract")
-  .description("Extract webpage content from a URL (markdown, text, or html)")
-  .requiredOption("-u, --url <url>", "page URL to extract")
+  .command("web-fetch")
+  .description("Fetch webpage content from a URL (markdown, text, or html)")
+  .requiredOption("-u, --url <url>", "page URL to fetch")
   .option(
     "-f, --format <format>",
     "output format: html, text, markdown",
@@ -191,7 +191,7 @@ program
   )
   .option(
     "--wait-for-selector <selector>",
-    "wait for selector before extracting"
+    "wait for selector before fetching"
   )
   .option("--readability", "use readability (main content only)")
   .option("--crawl-mode <mode>", "crawl mode: fast or fine", "fast")
@@ -199,7 +199,7 @@ program
   .option("-j, --json", "output full API response as JSON")
   .action(async (opts) => {
     const timeoutMs = parseInt(opts.timeout, 10) * 1000;
-    const code = await webExtract({
+    const code = await webFetch({
       url: opts.url,
       format: opts.format,
       targetSelector: opts.targetSelector,
