@@ -284,6 +284,20 @@ Real-time web search with AI-generated answers.
 
 **[View skill documentation →](./felo-search/)**
 
+### felo-web-extract
+
+Extract page content from a URL via Felo Web Extract API.
+
+**Use for:**
+
+- URL content extraction
+- Convert output to `html` / `markdown` / `text`
+- Precise extraction with CSS selector
+- Controlled crawling with `fast` / `fine` mode
+- Advanced parameters (cookie, user-agent, timeout, readability)
+
+**[View skill documentation →](./felo-web-extract/)**
+
 ---
 
 ## Contributing

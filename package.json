@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "commander": "^12.0.0",
+    "felo-ai": "^0.2.2",
     "felo-search": "^0.1.1"
   },
   "scripts": {

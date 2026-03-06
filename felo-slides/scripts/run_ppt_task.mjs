@@ -4,6 +4,15 @@ const DEFAULT_API_BASE = 'https://openapi.felo.ai';
 const DEFAULT_INTERVAL_SEC = 10;
 const DEFAULT_MAX_WAIT_SEC = 1800;
 const DEFAULT_TIMEOUT_SEC = 60;
+const SUCCESS_STATUSES = new Set(['COMPLETED', 'SUCCESS']);
+const TERMINAL_FAILURE_STATUSES = new Set([
+  'FAILED',
+  'ERROR',
+  'PENDING',
+  'EXPIRED',
+  'CANCELED',
+  'CANCELLED',
+]);
 
 function usage() {
   console.error(
@@ -128,6 +137,27 @@ function extractTaskUrls(historicalData, createData) {
   };
 }
 
+function getTaskErrorMessage(historicalData) {
+  const message = String(historicalData?.error_message ?? '').trim();
+  return message || '';
+}
+
+function toErrorOutput(message, meta = {}) {
+  return {
+    status: 'error',
+    error: {
+      message,
+      task_id: meta.taskId || null,
+      task_status: meta.taskStatus || null,
+      error_message: meta.errorMessage || null,
+      ppt_url: meta.pptUrl || null,
+      live_doc_url: meta.liveDocUrl || null,
+      livedoc_short_id: meta.livedocShortId || null,
+      ppt_business_id: meta.pptBusinessId || null,
+    },
+  };
+}
+
 async function createTask(apiKey, apiBase, query, timeoutMs) {
   const payload = await fetchJson(
     `${apiBase}/v2/ppts`,
@@ -177,7 +207,11 @@ async function main() {
 
   const apiKey = process.env.FELO_API_KEY?.trim();
   if (!apiKey) {
-    console.error('ERROR: FELO_API_KEY not set');
+    if (args.json) {
+      console.log(JSON.stringify(toErrorOutput('FELO_API_KEY not set'), null, 2));
+    } else {
+      console.error('ERROR: FELO_API_KEY not set');
+    }
     process.exit(1);
   }
 
@@ -186,66 +220,128 @@ async function main() {
   const intervalMs = args.intervalSec * 1000;
   const maxWaitMs = args.maxWaitSec * 1000;
 
-  const createData = await createTask(apiKey, apiBase, args.query, timeoutMs);
-  const taskId = createData.task_id;
-  if (args.verbose) {
-    console.error(`Task ID: ${taskId}`);
-  }
-
-  const startAt = Date.now();
+  let createData = null;
+  let taskId = '';
   let lastStatus = '';
+  let lastHistoricalData = null;
 
-  while (Date.now() - startAt <= maxWaitMs) {
-    const historicalData = await queryHistorical(apiKey, apiBase, taskId, timeoutMs);
-    const taskStatus = normalizeStatus(historicalData.task_status || historicalData.status);
-    const urls = extractTaskUrls(historicalData, createData);
-    lastStatus = taskStatus || 'UNKNOWN';
-
+  try {
+    createData = await createTask(apiKey, apiBase, args.query, timeoutMs);
+    taskId = createData.task_id;
     if (args.verbose) {
+      console.error(`Task ID: ${taskId}`);
+    }
+
+    const startAt = Date.now();
+
+    while (Date.now() - startAt <= maxWaitMs) {
+      const historicalData = await queryHistorical(apiKey, apiBase, taskId, timeoutMs);
+      const taskStatus = normalizeStatus(historicalData.task_status || historicalData.status);
+      const urls = extractTaskUrls(historicalData, createData);
+      const errorMessage = getTaskErrorMessage(historicalData);
       const elapsedSec = Math.floor((Date.now() - startAt) / 1000);
-      console.error(`[${elapsedSec}s] Status: ${lastStatus}`);
-    }
 
-    if (taskStatus === 'COMPLETED' || taskStatus === 'SUCCESS') {
-      if (!urls.displayUrl) {
-        throw new Error('Task completed but no ppt_url/live_doc_url is available');
+      lastHistoricalData = historicalData;
+      lastStatus = taskStatus || 'UNKNOWN';
+
+      if (args.verbose) {
+        const suffix = errorMessage ? ` | error_message: ${errorMessage}` : '';
+        console.error(`[${elapsedSec}s] Status: ${lastStatus}${suffix}`);
       }
-      if (args.json) {
-        console.log(
-          JSON.stringify(
-            {
-              status: 'ok',
-              data: {
-                task_id: taskId,
-                task_status: taskStatus,
-                ppt_url: urls.pptUrl || null,
-                live_doc_url: urls.liveDocUrl || null,
-                livedoc_short_id: createData.livedoc_short_id ?? historicalData.live_doc_short_id ?? historicalData.livedoc_short_id ?? null,
-                ppt_business_id: createData.ppt_business_id ?? null,
+
+      if (SUCCESS_STATUSES.has(taskStatus)) {
+        if (!urls.displayUrl) {
+          throw new Error('Task completed but no ppt_url/live_doc_url is available');
+        }
+        if (args.json) {
+          console.log(
+            JSON.stringify(
+              {
+                status: 'ok',
+                data: {
+                  task_id: taskId,
+                  task_status: taskStatus,
+                  ppt_url: urls.pptUrl || null,
+                  live_doc_url: urls.liveDocUrl || null,
+                  livedoc_short_id:
+                    createData.livedoc_short_id ??
+                    historicalData.live_doc_short_id ??
+                    historicalData.livedoc_short_id ??
+                    null,
+                  ppt_business_id: createData.ppt_business_id ?? historicalData.ppt_biz_id ?? null,
+                },
               },
-            },
-            null,
-            2
-          )
-        );
-      } else {
-        console.log(urls.displayUrl);
+              null,
+              2
+            )
+          );
+        } else {
+          console.log(urls.displayUrl);
+        }
+        return;
       }
-      return;
+
+      if (TERMINAL_FAILURE_STATUSES.has(taskStatus)) {
+        const errorText = errorMessage || 'No error_message returned by upstream';
+        throw new Error(`Task reached terminal status: ${taskStatus}. ${errorText}`);
+      }
+
+      await sleep(intervalMs);
     }
 
-    if (taskStatus === 'FAILED' || taskStatus === 'ERROR') {
-      throw new Error(`Task finished with status: ${taskStatus}`);
-    }
+    throw new Error(`Timed out after ${args.maxWaitSec}s. Last status: ${lastStatus || 'UNKNOWN'}`);
+  } catch (err) {
+    const message = String(err?.message || err || 'Unknown error');
+    const taskStatus = lastStatus || normalizeStatus(lastHistoricalData?.task_status || lastHistoricalData?.status) || null;
+    const urls = extractTaskUrls(lastHistoricalData, createData);
+    const errorMessage = getTaskErrorMessage(lastHistoricalData);
+    const livedocShortId =
+      createData?.livedoc_short_id ??
+      lastHistoricalData?.live_doc_short_id ??
+      lastHistoricalData?.livedoc_short_id ??
+      null;
+    const pptBusinessId = createData?.ppt_business_id ?? lastHistoricalData?.ppt_biz_id ?? null;
 
-    await sleep(intervalMs);
+    if (args.json) {
+      console.log(
+        JSON.stringify(
+          toErrorOutput(message, {
+            taskId,
+            taskStatus,
+            errorMessage,
+            pptUrl: urls.pptUrl,
+            liveDocUrl: urls.liveDocUrl,
+            livedocShortId,
+            pptBusinessId,
+          }),
+          null,
+          2
+        )
+      );
+    } else {
+      console.error(`ERROR: ${message}`);
+      if (taskId) {
+        console.error(`Task ID: ${taskId}`);
+      }
+      if (taskStatus) {
+        console.error(`Task Status: ${taskStatus}`);
+      }
+      if (errorMessage) {
+        console.error(`Error Message: ${errorMessage}`);
+      }
+      if (urls.pptUrl) {
+        console.error(`PPT URL: ${urls.pptUrl}`);
+      }
+      if (urls.liveDocUrl) {
+        console.error(`Live Doc URL: ${urls.liveDocUrl}`);
+      }
+      if (taskId) {
+        console.error('Suggested Action: retry later with the same task_id, or create a new PPT task.');
+      }
+    }
+    process.exit(1);
   }
-
-  throw new Error(`Timed out after ${args.maxWaitSec}s. Last status: ${lastStatus || 'UNKNOWN'}`);
 }
 
-main().catch((err) => {
-  console.error(`ERROR: ${err?.message || err}`);
-  process.exit(1);
-});
+main();
 

@@ -54,7 +54,11 @@ Based on Felo v2 PPT Task API:
 2. Query status (optional): `GET /v2/tasks/{task_id}/status`
 3. Query historical/result: `GET /v2/tasks/{task_id}/historical`
 
-The skill polls every 10 seconds (max wait 1800 seconds). It stops immediately on `COMPLETED`/`SUCCESS` and returns `ppt_url` (fallback `live_doc_url`).
+The skill polls every 10 seconds (max wait 1800 seconds). It stops immediately on terminal statuses:
+- Success: `COMPLETED` / `SUCCESS`
+- Failure terminal: `FAILED` / `ERROR` / `PENDING` / `EXPIRED` / `CANCELED`
+
+On success it returns `ppt_url` (fallback `live_doc_url`). On failure/timeout it prints `task_id` and latest status context for follow-up.
 
 Internal script example:
 
@@ -74,7 +78,15 @@ The key is invalid or revoked. Generate a new key from [felo.ai](https://felo.ai
 
 ### Task keeps running for too long
 
-The task may still be processing. Retry later with the same context, or run the script with `--verbose`.
+The task may still be processing. When max wait is reached, the script reports timeout with `task_id` and last known status so you can query historical endpoint later.
+
+### Terminal failure status (`FAILED` / `PENDING` / `EXPIRED` / `CANCELED`)
+
+The script stops polling immediately and surfaces:
+- `task_id`
+- `task_status`
+- `error_message` (if API provides it)
+- `ppt_url` / `live_doc_url` (if API provides them)
 
 ### Task completed but no `ppt_url` / `live_doc_url`
 

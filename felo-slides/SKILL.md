@@ -75,7 +75,7 @@ Script behavior:
 - Creates task via `POST https://openapi.felo.ai/v2/ppts`
 - Polls via `GET https://openapi.felo.ai/v2/tasks/{task_id}/historical`
 - Treats `COMPLETED`/`SUCCESS` as success terminal (case-insensitive)
-- Treats `FAILED`/`ERROR` as failure terminal
+- Treats `FAILED`/`ERROR`/`PENDING`/`EXPIRED`/`CANCELED` as failure terminal
 - Stops polling immediately on terminal status
 - Prints `ppt_url` on success (fallback: `live_doc_url`)
 
@@ -139,6 +139,11 @@ Known API error codes:
 Timeout handling:
 - If timeout reached, return last known status and instruct user to retry later
 - Include `task_id` so user can query again
+
+Task status handling (historical API):
+- Success terminal: `COMPLETED`, `SUCCESS`
+- Failure terminal: `FAILED`, `ERROR`, `PENDING`, `EXPIRED`, `CANCELED`
+- Unknown status: treat as non-terminal and continue polling until timeout
 
 ## Important Notes
 
