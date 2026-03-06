@@ -1,9 +1,9 @@
 ---
-name: felo-web-extract
+name: felo-web-fetch
 description: "Extract webpage content with Felo Web Extract API. Use for turning URLs into html/markdown/text, selecting specific page areas with CSS selectors, and controlling extraction options like crawl mode, cookies, user-agent, and timeout."
 ---
 
-# Felo Web Extract Skill
+# Felo Web Fetch Skill
 
 ## When to Use
 
@@ -16,8 +16,8 @@ Trigger this skill when users want to extract or convert webpage content from a 
 - Pass request details such as cookies, user-agent, timeout
 
 Explicit commands:
-- `/felo-web-extract`
-- "use felo web extract"
+- `/felo-web-fetch`
+- "use felo web fetch"
 - "extract this URL with felo"
 
 Do NOT use this skill for:
@@ -65,7 +65,7 @@ If key is missing, stop and return setup instructions.
 Use the bundled Node script:
 
 ```bash
-node felo-web-extract/scripts/run_web_extract.mjs \
+node felo-web-fetch/scripts/run_web_fetch.mjs \
   --url "https://example.com/article" \
   --output-format markdown \
   --crawl-mode fine \
@@ -100,7 +100,7 @@ Other key optional parameters:
 Need full response JSON:
 
 ```bash
-node felo-web-extract/scripts/run_web_extract.mjs \
+node felo-web-fetch/scripts/run_web_fetch.mjs \
   --url "https://example.com" \
   --output-format text \
   --json
@@ -117,7 +117,7 @@ node felo-web-extract/scripts/run_web_extract.mjs \
 For normal extraction requests, return:
 
 ```markdown
-## Web Extract Result
+## Web Fetch Result
 - URL: <url>
 - Output Format: <html|markdown|text>
 - Crawl Mode: <fast|fine>
@@ -129,7 +129,7 @@ For normal extraction requests, return:
 For API/debug requests, return:
 
 ~~~markdown
-## Web Extract Result (JSON)
+## Web Fetch Result (JSON)
 
 ```json
 <full response>
@@ -147,7 +147,7 @@ Known error cases:
 Error response format:
 
 ```markdown
-## Web Extract Failed
+## Web Fetch Failed
 - Message: <error message>
 - Suggested Action: verify URL/parameters and retry
 ```

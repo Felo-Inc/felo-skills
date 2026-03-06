@@ -1,4 +1,4 @@
-# Felo Web Extract Skill for Claude Code
+# Felo Web Fetch Skill for Claude Code
 
 Extract structured webpage content from URLs with the Felo Web Extract API.
 
@@ -15,17 +15,17 @@ Extract structured webpage content from URLs with the Felo Web Extract API.
 ### 1) Install the skill
 
 ```bash
-npx @claude/skills add felo-web-extract
+npx @claude/skills add felo-web-fetch
 ```
 
 Or install manually from this repository:
 
 ```bash
 # Linux/macOS
-cp -r felo-web-extract ~/.claude/skills/
+cp -r felo-web-fetch ~/.claude/skills/
 
 # Windows (PowerShell)
-Copy-Item -Recurse felo-web-extract "$env:USERPROFILE\.claude\skills\"
+Copy-Item -Recurse felo-web-fetch "$env:USERPROFILE\.claude\skills\"
 ```
 
 ### 2) Configure API key
@@ -45,27 +45,27 @@ $env:FELO_API_KEY="your-api-key-here"
 ### 3) Trigger the skill
 
 - Intent trigger: "Extract this article as markdown"
-- Explicit trigger: `/felo-web-extract https://example.com/article`
+- Explicit trigger: `/felo-web-fetch https://example.com/article`
 
 ## Script Usage
 
 The skill uses:
 
 ```bash
-node felo-web-extract/scripts/run_web_extract.mjs --url "https://example.com"
+node felo-web-fetch/scripts/run_web_fetch.mjs --url "https://example.com"
 ```
 
 Common examples:
 
 ```bash
-node felo-web-extract/scripts/run_web_extract.mjs \
+node felo-web-fetch/scripts/run_web_fetch.mjs \
   --url "https://example.com/post" \
   --output-format markdown \
   --crawl-mode fine
 ```
 
 ```bash
-node felo-web-extract/scripts/run_web_extract.mjs \
+node felo-web-fetch/scripts/run_web_fetch.mjs \
   --url "https://example.com" \
   --target-selector "article.main" \
   --output-format text \
@@ -74,7 +74,7 @@ node felo-web-extract/scripts/run_web_extract.mjs \
 ```
 
 ```bash
-node felo-web-extract/scripts/run_web_extract.mjs \
+node felo-web-fetch/scripts/run_web_fetch.mjs \
   --url "https://example.com/private" \
   --cookie "session_id=abc123" \
   --with-readability true \

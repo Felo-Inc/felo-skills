@@ -284,7 +284,7 @@ Real-time web search with AI-generated answers.
 
 **[View skill documentation →](./felo-search/)**
 
-### felo-web-extract
+### felo-web-fetch
 
 Extract page content from a URL via Felo Web Extract API.
 
@@ -296,7 +296,7 @@ Extract page content from a URL via Felo Web Extract API.
 - Controlled crawling with `fast` / `fine` mode
 - Advanced parameters (cookie, user-agent, timeout, readability)
 
-**[View skill documentation →](./felo-web-extract/)**
+**[View skill documentation →](./felo-web-fetch/)**
 
 ---
 

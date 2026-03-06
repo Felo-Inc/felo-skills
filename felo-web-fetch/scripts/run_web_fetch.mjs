@@ -7,7 +7,7 @@ function usage() {
   console.error(
     [
       'Usage:',
-      '  node felo-web-extract/scripts/run_web_extract.mjs --url <url> [options]',
+      '  node felo-web-fetch/scripts/run_web_fetch.mjs --url <url> [options]',
       '',
       'Required:',
       '  --url <url>                    Target page URL',
