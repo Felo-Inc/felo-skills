@@ -114,10 +114,15 @@ Same `FELO_API_KEY` as search/slides.
 **YouTube subtitling** (after `npm install -g felo-ai`)
 
 ```bash
+# Packaged CLI
 felo youtube-subtitling -v "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 felo youtube-subtitling -v "dQw4w9WgXcQ" --language zh-CN
 felo youtube-subtitling -v "https://youtu.be/dQw4w9WgXcQ" --with-time -j
 npx felo-ai youtube-subtitling -v "dQw4w9WgXcQ"
+
+# From repo: run script directly (no install)
+node felo-youtube-subtitling/scripts/run_youtube_subtitling.mjs --video-code "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+node felo-youtube-subtitling/scripts/run_youtube_subtitling.mjs -v "dQw4w9WgXcQ" -l zh-CN --with-time
 ```
 
 Options: `-v/--video-code` (required: **YouTube video URL** or video ID), `-l/--language` (e.g. en, zh-CN), `--with-time`, `-j/--json`. Same `FELO_API_KEY` as other commands. See [felo-youtube-subtitling](./felo-youtube-subtitling/README.md).
