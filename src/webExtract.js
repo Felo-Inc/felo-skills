@@ -3,6 +3,26 @@ import * as config from './config.js';
 
 const DEFAULT_API_BASE = 'https://openapi.felo.ai';
 const DEFAULT_TIMEOUT_MS = 60_000;
+const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+const SPINNER_INTERVAL_MS = 80;
+const STATUS_PAD = 56;
+
+function startSpinner(message) {
+  const start = Date.now();
+  let i = 0;
+  const id = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - start) / 1000);
+    const line = `${message} ${SPINNER_FRAMES[i % SPINNER_FRAMES.length]} ${elapsed}s`;
+    process.stderr.write(`\r${line.padEnd(STATUS_PAD, ' ')}`);
+    i += 1;
+  }, SPINNER_INTERVAL_MS);
+  return id;
+}
+
+function stopSpinner(id) {
+  if (id != null) clearInterval(id);
+  process.stderr.write(`\r${' '.repeat(STATUS_PAD)}\r`);
+}
 
 async function getApiBase() {
   let base = process.env.FELO_API_BASE?.trim();
@@ -85,7 +105,8 @@ export async function webExtract(opts) {
     ? opts.timeoutMs
     : DEFAULT_TIMEOUT_MS;
 
-  process.stderr.write(`Fetching ${opts.url} ...\n`);
+  const shortUrl = opts.url.length > 45 ? opts.url.slice(0, 42) + '...' : opts.url;
+  const spinnerId = startSpinner(`Fetching ${shortUrl}`);
 
   const body = {
     url: opts.url,
@@ -121,5 +142,7 @@ export async function webExtract(opts) {
       `Web extract failed for ${opts.url}: ${err?.message || err}\n`
     );
     return 1;
+  } finally {
+    stopSpinner(spinnerId);
   }
 }

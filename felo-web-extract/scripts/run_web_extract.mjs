@@ -3,6 +3,26 @@
 const DEFAULT_API_BASE = 'https://openapi.felo.ai';
 const DEFAULT_FORMAT = 'markdown';
 const DEFAULT_TIMEOUT_MS = 60_000;
+const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+const SPINNER_INTERVAL_MS = 80;
+const STATUS_PAD = 56;
+
+function startSpinner(message) {
+  const start = Date.now();
+  let i = 0;
+  const id = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - start) / 1000);
+    const line = `${message} ${SPINNER_FRAMES[i % SPINNER_FRAMES.length]} ${elapsed}s`;
+    process.stderr.write(`\r${line.padEnd(STATUS_PAD, ' ')}`);
+    i += 1;
+  }, SPINNER_INTERVAL_MS);
+  return id;
+}
+
+function stopSpinner(id) {
+  if (id != null) clearInterval(id);
+  process.stderr.write(`\r${' '.repeat(STATUS_PAD)}\r`);
+}
 
 function usage() {
   console.error(
@@ -45,7 +65,12 @@ function parseArgs(argv) {
     } else if (a === '--readability') {
       out.readability = true;
     } else if (a === '--url') {
-      out.url = (argv[i + 1] ?? '').trim();
+      const next = argv[i + 1];
+      if (next === undefined || next === null || String(next).trim() === '' || String(next).startsWith('-')) {
+        out.url = '';
+      } else {
+        out.url = String(next).trim();
+      }
       i += 1;
     } else if (a === '--format') {
       const f = (argv[i + 1] ?? '').toLowerCase();
@@ -144,49 +169,55 @@ async function main() {
 
   const apiBase = (process.env.FELO_API_BASE?.trim() || DEFAULT_API_BASE).replace(/\/$/, '');
 
-  process.stderr.write(`Fetching ${args.url} ...\n`);
+  const shortUrl = args.url.length > 45 ? args.url.slice(0, 42) + '...' : args.url;
+  const spinnerId = startSpinner(`Fetching ${shortUrl}`);
 
-  const body = {
-    url: args.url,
-    output_format: args.format,
-    crawl_mode: args.crawlMode,
-    with_readability: args.readability,
-    timeout: args.timeoutMs,
-  };
-  if (args.targetSelector) body.target_selector = args.targetSelector;
-  if (args.waitForSelector) body.wait_for_selector = args.waitForSelector;
+  try {
+    const body = {
+      url: args.url,
+      output_format: args.format,
+      crawl_mode: args.crawlMode,
+      with_readability: args.readability,
+      timeout: args.timeoutMs,
+    };
+    if (args.targetSelector) body.target_selector = args.targetSelector;
+    if (args.waitForSelector) body.wait_for_selector = args.waitForSelector;
 
-  const payload = await fetchJson(
-    `${apiBase}/v2/web/extract`,
-    {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
+    const payload = await fetchJson(
+      `${apiBase}/v2/web/extract`,
+      {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
       },
-      body: JSON.stringify(body),
-    },
-    args.timeoutMs
-  );
-
-  const data = payload?.data ?? {};
-  const content = data?.content;
-
-  if (args.json) {
-    console.log(JSON.stringify(payload, null, 2));
-    return;
-  }
-
-  const out = stringifyContent(content);
-  const isEmpty = out == null || String(out).trim() === '';
-  if (isEmpty) {
-    process.stderr.write(
-      `No content extracted from ${args.url}. The page may be empty, blocked, or the selector did not match.\n`
+      args.timeoutMs
     );
-    process.exit(1);
+
+    const data = payload?.data ?? {};
+    const content = data?.content;
+
+    if (args.json) {
+      console.log(JSON.stringify(payload, null, 2));
+      return;
+    }
+
+    const out = stringifyContent(content);
+    const isEmpty = out == null || String(out).trim() === '';
+    if (isEmpty) {
+      stopSpinner(spinnerId);
+      process.stderr.write(
+        `No content extracted from ${args.url}. The page may be empty, blocked, or the selector did not match.\n`
+      );
+      process.exit(1);
+    }
+    console.log(out);
+  } finally {
+    stopSpinner(spinnerId);
   }
-  console.log(out);
 }
 
 main().catch((err) => {

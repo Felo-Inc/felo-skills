@@ -5,6 +5,7 @@ import { Command } from "commander";
 import { search } from "./search.js";
 import { slides } from "./slides.js";
 import { webExtract } from "./webExtract.js";
+import { youtubeSubtitling } from "./youtubeSubtitling.js";
 import * as config from "./config.js";
 
 const require = createRequire(import.meta.url);
@@ -206,6 +207,24 @@ program
       readability: opts.readability,
       crawlMode: opts.crawlMode,
       timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+      json: opts.json,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+program
+  .command("youtube-subtitling")
+  .description("Fetch YouTube video subtitles/captions by video URL or ID")
+  .requiredOption("-v, --video-code <url-or-id>", "YouTube video URL or video ID (e.g. https://youtube.com/watch?v=ID)")
+  .option("-l, --language <code>", "Subtitle language (e.g. en, zh-CN)")
+  .option("--with-time", "Include start/duration per segment")
+  .option("-j, --json", "Output full API response as JSON")
+  .action(async (opts) => {
+    const code = await youtubeSubtitling({
+      videoCode: opts.videoCode,
+      language: opts.language,
+      withTime: opts.withTime,
       json: opts.json,
     });
     process.exitCode = code;

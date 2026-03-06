@@ -2,7 +2,7 @@
 
 **Ask anything. Get current answers. Generate slides from a prompt.**
 
-[npm package: **felo-ai**](https://www.npmjs.com/package/felo-ai) — Real-time search, PPT generation, and web page extraction from the terminal. Also works as Claude Code skills. Supports Chinese, English, Japanese, and Korean.
+[npm package: **felo-ai**](https://www.npmjs.com/package/felo-ai) — Real-time search, PPT generation, web page extraction, and YouTube subtitles from the terminal. Also works as Claude Code skills. Supports Chinese, English, Japanese, and Korean.
 
 [![npm version](https://img.shields.io/npm/v/felo-ai.svg)](https://www.npmjs.com/package/felo-ai) [![License](https://img.shields.io/badge/license-MIT-green)]()
 
@@ -52,6 +52,7 @@ Get your API key from [felo.ai](https://felo.ai) (Settings → API Keys). Enviro
 | `felo search "<query>"`              | Search for current info (weather, news, prices, etc.) |
 | `felo slides "<prompt>"`             | Generate PPT; returns link when done                 |
 | `felo web-extract --url <url>`       | Extract webpage content (markdown/text/html)          |
+| `felo youtube-subtitling -v <url-or-id>` | Fetch YouTube video subtitles by video URL or ID   |
 | `felo config set FELO_API_KEY <key>` | Save API key to config                                |
 | `felo config get FELO_API_KEY`       | Print stored key                                      |
 | `felo config list`                   | List config keys                                      |
@@ -110,6 +111,17 @@ felo web-extract --url "https://example.com" --target-selector "#main" --wait-fo
 
 Same `FELO_API_KEY` as search/slides.
 
+**YouTube subtitling** (after `npm install -g felo-ai`)
+
+```bash
+felo youtube-subtitling -v "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+felo youtube-subtitling -v "dQw4w9WgXcQ" --language zh-CN
+felo youtube-subtitling -v "https://youtu.be/dQw4w9WgXcQ" --with-time -j
+npx felo-ai youtube-subtitling -v "dQw4w9WgXcQ"
+```
+
+Options: `-v/--video-code` (required: **YouTube video URL** or video ID), `-l/--language` (e.g. en, zh-CN), `--with-time`, `-j/--json`. Same `FELO_API_KEY` as other commands. See [felo-youtube-subtitling](./felo-youtube-subtitling/README.md).
+
 ### CLI FAQ
 
 - **Key not found?** Run `felo config set FELO_API_KEY <key>` or set the `FELO_API_KEY` environment variable.
@@ -117,6 +129,7 @@ Same `FELO_API_KEY` as search/slides.
 - **Slides taking long?** Use `felo slides "topic" --poll-timeout 300` (default 1200s) to limit wait.
 - **Where is config stored?** Run `felo config path` to see the file (e.g. `~/.felo/config.json`).
 - **Web extract after install?** Use `felo web-extract --url "<page url>"`. Other params: `--format markdown|text|html`, `--readability`, `--target-selector "selector"`, `--wait-for-selector "selector"`, `--crawl-mode fast|fine`, `--timeout 120`, `--json`. See the "How to pass parameters" table above. Same API key as other commands.
+- **YouTube subtitles?** Use `felo youtube-subtitling -v "<url or video_id>"` (full YouTube link or 11-char ID). Optional: `-l/--language`, `--with-time`, `-j/--json`. See [felo-youtube-subtitling](./felo-youtube-subtitling/README.md).
 
 ---
 
@@ -159,6 +172,8 @@ Ask Claude: "What's the weather in Tokyo today?"
 **Felo Slides (PPT):** In terminal run `felo slides "your topic"`. In Claude Code install with `npx @claude/skills add felo-slides`, then use `/felo-slides your topic`. See [felo-slides](./felo-slides/README.md).
 
 **Felo Web Extract:** In terminal run `felo web-extract --url "https://example.com"` (see [felo-web-extract](./felo-web-extract/README.md)). In Claude Code you can install the skill and use it to extract webpage content from a URL.
+
+**Felo YouTube Subtitling:** In terminal run `felo youtube-subtitling -v "URL_or_VIDEO_ID"` (see [felo-youtube-subtitling](./felo-youtube-subtitling/README.md)). Fetches subtitles/captions; accepts full YouTube link or video ID.
 
 ---
 
