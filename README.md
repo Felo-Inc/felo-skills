@@ -363,6 +363,10 @@ Real-time web search with AI-generated answers.
 
 Generate PPT: in terminal use `felo slides "your topic"`, in Claude Code use `/felo-slides your topic`. **[View skill documentation →](./felo-slides/)**
 
+### felo-web-fetch
+
+Fetch and extract webpage content: in terminal use `felo web-fetch --url "https://example.com"`, in Claude Code use `/felo-web-fetch https://example.com`. **[View skill documentation →](./felo-web-fetch/)**
+
 ---
 
 ## Contributing
