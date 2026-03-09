@@ -4,6 +4,7 @@ import { createRequire } from "module";
 import { Command } from "commander";
 import { search } from "./search.js";
 import { slides } from "./slides.js";
+import { superAgent } from "./superAgent.js";
 import { webFetch } from "./webFetch.js";
 import { youtubeSubtitling } from "./youtubeSubtitling.js";
 import * as config from "./config.js";
@@ -90,6 +91,30 @@ program
       verbose: opts.verbose,
       timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
       pollTimeoutMs: Number.isNaN(pollTimeoutMs) ? 1_200_000 : pollTimeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+program
+  .command("superagent")
+  .description(
+    "SuperAgent conversation with SSE streaming and LiveDoc (create + stream answer)"
+  )
+  .argument("<query>", "user query (1–2000 chars)")
+  .option("-j, --json", "output JSON with answer, thread_short_id, live_doc_short_id")
+  .option("-v, --verbose", "log stream key, thread ID, LiveDoc ID to stderr")
+  .option("-t, --timeout <seconds>", "request/stream timeout in seconds", "60")
+  .option("--live-doc-id <id>", "reuse existing LiveDoc short_id for continuous conversation")
+  .option("--accept-language <lang>", "language preference (e.g. zh, en)")
+  .action(async (query, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await superAgent(query, {
+      json: opts.json,
+      verbose: opts.verbose,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+      liveDocId: opts.liveDocId || undefined,
+      acceptLanguage: opts.acceptLanguage || undefined,
     });
     process.exitCode = code;
     flushStdioThenExit(code);
