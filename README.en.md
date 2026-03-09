@@ -10,7 +10,7 @@ Felo AI provides a terminal CLI and Claude Code skill, with support for English,
 
 ## Capabilities
 
-Felo AI offers **Real-time Search**, **PPT Generation**, **Web Page Extraction**, and **YouTube Subtitles**. Use them via the CLI in your terminal, or in Claude Code via skills (search can trigger automatically).
+Felo AI offers **Real-time Search**, **PPT Generation**, **Web Fetch**, and **YouTube Subtitles**. Use them via the CLI in your terminal, or in Claude Code via skills (search can trigger automatically).
 
 ### Capability 1: Real-time Search
 

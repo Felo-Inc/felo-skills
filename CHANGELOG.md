@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.6] - (previous)
 
-Earlier releases: search, slides, web extract, youtube-subtitling features.
+Earlier releases: search, slides, web fetch, youtube-subtitling features.
 
 [0.2.7]: https://github.com/Felo-Inc/felo-skills/compare/v0.2.6...v0.2.7
 [0.2.6]: https://github.com/Felo-Inc/felo-skills/releases/tag/v0.2.6

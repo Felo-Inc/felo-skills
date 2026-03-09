@@ -1,6 +1,6 @@
 ---
 name: felo-web-fetch
-description: "Fetch web page content from a URL using Felo Web Extract API. Use when users ask to scrape/capture/fetch webpage content, get article text from URL, convert page to markdown/text, or when explicit commands like /felo-web-fetch are used. Supports html, text, markdown output and readability mode."
+description: "Fetch web page content from a URL using Felo Web Fetch API. Use when users ask to scrape/capture/fetch webpage content, get article text from URL, convert page to markdown/text, or when explicit commands like /felo-web-fetch are used. Supports html, text, markdown output and readability mode."
 ---
 
 # Felo Web Fetch Skill
@@ -196,5 +196,5 @@ Error response to user:
 
 ## References
 
-- [Felo Web Extract API](https://openapi.felo.ai/docs/api-reference/v2/web-extract.html)
+- [Felo Web Fetch API](https://openapi.felo.ai/docs/api-reference/v2/web-extract.html)
 - [Felo Open Platform](https://openapi.felo.ai/docs/)
