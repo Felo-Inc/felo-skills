@@ -1,6 +1,6 @@
 # Felo Web Fetch Skill
 
-Fetch webpage content from a URL using the [Felo Web Extract API](https://openapi.felo.ai/docs/api-reference/v2/web-extract.html).
+Fetch webpage content from a URL using the [Felo Web Fetch API](https://openapi.felo.ai/docs/api-reference/v2/web-extract.html).
 
 ## Features
 
@@ -52,16 +52,16 @@ felo web-fetch --url "https://example.com"
 
 **All parameters (how to pass)**
 
-| Parameter | Option | Example |
-|-----------|--------|---------|
-| URL (required) | `-u`, `--url` | `--url "https://example.com"` |
-| Output format | `-f`, `--format` | `--format text`, `-f markdown`, `-f html` |
-| Target element (CSS selector) | `--target-selector` | `--target-selector "article.main"` |
-| Wait for selector | `--wait-for-selector` | `--wait-for-selector ".content"` |
-| Readability (main content only) | `--readability` | `--readability` |
-| Crawl mode | `--crawl-mode` | `--crawl-mode fine` (default: `fast`) |
-| Timeout (seconds) | `-t`, `--timeout` | `--timeout 120`, `-t 90` |
-| Full JSON response | `-j`, `--json` | `-j` or `--json` |
+| Parameter                       | Option                | Example                                   |
+| ------------------------------- | --------------------- | ----------------------------------------- |
+| URL (required)                  | `-u`, `--url`         | `--url "https://example.com"`             |
+| Output format                   | `-f`, `--format`      | `--format text`, `-f markdown`, `-f html` |
+| Target element (CSS selector)   | `--target-selector`   | `--target-selector "article.main"`        |
+| Wait for selector               | `--wait-for-selector` | `--wait-for-selector ".content"`          |
+| Readability (main content only) | `--readability`       | `--readability`                           |
+| Crawl mode                      | `--crawl-mode`        | `--crawl-mode fine` (default: `fast`)     |
+| Timeout (seconds)               | `-t`, `--timeout`     | `--timeout 120`, `-t 90`                  |
+| Full JSON response              | `-j`, `--json`        | `-j` or `--json`                          |
 
 **Examples with multiple options**
 
