@@ -62,7 +62,7 @@ async function fetchWithRetry(url, init, timeoutMs) {
 
 async function postApi(apiBase, apiKey, path, body, timeoutMs) {
   const res = await fetchWithRetry(
-    `${apiBase}${path}`,
+    `${apiBase}/v2${path}`,
     {
       method: 'POST',
       headers: {

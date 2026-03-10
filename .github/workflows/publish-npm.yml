@@ -1,0 +1,39 @@
+# 参考 editablejs/editable 的 main.yml，实现自动发布到 npm
+# 触发方式：推送 tag v* 时发布（如 git tag v0.2.8 && git push --tags）
+name: Publish to npm
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  CI: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Publish to npm
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

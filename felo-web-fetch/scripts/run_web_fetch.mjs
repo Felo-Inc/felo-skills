@@ -2,6 +2,26 @@
 
 const DEFAULT_API_BASE = 'https://openapi.felo.ai';
 const DEFAULT_TIMEOUT_SEC = 60;
+const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+const SPINNER_INTERVAL_MS = 80;
+const STATUS_PAD = 56;
+
+function startSpinner(message) {
+  const start = Date.now();
+  let i = 0;
+  const id = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - start) / 1000);
+    const line = `${message} ${SPINNER_FRAMES[i % SPINNER_FRAMES.length]} ${elapsed}s`;
+    process.stderr.write(`\r${line.padEnd(STATUS_PAD, ' ')}`);
+    i += 1;
+  }, SPINNER_INTERVAL_MS);
+  return id;
+}
+
+function stopSpinner(id) {
+  if (id != null) clearInterval(id);
+  process.stderr.write(`\r${' '.repeat(STATUS_PAD)}\r`);
+}
 
 function usage() {
   console.error(
@@ -255,6 +275,9 @@ async function main() {
   const apiBase = (process.env.FELO_API_BASE?.trim() || DEFAULT_API_BASE).replace(/\/$/, '');
   const payload = buildPayload(args);
 
+  const shortUrl = args.url.length > 45 ? args.url.slice(0, 42) + '...' : args.url;
+  const spinnerId = startSpinner(`Fetching ${shortUrl}`);
+
   try {
     const response = await fetchJson(
       `${apiBase}/v2/web/extract`,
@@ -285,6 +308,8 @@ async function main() {
   } catch (err) {
     console.error(`ERROR: ${String(err?.message || err || 'Unknown error')}`);
     process.exit(1);
+  } finally {
+    stopSpinner(spinnerId);
   }
 }
 
