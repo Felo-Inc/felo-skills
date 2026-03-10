@@ -109,31 +109,31 @@ The `x` command uses parameter combinations to infer intent — no subcommands n
 
 ```bash
 # Search tweets
-curl -X POST "https://openapi.felo.ai/x/tweet/search" \
+curl -X POST "https://openapi.felo.ai/v2/x/tweet/search" \
   -H "Authorization: Bearer $FELO_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"query": "AI news", "limit": 20}'
 
 # Search users
-curl -X POST "https://openapi.felo.ai/x/user/search" \
+curl -X POST "https://openapi.felo.ai/v2/x/user/search" \
   -H "Authorization: Bearer $FELO_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"query": "artificial intelligence"}'
 
 # Get user info
-curl -X POST "https://openapi.felo.ai/x/user/info" \
+curl -X POST "https://openapi.felo.ai/v2/x/user/info" \
   -H "Authorization: Bearer $FELO_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"usernames": ["elonmusk", "OpenAI"]}'
 
 # Get user tweets
-curl -X POST "https://openapi.felo.ai/x/user/tweets" \
+curl -X POST "https://openapi.felo.ai/v2/x/user/tweets" \
   -H "Authorization: Bearer $FELO_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"username": "elonmusk", "limit": 20}'
 
 # Get tweet replies
-curl -X POST "https://openapi.felo.ai/x/tweet/replies" \
+curl -X POST "https://openapi.felo.ai/v2/x/tweet/replies" \
   -H "Authorization: Bearer $FELO_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"tweet_ids": ["1234567890"]}'
@@ -185,11 +185,11 @@ If `FELO_API_KEY` is not set, display setup instructions and stop.
 - **Base URL**: `https://openapi.felo.ai`. Override with `FELO_API_BASE` env if needed.
 - **Auth**: `Authorization: Bearer YOUR_API_KEY`
 - **Endpoints**:
-  - `POST /x/user/info` — Batch get user profiles
-  - `POST /x/user/search` — Search users
-  - `POST /x/user/tweets` — Get user tweets
-  - `POST /x/tweet/search` — Search tweets
-  - `POST /x/tweet/replies` — Get tweet replies
+  - `POST /v2/x/user/info` — Batch get user profiles
+  - `POST /v2/x/user/search` — Search users
+  - `POST /v2/x/user/tweets` — Get user tweets
+  - `POST /v2/x/tweet/search` — Search tweets
+  - `POST /v2/x/tweet/replies` — Get tweet replies
 
 ## Important Notes
 
