@@ -7,6 +7,7 @@ import { slides } from "./slides.js";
 import { superAgent } from "./superAgent.js";
 import { webFetch } from "./webFetch.js";
 import { youtubeSubtitling } from "./youtubeSubtitling.js";
+import * as xSearch from "./xSearch.js";
 import * as config from "./config.js";
 
 const require = createRequire(import.meta.url);
@@ -254,6 +255,96 @@ program
       withTime: opts.withTime,
       json: opts.json,
     });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+// ── X Search ──
+program
+  .command("x")
+  .description("Search X (Twitter) tweets, users, and replies")
+  .argument("[query]", "search keyword (default: search tweets)")
+  .option("-q, --query <text>", "search keyword (same as positional arg)")
+  .option("--id <values>", "tweet IDs or usernames (comma-separated)")
+  .option("--user", "switch to user mode")
+  .option("--tweets", "get user tweets (with --id --user)")
+  .option("-l, --limit <n>", "number of results to return")
+  .option("--cursor <cursor>", "pagination cursor")
+  .option("--include-replies", "include replies (with --tweets)")
+  .option("--query-type <type>", "query type filter (tweet search)")
+  .option("--since-time <val>", "start time filter")
+  .option("--until-time <val>", "end time filter")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "30")
+  .action(async (queryArg, opts) => {
+    const query = (queryArg || opts.query || "").trim();
+    const ids = opts.id
+      ? opts.id.split(",").map((s) => s.trim()).filter(Boolean)
+      : [];
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const commonOpts = {
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 30000 : timeoutMs,
+    };
+    const limit = opts.limit ? parseInt(opts.limit, 10) : 0;
+    let code = 1;
+
+    if (query) {
+      // query mode
+      if (opts.user) {
+        // search users
+        code = await xSearch.userSearch(query, {
+          ...commonOpts,
+          cursor: opts.cursor,
+        });
+      } else {
+        // search tweets (default)
+        code = await xSearch.tweetSearch(query, {
+          ...commonOpts,
+          queryType: opts.queryType,
+          sinceTime: opts.sinceTime,
+          untilTime: opts.untilTime,
+          limit: limit || undefined,
+          cursor: opts.cursor,
+        });
+      }
+    } else if (ids.length) {
+      // id mode
+      if (opts.user) {
+        if (opts.tweets) {
+          // get user tweets
+          code = await xSearch.userTweets({
+            ...commonOpts,
+            username: ids[0],
+            limit: limit || undefined,
+            cursor: opts.cursor,
+            includeReplies: opts.includeReplies,
+          });
+        } else {
+          // get user info
+          code = await xSearch.userInfo(ids, commonOpts);
+        }
+      } else {
+        // get tweet replies (default for --id)
+        code = await xSearch.tweetReplies(ids, {
+          ...commonOpts,
+          cursor: opts.cursor,
+          sinceTime: opts.sinceTime ? parseInt(opts.sinceTime, 10) : undefined,
+          untilTime: opts.untilTime ? parseInt(opts.untilTime, 10) : undefined,
+        });
+      }
+    } else {
+      process.stderr.write(
+        'Usage: felo x <query> or felo x --id <values>\n\n' +
+        'Examples:\n' +
+        '  felo x "AI news"                  Search tweets\n' +
+        '  felo x "OpenAI" --user             Search users\n' +
+        '  felo x --id "1234567890"           Get tweet replies\n' +
+        '  felo x --id "elonmusk" --user      Get user info\n' +
+        '  felo x --id "elonmusk" --user --tweets  Get user tweets\n'
+      );
+    }
+
     process.exitCode = code;
     flushStdioThenExit(code);
   });
