@@ -395,6 +395,23 @@ Run CLI tests: `npm test`
 
 ---
 
+## Publishing to npm (maintainers)
+
+自动发布由 GitHub Actions 在**推送 tag** 时执行（参考 [editablejs/editable](https://github.com/editablejs/editable/blob/main/.github/workflows/main.yml) 的流程思路）。
+
+1. **配置 NPM_TOKEN**  
+   在 [npm Access Tokens](https://www.npmjs.com/account/tokens) 创建 **Automation** 类型、具备 Publish 权限的 token，在仓库 **Settings → Secrets and variables → Actions** 里添加名为 `NPM_TOKEN` 的 secret。
+
+2. **发布新版本**  
+   更新 `package.json` 的 `version`，提交并推送，然后打 tag 并推送：
+   ```bash
+   git tag v0.2.8
+   git push origin v0.2.8
+   ```
+   CI 会跑测试并通过 `npm publish` 发布到 [npm](https://www.npmjs.com/package/felo-ai)。
+
+---
+
 ## Support
 
 - **Documentation**: [FAQ](./docs/FAQ.md) and skill READMEs
