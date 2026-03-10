@@ -106,6 +106,7 @@ program
   .option("-v, --verbose", "log stream key, thread ID, LiveDoc ID to stderr")
   .option("-t, --timeout <seconds>", "request/stream timeout in seconds", "60")
   .option("--live-doc-id <id>", "reuse existing LiveDoc short_id for continuous conversation")
+  .option("--thread-id <id>", "existing thread/conversation ID for follow-up questions")
   .option("--accept-language <lang>", "language preference (e.g. zh, en)")
   .action(async (query, opts) => {
     const timeoutMs = parseInt(opts.timeout, 10) * 1000;
@@ -114,6 +115,7 @@ program
       verbose: opts.verbose,
       timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
       liveDocId: opts.liveDocId || undefined,
+      threadId: opts.threadId || undefined,
       acceptLanguage: opts.acceptLanguage || undefined,
     });
     process.exitCode = code;

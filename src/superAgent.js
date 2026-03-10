@@ -1,7 +1,10 @@
 const DEFAULT_API_BASE = 'https://openapi.felo.ai';
 const DEFAULT_TIMEOUT_MS = 60_000;
 /** 流式读取空闲超时：连续这么久未收到任何数据则断开，默认 5 分钟（生图等长任务需较久） */
-const STREAM_IDLE_TIMEOUT_MS = 5 * 60 * 1000;
+const STREAM_IDLE_TIMEOUT_MS = 2 * 60 * 60 * 1000;
+/** Tools whose params and results should be silently ignored. */
+const HIDDEN_TOOLS = new Set(['manage_outline']);
+const RECONNECT_DELAY_MS = 2000;
 
 const NO_KEY_MESSAGE = `
 ❌ Felo API Key not configured
@@ -37,11 +40,14 @@ function isApiError(payload) {
   return false;
 }
 
-async function createConversation(apiKey, apiBase, body, timeoutMs) {
+async function createConversation(apiKey, apiBase, body, timeoutMs, threadId) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const res = await fetch(`${apiBase}/v2/conversations`, {
+    const url = threadId
+      ? `${apiBase}/v2/conversations/${encodeURIComponent(threadId)}/follow_up`
+      : `${apiBase}/v2/conversations`;
+    const res = await fetch(url, {
       method: 'POST',
       headers: {
         Accept: 'application/json',
@@ -76,8 +82,17 @@ async function createConversation(apiKey, apiBase, body, timeoutMs) {
   }
 }
 
-async function consumeStream(apiKey, apiBase, streamKey, onMessage, onError, onDone, onEvent, onToolResult, onStatusMessage) {
-  const url = `${apiBase}/v2/conversations/stream/${encodeURIComponent(streamKey)}`;
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Read a single SSE connection until it ends or encounters an error event.
+ * Returns { maxOffset, streamDone, streamError } so the caller can decide
+ * whether to reconnect.
+ */
+async function readSSE(url, apiKey, startOffset, callbacks) {
+  const { onMessage, onError, onDone, onEvent, onToolCall, onToolResult, onStatusMessage } = callbacks;
   const controller = new AbortController();
   let idleTimer = null;
   const resetIdleTimer = () => {
@@ -85,8 +100,13 @@ async function consumeStream(apiKey, apiBase, streamKey, onMessage, onError, onD
     idleTimer = setTimeout(() => controller.abort(), STREAM_IDLE_TIMEOUT_MS);
   };
 
+  const connectUrl = startOffset >= 0 ? `${url}?offset=${startOffset}` : url;
+  let maxOffset = startOffset;
+  let streamDone = false;
+  let streamError = null;
+
   try {
-    const res = await fetch(url, {
+    const res = await fetch(connectUrl, {
       method: 'GET',
       headers: {
         Accept: 'text/event-stream',
@@ -106,14 +126,48 @@ async function consumeStream(apiKey, apiBase, streamKey, onMessage, onError, onD
     }
 
     const reader = res.body?.getReader();
-    if (!reader) {
-      throw new Error('No response body');
-    }
+    if (!reader) throw new Error('No response body');
 
     const decoder = new TextDecoder();
     let buffer = '';
     let currentEvent = '';
-    let currentData = '';
+    let currentData = undefined;
+
+    const processEvent = (evt, data) => {
+      if (!evt || data === undefined) return;
+      // Track offset and skip already-processed events on reconnect
+      let eventOffset = -1;
+      try {
+        const parsed = JSON.parse(data);
+        if (typeof parsed?.offset === 'number') {
+          eventOffset = parsed.offset;
+          if (parsed.offset > maxOffset) {
+            maxOffset = parsed.offset;
+          }
+        }
+      } catch {}
+
+      // Skip events we've already seen (replay after reconnect)
+      if (eventOffset >= 0 && eventOffset <= startOffset) {
+        return;
+      }
+
+      if (onEvent) onEvent(evt, data);
+
+      if (evt === 'error') {
+        // Server sends event:error as a "not ready yet" signal during long tasks
+        // (e.g. image generation). This does NOT mean the connection is broken.
+        // Just ignore it and keep reading.
+        return;
+      }
+      if (evt === 'done' || evt === 'completed' || evt === 'complete') {
+        streamDone = true;
+        onDone();
+        return;
+      }
+      // Delegate other events (message, stream, heartbeat, etc.) to dispatch
+      dispatch(evt, data, onMessage, onError, onDone, onEvent, onToolCall, onToolResult, onStatusMessage);
+    };
 
     resetIdleTimer();
     while (true) {
@@ -127,19 +181,13 @@ async function consumeStream(apiKey, apiBase, streamKey, onMessage, onError, onD
 
       for (const line of lines) {
         if (line.startsWith('event:')) {
-          if (currentEvent && currentData !== undefined) {
-            if (onEvent) onEvent(currentEvent.trim(), currentData);
-            dispatch(currentEvent.trim(), currentData, onMessage, onError, onDone, onEvent, onToolResult, onStatusMessage);
-          }
+          processEvent(currentEvent, currentData);
           currentEvent = line.slice(6).trim();
           currentData = undefined;
         } else if (line.startsWith('data:')) {
           currentData = line.slice(5).trim();
         } else if (line === '') {
-          if (currentEvent && currentData !== undefined) {
-            if (onEvent) onEvent(currentEvent.trim(), currentData);
-            dispatch(currentEvent.trim(), currentData, onMessage, onError, onDone, onEvent, onToolResult, onStatusMessage);
-          }
+          processEvent(currentEvent, currentData);
           currentEvent = '';
           currentData = undefined;
         }
@@ -147,42 +195,135 @@ async function consumeStream(apiKey, apiBase, streamKey, onMessage, onError, onD
     }
 
     if (idleTimer) clearTimeout(idleTimer);
-    if (currentEvent && currentData !== undefined) {
-      if (onEvent) onEvent(currentEvent.trim(), currentData);
-      dispatch(currentEvent.trim(), currentData, onMessage, onError, onDone, onEvent, onToolResult, onStatusMessage);
-    }
+    processEvent(currentEvent, currentData);
   } catch (err) {
     if (idleTimer) clearTimeout(idleTimer);
     if (err?.name === 'AbortError') {
-      throw new Error(`Stream idle timeout (no data for ${STREAM_IDLE_TIMEOUT_MS / 1000}s)`);
+      streamError = `Stream idle timeout (no data for ${STREAM_IDLE_TIMEOUT_MS / 1000}s)`;
+    } else {
+      throw err;
     }
-    throw err;
+  }
+
+  return { maxOffset, streamDone, streamError };
+}
+
+/**
+ * Consume SSE stream with automatic reconnection.
+ * Server may push event:error and close the connection when waiting for
+ * long-running tasks (e.g. image generation). We reconnect with ?offset=N
+ * to resume from where we left off, and keep retrying until we receive
+ * a done/complete event or hit the 2-hour total timeout.
+ */
+async function consumeStream(apiKey, apiBase, streamKey, onMessage, onError, onDone, onEvent, toolCallbacks, onStatusMessage) {
+  const url = `${apiBase}/v2/conversations/stream/${encodeURIComponent(streamKey)}`;
+  const { onToolCall, onToolResult } = toolCallbacks;
+  const callbacks = { onMessage, onError, onDone, onEvent, onToolCall, onToolResult, onStatusMessage };
+
+  let lastOffset = -1;
+  const startTime = Date.now();
+
+  while (true) {
+    if (Date.now() - startTime > STREAM_IDLE_TIMEOUT_MS) {
+      onError('Stream timeout: no completion after ' + (STREAM_IDLE_TIMEOUT_MS / 1000) + 's');
+      return;
+    }
+
+    const result = await readSSE(url, apiKey, lastOffset, callbacks);
+
+    if (result.streamDone) return;
+
+    if (result.maxOffset > lastOffset) {
+      lastOffset = result.maxOffset;
+    }
+
+    // Connection closed (error or unexpected) — reconnect
+    await sleep(RECONNECT_DELAY_MS);
   }
 }
 
-function extractImageResults(data) {
+function extractToolResults(data) {
   const out = [];
   const tools = data?.tools;
   if (!Array.isArray(tools)) return out;
   for (const t of tools) {
+    if (HIDDEN_TOOLS.has(t?.name) || HIDDEN_TOOLS.has(t?.tool_name)) continue;
     const callResult = t?.call_result;
-    if (!callResult) continue;
-    if (Array.isArray(callResult)) {
-      for (const item of callResult) {
-        if (item?.image_url) out.push({ image_url: item.image_url, title: item?.title || '' });
+    // Image tool results
+    if (t?.tool_name === 'generate_images' || t?.name === 'generate_images') {
+      if (!callResult) continue;
+      if (Array.isArray(callResult)) {
+        for (const item of callResult) {
+          if (item?.image_url) out.push({ type: 'image', title: item?.title || '', image_url: item.image_url });
+        }
+      } else if (callResult?.images && Array.isArray(callResult.images)) {
+        for (const img of callResult.images) {
+          if (img?.image_url) out.push({ type: 'image', title: img?.title || '', image_url: img.image_url });
+        }
+      } else if (callResult?.image_url) {
+        out.push({ type: 'image', title: callResult?.title || '', image_url: callResult.image_url });
       }
-    } else if (callResult?.images && Array.isArray(callResult.images)) {
-      for (const img of callResult.images) {
-        if (img?.image_url) out.push({ image_url: img.image_url, title: img?.title || '' });
-      }
-    } else if (callResult?.image_url) {
-      out.push({ image_url: callResult.image_url, title: callResult?.title || '' });
+    }
+    // Discovery (research report) tool results
+    if (t?.name === 'generate_discovery' && callResult?.status === 'success') {
+      out.push({ type: 'discovery', title: callResult?.title || t?.params?.title || '研究报告' });
+    }
+    // Document generation tool results
+    if (t?.name === 'generate_document' && callResult?.status === 'success') {
+      out.push({ type: 'document', title: callResult?.title || t?.params?.title || '文档' });
+    }
+    // PPT generation tool results
+    if (t?.name === 'generate_ppt' && callResult?.status === 'success') {
+      out.push({ type: 'ppt', title: callResult?.title || t?.params?.title || 'PPT' });
+    }
+    // HTML generation tool results
+    if (t?.name === 'generate_html' && callResult?.status === 'success') {
+      out.push({ type: 'html', title: callResult?.title || t?.params?.title || 'HTML' });
+    }
+    // Twitter search tool results
+    if (t?.name === 'search_x' && callResult?.tweets && Array.isArray(callResult.tweets)) {
+      out.push({ type: 'search_x', status: callResult.status, tweets: callResult.tweets });
     }
   }
   return out;
 }
 
-function dispatch(eventType, dataStr, onMessage, onError, onDone, onEvent, onToolResult, onStatusMessage) {
+/**
+ * Extract tool invocation params from type=tools events for immediate display.
+ */
+function extractToolParams(data) {
+  const out = [];
+  const tools = data?.tools;
+  if (!Array.isArray(tools)) return out;
+  for (const t of tools) {
+    if (HIDDEN_TOOLS.has(t?.name) || HIDDEN_TOOLS.has(t?.tool_name)) continue;
+    if (t?.name && t?.params) {
+      out.push({ name: t.name, params: t.params });
+    }
+  }
+  return out;
+}
+
+/**
+ * Format a single tweet for CLI output.
+ */
+function formatTweet(tweet) {
+  const info = tweet?.other_info || {};
+  const author = info.author || {};
+  const metrics = info.metrics || {};
+  const name = author.display_name || author.username || 'Unknown';
+  const handle = author.username ? `@${author.username}` : '';
+  const text = tweet?.snippet || tweet?.title || '';
+  const link = tweet?.link || info.url || '';
+  const stats = [];
+  if (metrics.favorite_count) stats.push(`❤ ${metrics.favorite_count}`);
+  if (metrics.retweet_count) stats.push(`🔁 ${metrics.retweet_count}`);
+  if (metrics.view_count) stats.push(`👁 ${metrics.view_count}`);
+  const statsStr = stats.length > 0 ? `  [${stats.join(' | ')}]` : '';
+  return `  ${name} (${handle})${statsStr}\n  ${text}\n  ${link}`;
+}
+
+function dispatch(eventType, dataStr, onMessage, onError, onDone, onEvent, onToolCall, onToolResult, onStatusMessage) {
   let payload = {};
   if (dataStr) {
     try {
@@ -212,14 +353,17 @@ function dispatch(eventType, dataStr, onMessage, onError, onDone, onEvent, onToo
             onStatusMessage(`已收到: ${data.query}`);
           } else if (type === 'processing' && onStatusMessage && data?.message) {
             onStatusMessage(data.message);
-          } else if (type !== 'processing' && data?.message && typeof data.message === 'string') {
-            onMessage(data.message);
+          } else if (type === 'tools' && onToolCall) {
+            const params = extractToolParams(data);
+            for (const item of params) onToolCall(item);
           } else if (
             (type === 'tools_result_stream' || type === 'tools_result') &&
             onToolResult
           ) {
-            const images = extractImageResults(data);
-            for (const item of images) onToolResult(item);
+            const results = extractToolResults(data);
+            for (const item of results) onToolResult(item);
+          } else if (type !== 'processing' && type !== 'tools' && data?.message && typeof data.message === 'string') {
+            onMessage(data.message);
           }
         } catch {
           onMessage(content);
@@ -227,16 +371,8 @@ function dispatch(eventType, dataStr, onMessage, onError, onDone, onEvent, onToo
       }
       break;
     }
-    case 'error':
-      process.stderr.write('[stream] event=error data=' + (dataStr || '') + '\n');
-      onError(getMessage(payload) || 'Stream error');
-      break;
-    case 'done':
-    case 'completed':
-    case 'complete':
-      onDone();
-      break;
     case 'heartbeat':
+    case 'connected':
       break;
     default:
       break;
@@ -251,6 +387,7 @@ function dispatch(eventType, dataStr, onMessage, onError, onDone, onEvent, onToo
  * @param {boolean} [options.verbose] - Log stream key / thread / livedoc to stderr.
  * @param {number} [options.timeoutMs] - Request/stream timeout in ms.
  * @param {string} [options.liveDocId] - Reuse existing LiveDoc short_id.
+ * @param {string} [options.threadId] - Existing thread/conversation ID for follow-up.
  * @param {string} [options.acceptLanguage] - e.g. zh, en.
  * @returns {Promise<number>} Exit code 0 or 1.
  */
@@ -270,9 +407,10 @@ export async function superAgent(query, options = {}) {
   if (options.acceptLanguage) body.accept_language = options.acceptLanguage;
 
   try {
-    process.stderr.write('SuperAgent: creating conversation...\n');
+    const threadId = options.threadId;
+    process.stderr.write(threadId ? 'SuperAgent: following up...\n' : 'SuperAgent: creating conversation...\n');
 
-    const createData = await createConversation(apiKey, apiBase, body, timeoutMs);
+    const createData = await createConversation(apiKey, apiBase, body, timeoutMs, threadId);
     const { stream_key, thread_short_id, live_doc_short_id } = createData;
 
     if (options.verbose) {
@@ -281,15 +419,92 @@ export async function superAgent(query, options = {}) {
       process.stderr.write(`LiveDoc ID: ${live_doc_short_id}\n`);
     }
 
+    const feloBase = (process.env.FELO_WEB_BASE?.trim() || apiBase.replace(/\/\/openapi-/, '//').replace(/\/\/openapi\./, '//')).replace(/\/$/, '');
+    const liveDocUrl = live_doc_short_id ? `${feloBase}/zh-Hans/livedoc/${live_doc_short_id}` : '';
+
     const chunks = [];
     const toolResults = [];
-    const seenUrls = new Set();
-    const onToolResult = (item) => {
-      if (item?.image_url && !seenUrls.has(item.image_url)) {
-        seenUrls.add(item.image_url);
-        toolResults.push({ image_url: item.image_url, title: item.title || '' });
+    const seenKeys = new Set();
+    const isJson = options.json;
+
+    // Immediate output for tool invocations (params)
+    const onToolCall = (item) => {
+      if (isJson) return;
+      const { name, params } = item;
+      console.log(`\n[Tool: ${name}]`);
+      if (name === 'search_x') {
+        console.log(`  Query: ${params.query || ''}`);
+        if (params.query_type) console.log(`  Type: ${params.query_type}`);
+        if (params.limit) console.log(`  Limit: ${params.limit}`);
+      } else if (name === 'generate_images') {
+        const images = params?.images;
+        if (Array.isArray(images)) {
+          for (const img of images) {
+            console.log(`  Image: ${img.title || '(untitled)'}`);
+          }
+        }
+      } else if (name === 'generate_discovery') {
+        console.log(`  Title: ${params.title || params.query || ''}`);
+      } else if (name === 'generate_document') {
+        console.log(`  Title: ${params.title || ''}`);
+      } else if (name === 'generate_ppt') {
+        console.log(`  Title: ${params.title || ''}`);
+      } else if (name === 'generate_html') {
+        console.log(`  Title: ${params.title || ''}`);
+      } else {
+        console.log(`  Params: ${JSON.stringify(params)}`);
       }
     };
+
+    // Immediate output for tool results
+    const onToolResult = (item) => {
+      // For types that link to the same livedoc URL, deduplicate by type only
+      const LIVEDOC_TYPES = new Set(['document', 'ppt', 'html', 'discovery']);
+      const key = item?.image_url || (LIVEDOC_TYPES.has(item?.type) ? item.type : `${item?.type}:${item?.title}`);
+      if (seenKeys.has(key)) return;
+      seenKeys.add(key);
+      toolResults.push(item);
+
+      if (isJson) return;
+      if (item.type === 'image') {
+        if (liveDocUrl) {
+          console.log(`[${item.title || '图片'}](${liveDocUrl})`);
+        } else {
+          console.log(item.image_url);
+        }
+      } else if (item.type === 'discovery') {
+        if (liveDocUrl) {
+          console.log(`[${item.title}](${liveDocUrl})`);
+        } else {
+          console.log(item.title);
+        }
+      } else if (item.type === 'document') {
+        if (liveDocUrl) {
+          console.log(`[${item.title || '文档'}](${liveDocUrl})`);
+        } else {
+          console.log(item.title || '文档');
+        }
+      } else if (item.type === 'ppt') {
+        if (liveDocUrl) {
+          console.log(`[${item.title || 'PPT'}](${liveDocUrl})`);
+        } else {
+          console.log(item.title || 'PPT');
+        }
+      } else if (item.type === 'html') {
+        if (liveDocUrl) {
+          console.log(`[${item.title || 'HTML'}](${liveDocUrl})`);
+        } else {
+          console.log(item.title || 'HTML');
+        }
+      } else if (item.type === 'search_x') {
+        console.log(`\n[Twitter Search Results] (${item.tweets.length} tweets)`);
+        for (const tweet of item.tweets) {
+          console.log(formatTweet(tweet));
+          console.log('');
+        }
+      }
+    };
+
     let streamError = null;
     const onEvent = options.verbose
       ? (eventType, dataStr) => {
@@ -306,13 +521,16 @@ export async function superAgent(query, options = {}) {
       apiKey,
       apiBase,
       stream_key,
-      (content) => chunks.push(content),
+      (content) => {
+        chunks.push(content);
+        if (!isJson) process.stdout.write(content);
+      },
       (err) => {
         streamError = err;
       },
       () => {},
       onEvent,
-      onToolResult,
+      { onToolCall, onToolResult },
       onStatusMessage
     );
 
@@ -323,6 +541,12 @@ export async function superAgent(query, options = {}) {
     const answer = chunks.join('').trim();
 
     if (options.json) {
+      const images = toolResults.filter((r) => r.type === 'image');
+      const discoveries = toolResults.filter((r) => r.type === 'discovery');
+      const documents = toolResults.filter((r) => r.type === 'document');
+      const ppts = toolResults.filter((r) => r.type === 'ppt');
+      const htmls = toolResults.filter((r) => r.type === 'html');
+      const searches = toolResults.filter((r) => r.type === 'search_x');
       console.log(
         JSON.stringify(
           {
@@ -332,9 +556,30 @@ export async function superAgent(query, options = {}) {
               thread_short_id: thread_short_id ?? null,
               live_doc_short_id: live_doc_short_id ?? null,
               image_urls:
-                toolResults.length > 0
-                  ? toolResults.map((r) => ({ url: r.image_url, title: r.title }))
+                images.length > 0
+                  ? images.map((r) => ({ url: r.image_url, title: r.title }))
                   : undefined,
+              discoveries:
+                discoveries.length > 0
+                  ? discoveries.map((r) => ({ title: r.title }))
+                  : undefined,
+              documents:
+                documents.length > 0
+                  ? documents.map((r) => ({ title: r.title }))
+                  : undefined,
+              ppts:
+                ppts.length > 0
+                  ? ppts.map((r) => ({ title: r.title }))
+                  : undefined,
+              htmls:
+                htmls.length > 0
+                  ? htmls.map((r) => ({ title: r.title }))
+                  : undefined,
+              search_x:
+                searches.length > 0
+                  ? searches.map((r) => ({ tweets: r.tweets }))
+                  : undefined,
+              live_doc_url: liveDocUrl || undefined,
             },
           },
           null,
@@ -342,13 +587,11 @@ export async function superAgent(query, options = {}) {
         )
       );
     } else {
-      console.log(answer || '(No content in stream)');
-      if (toolResults.length > 0) {
-        process.stderr.write('\n');
-        for (const r of toolResults) {
-          if (r.title) process.stderr.write(`${r.title}: `);
-          process.stderr.write(r.image_url + '\n');
-        }
+      // Text and tool results already printed in real-time via process.stdout.write / onToolResult
+      // Just add a trailing newline if there was streaming text
+      if (answer) console.log('');
+      if (!answer && toolResults.length === 0) {
+        console.log('(No content in stream)');
       }
     }
 
