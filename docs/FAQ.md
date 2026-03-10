@@ -191,10 +191,10 @@ Use Felo to find [query]
 
 **A:** Yes! Fully supports multi-language queries.
 
-Ask in any language, get answers in that language. Even mixed-language queries work:
-- "React 在中国的使用情况"
-- "東京で中国語が通じる病院"
-- "Python vs Java 哪个更适合初学者？"
+Ask in any language, get answers in that language. Even mixed-language queries work, for example:
+- "React adoption in China"
+- "Hospitals in Tokyo with Chinese-speaking staff"
+- "Python vs Java for beginners?"
 
 ### Q: What's the response format?
 

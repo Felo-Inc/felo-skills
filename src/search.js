@@ -22,7 +22,7 @@ async function getApiKey() {
   return typeof fromConfig === 'string' ? fromConfig.trim() : '';
 }
 
-export { getApiKey };
+export { getApiKey, fetchWithTimeoutAndRetry, NO_KEY_MESSAGE };
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -38,7 +38,6 @@ async function fetchWithTimeoutAndRetry(url, options, timeoutMs = DEFAULT_TIMEOU
         ...options,
         signal: controller.signal,
       });
-      clearTimeout(timeoutId);
       // Retry on 5xx (server errors)
       if (res.status >= 500 && attempt < MAX_RETRIES) {
         const delay = RETRY_BASE_MS * Math.pow(2, attempt);
@@ -47,7 +46,6 @@ async function fetchWithTimeoutAndRetry(url, options, timeoutMs = DEFAULT_TIMEOU
       }
       return res;
     } catch (err) {
-      clearTimeout(timeoutId);
       lastError = err;
       if (err.name === 'AbortError') {
         throw new Error(`Request timed out after ${timeoutMs / 1000}s`);
@@ -58,12 +56,12 @@ async function fetchWithTimeoutAndRetry(url, options, timeoutMs = DEFAULT_TIMEOU
         continue;
       }
       throw lastError;
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
   throw lastError;
 }
-
-export { fetchWithTimeoutAndRetry };
 
 export async function search(query, options = {}) {
   const apiKey = await getApiKey();

@@ -7,3 +7,9 @@ node_modules/
 *.swp
 *.swo
 *~
+
+openspec/*
+
+AGENTS.md
+
+.claude

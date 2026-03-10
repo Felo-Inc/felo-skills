@@ -1,7 +1,7 @@
 {
-  "name": "felo-search",
-  "version": "0.1.1",
-  "description": "Felo AI CLI - real-time search from the terminal",
+  "name": "felo-ai",
+  "version": "0.2.6",
+  "description": "Felo AI CLI - real-time search, PPT generation, web extract, YouTube subtitles, and X (Twitter) search from the terminal",
   "type": "module",
   "main": "src/cli.js",
   "bin": {
@@ -13,8 +13,12 @@
   "keywords": [
     "felo",
     "felo-ai",
-    "felo-search",
     "search",
+    "slides",
+    "web-extract",
+    "youtube-subtitles",
+    "x-search",
+    "twitter",
     "cli",
     "ai"
   ],
@@ -28,6 +32,6 @@
     "felo-search": "^0.1.1"
   },
   "scripts": {
-    "test": "node --test tests/"
+    "test": "node --test \"tests/*.js\""
   }
 }
