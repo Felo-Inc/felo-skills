@@ -2,7 +2,7 @@
 
 **Ask anything. Get current answers. Generate slides from a prompt.**
 
-[npm package: **felo-ai**](https://www.npmjs.com/package/felo-ai) — Real-time search, PPT generation, web fetch, and YouTube subtitles from the terminal. Also works as Claude Code skills. Supports Chinese, English, Japanese, and Korean.
+[npm package: **felo-ai**](https://www.npmjs.com/package/felo-ai) — Real-time search, PPT generation, web page extraction, YouTube subtitles, and X (Twitter) search from the terminal. Also works as Claude Code skills. Supports Chinese, English, Japanese, and Korean.
 
 [![npm version](https://img.shields.io/npm/v/felo-ai.svg)](https://www.npmjs.com/package/felo-ai) [![License](https://img.shields.io/badge/license-MIT-green)]()
 
@@ -53,6 +53,7 @@ Get your API key from [felo.ai](https://felo.ai) (Settings → API Keys). Enviro
 | `felo slides "<prompt>"`             | Generate PPT; returns link when done                 |
 | `felo web-fetch --url <url>`       | Fetch webpage content (markdown/text/html)          |
 | `felo youtube-subtitling -v <url-or-id>` | Fetch YouTube video subtitles by video URL or ID   |
+| `felo x "<query>"`                       | Search X (Twitter) tweets, users, and replies       |
 | `felo config set FELO_API_KEY <key>` | Save API key to config                                |
 | `felo config get FELO_API_KEY`       | Print stored key                                      |
 | `felo config list`                   | List config keys                                      |
@@ -132,6 +133,32 @@ node felo-youtube-subtitling/scripts/run_youtube_subtitling.mjs -v "dQw4w9WgXcQ"
 
 Options: `-v/--video-code` (required: **YouTube video URL** or video ID), `-l/--language` (e.g. en, zh-CN), `--with-time`, `-j/--json`. Same `FELO_API_KEY` as other commands. See [felo-youtube-subtitling](./felo-youtube-subtitling/README.md).
 
+**X (Twitter) search** (after `npm install -g felo-ai`)
+
+```bash
+# Search tweets
+felo x "AI news"
+felo x "AI news" --limit 10 --json
+
+# Search users
+felo x "OpenAI" --user
+
+# Get user info
+felo x --id "elonmusk" --user
+
+# Get user tweets
+felo x --id "elonmusk" --user --tweets
+felo x --id "elonmusk" --user --tweets --include-replies --limit 20
+
+# Get tweet replies
+felo x --id "1234567890"
+
+# From repo: run script directly (no install)
+node felo-x-search/scripts/run_x_search.mjs "AI news"
+```
+
+Options: `[query]` or `-q/--query` (search keyword), `--id` (tweet IDs or usernames, comma-separated), `--user` (user mode), `--tweets` (get user tweets), `-l/--limit`, `--cursor`, `--include-replies`, `--query-type`, `--since-time`, `--until-time`, `-j/--json`, `-t/--timeout`. Same `FELO_API_KEY` as other commands. See [felo-x-search](./felo-x-search/SKILL.md).
+
 ### CLI FAQ
 
 - **Key not found?** Run `felo config set FELO_API_KEY <key>` or set the `FELO_API_KEY` environment variable.
@@ -140,6 +167,7 @@ Options: `-v/--video-code` (required: **YouTube video URL** or video ID), `-l/--
 - **Where is config stored?** Run `felo config path` to see the file (e.g. `~/.felo/config.json`).
 - **Web fetch after install?** Use `felo web-fetch --url "<page url>"`. Other params: `--format markdown|text|html`, `--readability`, `--target-selector "selector"`, `--wait-for-selector "selector"`, `--crawl-mode fast|fine`, `--timeout 120`, `--json`. See the "How to pass parameters" table above. Same API key as other commands.
 - **YouTube subtitles?** Use `felo youtube-subtitling -v "<url or video_id>"` (full YouTube link or 11-char ID). Optional: `-l/--language`, `--with-time`, `-j/--json`. See [felo-youtube-subtitling](./felo-youtube-subtitling/README.md).
+- **X (Twitter) search?** Use `felo x "<query>"` to search tweets, `felo x "<query>" --user` to search users, `felo x --id "<username>" --user` for user info, `felo x --id "<username>" --user --tweets` for user tweets, `felo x --id "<tweet_id>"` for tweet replies. See [felo-x-search](./felo-x-search/SKILL.md).
 
 ---
 
@@ -184,6 +212,8 @@ Ask Claude: "What's the weather in Tokyo today?"
 **Felo Web Fetch:** In terminal run `felo web-fetch --url "https://example.com"` (see [felo-web-fetch](./felo-web-fetch/README.md)). In Claude Code you can install the skill and use it to fetch webpage content from a URL.
 
 **Felo YouTube Subtitling:** In terminal run `felo youtube-subtitling -v "URL_or_VIDEO_ID"` (see [felo-youtube-subtitling](./felo-youtube-subtitling/README.md)). Fetches subtitles/captions; accepts full YouTube link or video ID.
+
+**Felo X Search:** In terminal run `felo x "query"` to search tweets, users, and replies on X (Twitter) (see [felo-x-search](./felo-x-search/SKILL.md)). In Claude Code install the skill and use it to search X content.
 
 ---
 
@@ -366,6 +396,10 @@ Generate PPT: in terminal use `felo slides "your topic"`, in Claude Code use `/f
 ### felo-web-fetch
 
 Fetch and extract webpage content: in terminal use `felo web-fetch --url "https://example.com"`, in Claude Code use `/felo-web-fetch https://example.com`. **[View skill documentation →](./felo-web-fetch/)**
+
+### felo-x-search
+
+Search X (Twitter) tweets, users, and replies: in terminal use `felo x "query"`, in Claude Code use `/felo-x-search query`. **[View skill documentation →](./felo-x-search/SKILL.md)**
 
 ---
 
