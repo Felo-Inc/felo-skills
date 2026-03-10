@@ -1,30 +1,32 @@
 ---
 name: felo-web-fetch
-description: "Fetch web page content from a URL using Felo Web Fetch API. Use when users ask to scrape/capture/fetch webpage content, get article text from URL, convert page to markdown/text, or when explicit commands like /felo-web-fetch are used. Supports html, text, markdown output and readability mode."
+description: "Extract webpage content with Felo Web Extract API. Use for turning URLs into html/markdown/text, selecting specific page areas with CSS selectors, and controlling extraction options like crawl mode, cookies, user-agent, and timeout."
 ---
 
 # Felo Web Fetch Skill
 
 ## When to Use
 
-Trigger this skill when the user wants to:
+Trigger this skill when users want to extract or convert webpage content from a URL:
 
 - Fetch or scrape content from a webpage URL
-- Get article/main text from a link
-- Convert a webpage to Markdown or plain text
-- Capture readable content from a URL for summarization or processing
+- Convert webpage content to `html`, `markdown`, or `text`
+- Extract specific blocks using CSS selector
+- Get article/main text from a link with readability mode
+- Tune extraction behavior with crawl mode (`fast`/`fine`)
+- Pass request details such as cookies, user-agent, timeout
 
 Trigger keywords (examples):
 
 - fetch webpage, scrape URL, fetch page content, web fetch, url to markdown
-- Explicit: `/felo-web-fetch`, "use felo web fetch"
+- Explicit: `/felo-web-fetch`, "use felo web fetch", "extract this URL with felo"
 - Same intent in other languages (e.g. 网页抓取, 提取网页内容) also triggers this skill
 
-Do NOT use for:
+Do NOT use this skill for:
 
-- Real-time search or Q&A (use `felo-search`)
-- Generating slides (use `felo-slides`)
-- Local file content (read files directly)
+- Real-time Q&A search summaries (use `felo-search`)
+- Slide generation tasks (use `felo-slides`)
+- Local file parsing in current workspace
 
 ## Setup
 
@@ -37,13 +39,11 @@ Do NOT use for:
 ### 2. Configure environment variable
 
 Linux/macOS:
-
 ```bash
 export FELO_API_KEY="your-api-key-here"
 ```
 
 Windows PowerShell:
-
 ```powershell
 $env:FELO_API_KEY="your-api-key-here"
 ```
@@ -65,52 +65,56 @@ felo web-fetch -u "https://example.com" [options]
 # Short forms: -u (url), -f (format), -t (timeout, seconds), -j (json)
 ```
 
-Options:
+Required parameter:
+- `--url`
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--url` | (required) | Webpage URL to fetch |
-| `--format` | markdown | Output format: `html`, `text`, `markdown` |
-| `--target-selector` | - | CSS selector: fetch only this element (e.g. `article.main`, `#content`) |
-| `--wait-for-selector` | - | Wait for this selector before fetching (e.g. dynamic content) |
-| `--readability` | false | Enable readability processing (main content only) |
-| `--crawl-mode` | fast | `fast` or `fine` |
-| `--timeout` | 60000 (script) / 60 (CLI) | Request timeout: script uses **milliseconds**, CLI uses **seconds** (e.g. `-t 90`) |
-| `--json` / `-j` | false | Print full API response as JSON |
+Core optional parameters:
+- `--output-format html|markdown|text`
+- `--crawl-mode fast|fine`
+- `--target-selector "article.main-content"`
+- `--wait-for-selector ".content-ready"`
+
+Other key optional parameters:
+- `--cookie "session_id=xxx"` (repeatable)
+- `--set-cookies-json '[{"name":"sid","value":"xxx","domain":"example.com"}]'`
+- `--user-agent "Mozilla/5.0 ..."`
+- `--timeout 60` (HTTP request timeout in seconds)
+- `--request-timeout-ms 15000` (API payload `timeout` in ms)
+- `--with-readability true`
+- `--with-links-summary true`
+- `--with-images-summary true`
+- `--with-images-readability true`
+- `--with-images true`
+- `--with-links true`
+- `--ignore-empty-text-image true`
+- `--with-cache false`
+- `--with-stypes true`
+- `--json` (print full JSON response)
 
 ### How to write instructions (target_selector + output_format)
 
 When the user wants a **specific part** of the page or a **specific output format**, phrase the command like this:
 
-- **Output format**: "Fetch as **text**" / "Get **markdown**" / "Return **html**" → use `--format text`, `--format markdown`, or `--format html`.
-- **Target one element**: "Only the **main article**" / "Just the **content inside** `#main`" / "Fetch only **article.main-content**" → use `--target-selector "article.main"` or the selector they give (e.g. `#main`, `.main-content`, `article .post`).
-
-Examples of user intents and equivalent commands:
-
-| User intent | Command |
-|-------------|---------|
-| "Fetch this page as plain text" | `--url "..." --format text` |
-| "Get only the main content area" | `--url "..." --target-selector "main"` or `article` |
-| "Fetch the div with id=content as markdown" | `--url "..." --target-selector "#content" --format markdown` |
-| "Just the article body, as HTML" | `--url "..." --target-selector "article .body" --format html` |
+- **Output format**: "Fetch as **text**" / "Get **markdown**" / "Return **html**" → use `--output-format text`, `--output-format markdown`, or `--output-format html`.
+- **Target one element**: "Only the **main article**" / "Just the **content inside** `#main`" / "Fetch only **article.main-content**" → use `--target-selector "article.main"` or the selector they give.
 
 Examples:
 
 ```bash
 # Basic: fetch as Markdown
-node felo-web-fetch/scripts/run_web_fetch.mjs --url "https://example.com"
+node felo-web-fetch/scripts/run_web_fetch.mjs --url "https://example.com" --output-format markdown
 
 # Article-style with readability
-node felo-web-fetch/scripts/run_web_fetch.mjs --url "https://example.com/article" --readability --format markdown
+node felo-web-fetch/scripts/run_web_fetch.mjs --url "https://example.com/article" --with-readability true --output-format markdown
 
-# Raw HTML
-node felo-web-fetch/scripts/run_web_fetch.mjs --url "https://example.com" --format html --json
+# Only the element matching a CSS selector
+node felo-web-fetch/scripts/run_web_fetch.mjs --url "https://example.com" --target-selector "article.main" --output-format markdown
 
-# Only the element matching a CSS selector (e.g. main article)
-node felo-web-fetch/scripts/run_web_fetch.mjs --url "https://example.com" --target-selector "article.main" --format markdown
+# With cookies and custom user-agent
+node felo-web-fetch/scripts/run_web_fetch.mjs --url "https://example.com/private" --cookie "session_id=abc123" --with-readability true --json
 
-# Specific output format + target selector
-node felo-web-fetch/scripts/run_web_fetch.mjs --url "https://example.com" --target-selector "#content" --format text
+# Full JSON response
+node felo-web-fetch/scripts/run_web_fetch.mjs --url "https://example.com" --output-format text --json
 ```
 
 ### Option B: Call API with curl
@@ -142,6 +146,8 @@ curl -X POST "https://openapi.felo.ai/v2/web/extract" \
 | wait_for_selector | string | No | - | Wait for selector before fetch |
 | timeout | integer | No | - | Timeout in milliseconds |
 | with_cache | boolean | No | true | Use cache |
+| set_cookies | array | No | - | Cookie entries |
+| user_agent | string | No | - | Custom user-agent |
 
 ### Response
 
@@ -169,32 +175,30 @@ Fetched content is in `data.content`; structure depends on `output_format`.
 
 ## Output Format
 
-On success (script without `--json`):
+- Default output is extracted content only (for direct use or piping).
+- If response content is not a string, script prints JSON.
+- Use `--json` when user needs metadata and full response object.
 
-- Print the fetched content only (for direct use or piping).
-
-With `--json`:
-
-- Print full API response including `code`, `message`, `data`.
-
-Error response to user:
+Error response format:
 
 ```markdown
 ## Web Fetch Failed
-
-- Error: <code or message>
-- URL: <requested url>
-- Suggestion: <e.g. check URL, retry, or use --timeout>
+- Message: <error message>
+- Suggested Action: verify URL/parameters and retry
 ```
 
 ## Important Notes
 
-- Always check `FELO_API_KEY` before calling; if missing, return setup instructions.
-- For long articles or slow sites, consider `--timeout` or `timeout` in request body.
-- Use `output_format: "markdown"` and `with_readability: true` for clean article text.
-- API may cache results; use `with_cache: false` in body only when fresh content is required (script does not expose this by default).
+- Always require URL before running.
+- Validate enum values:
+  - `output_format`: `html`, `markdown`, `text`
+  - `crawl_mode`: `fast`, `fine`
+- Use `--target-selector` when users only want a specific part of the page.
+- Use `--request-timeout-ms` for page rendering/extraction wait, and `--timeout` for local HTTP timeout.
+- For long articles or slow sites, consider increasing `--timeout`.
+- API may cache results; use `--with-cache false` only when fresh content is required.
 
 ## References
 
-- [Felo Web Fetch API](https://openapi.felo.ai/docs/api-reference/v2/web-extract.html)
+- [Web Extract API](https://openapi.felo.ai/docs/api-reference/v2/web-extract.html)
 - [Felo Open Platform](https://openapi.felo.ai/docs/)
