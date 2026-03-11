@@ -18,21 +18,25 @@ Quick answers to common questions about Felo Search skill.
 
 **A:** Install Node.js first.
 
-Download from [nodejs.org](https://nodejs.org) and install. Then retry:
+Download from [nodejs.org](https://nodejs.org) and install. 然后可用一键安装：
+
 ```bash
-npx @claude/skills add felo-search
+npx skills add Felo-Inc/felo-skills --skill felo-search
 ```
+
+若失败，请使用 [README 中的手动安装](https://github.com/Felo-Inc/felo-skills#manual-installation)：将 `felo-search` 复制到 `~/.claude/skills/`（Windows: `%USERPROFILE%\.claude\skills\`）。
 
 ### Q: Permission denied during install
 
-**A:** Use elevated privileges.
+**A:** 若复制目录时权限不足，可用一键安装（无需 sudo）：
 
-**Linux/macOS:**
 ```bash
-sudo npx @claude/skills add felo-search
+npx skills add Felo-Inc/felo-skills --skill felo-search
 ```
 
-**Windows:** Run PowerShell or CMD as Administrator.
+**Linux/macOS 手动复制：** 确保 `~/.claude/skills/` 存在且有写权限后执行 `cp -r felo-search ~/.claude/skills/`。
+
+**Windows：** 若复制到 `%USERPROFILE%\.claude\skills\` 失败，请以管理员身份运行 PowerShell。
 
 ### Q: Skill not showing up after install
 

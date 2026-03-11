@@ -33,8 +33,20 @@
 
 ### 1. 安装
 
+**一键安装（推荐）：**
+
 ```bash
-npx @claude/skills add felo-superAgent
+npx skills add Felo-Inc/felo-skills --skill felo-superAgent
+```
+
+**手动安装：** 若上述命令不可用，从本仓库复制到 Claude Code 的 skills 目录：
+
+```bash
+# Linux/macOS
+cp -r felo-superAgent ~/.claude/skills/
+
+# Windows (PowerShell)
+Copy-Item -Recurse felo-superAgent "$env:USERPROFILE\.claude\skills\"
 ```
 
 （若为本地 skill，确保 Cursor/Claude Code 已配置该 skill 路径。）

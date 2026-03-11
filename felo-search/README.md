@@ -32,9 +32,25 @@ Felo Search integrates [Felo AI](https://felo.ai) into Claude Code, enabling:
 
 ### Step 1: Install
 
+**一键安装（推荐）：**
+
 ```bash
-npx @claude/skills add felo-search
+npx skills add Felo-Inc/felo-skills --skill felo-search
 ```
+
+**手动安装：** 若上述命令不可用，可克隆本仓库后将 `felo-search` 复制到 Claude Code 的 skills 目录：
+
+**Linux/macOS:**
+```bash
+cp -r felo-search ~/.claude/skills/
+```
+
+**Windows (PowerShell):**
+```powershell
+Copy-Item -Recurse felo-search "$env:USERPROFILE\.claude\skills\"
+```
+
+(Clone this repo first if needed: `git clone https://github.com/Felo-Inc/felo-skills.git`.)
 
 **Verify:** Restart Claude Code and run:
 ```bash

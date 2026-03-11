@@ -15,11 +15,13 @@ Extract structured webpage content from URLs with the Felo Web Extract API.
 
 ### 1) Install the skill
 
+**一键安装（推荐）：**
+
 ```bash
-npx @claude/skills add felo-web-fetch
+npx skills add Felo-Inc/felo-skills --skill felo-web-fetch
 ```
 
-Or install manually from this repository:
+**手动安装：** 若上述命令不可用，从本仓库复制到 Claude Code 的 skills 目录：
 
 ```bash
 # Linux/macOS
@@ -28,6 +30,8 @@ cp -r felo-web-fetch ~/.claude/skills/
 # Windows (PowerShell)
 Copy-Item -Recurse felo-web-fetch "$env:USERPROFILE\.claude\skills\"
 ```
+
+(Clone the repo first if needed: `git clone https://github.com/Felo-Inc/felo-skills.git`.)
 
 ### 2) Configure API key
 
