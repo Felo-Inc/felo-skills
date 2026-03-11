@@ -23,7 +23,7 @@ Search the web for up-to-date information and get AI-synthesized answers. Ideal 
 
 ### Capability 2: Generate PPT (Felo Slides)
 
-Terminal: `felo slides "your topic"`. In Claude Code: install `npx @claude/skills add felo-slides`, then `/felo-slides your topic`. You get an online document link when done. Examples: `felo slides "Felo product intro, 3 slides"`, `felo slides "Introduction to React"`.
+Terminal: `felo slides "your topic"`. In Claude Code: copy `felo-slides` to `~/.claude/skills/` (manual install, see [Manual installation](https://github.com/Felo-Inc/felo-skills#manual-installation)), then `/felo-slides your topic`. You get an online document link when done. Examples: `felo slides "Felo product intro, 3 slides"`, `felo slides "Introduction to React"`.
 
 ---
 
@@ -101,15 +101,17 @@ node felo-youtube-subtitling/scripts/run_youtube_subtitling.mjs -v "dQw4w9WgXcQ"
 
 ## Claude Code Skills
 
-**Search** — Install and use real-time search:
+**Search** — One-line install (uses the npm [skills](https://www.npmjs.com/package/skills) CLI):
 
 ```bash
-npx @claude/skills add felo-search
+npx skills add Felo-Inc/felo-skills --skill felo-search
 ```
+
+If the command is not available, copy the `felo-search` folder to `~/.claude/skills/` (Windows: `%USERPROFILE%\.claude\skills\`). See [Manual installation](https://github.com/Felo-Inc/felo-skills#manual-installation).
 
 After setting `FELO_API_KEY`, ask Claude things like “What’s the weather in Tokyo today?” or “React 19 new features”; the search skill triggers automatically (or use `/felo-search your question`).
 
-**Slides (PPT)** — `npx @claude/skills add felo-slides`, then `/felo-slides your topic`. Same `FELO_API_KEY`. [Details →](./felo-slides/README.md)
+**Slides (PPT)** — `npx skills add Felo-Inc/felo-skills --skill felo-slides`, then `/felo-slides your topic`. Same `FELO_API_KEY`. [Details →](./felo-slides/README.md)
 
 **Web Fetch** — `felo web-fetch --url "https://example.com"` or run `node felo-web-fetch/scripts/run_web_fetch.mjs` from repo. [Details →](./felo-web-fetch/README.md)
 

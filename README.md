@@ -2,7 +2,7 @@
 
 **Ask anything. Get current answers. Generate slides from a prompt.**
 
-[npm package: **felo-ai**](https://www.npmjs.com/package/felo-ai) — Real-time search, PPT generation, web page extraction, YouTube subtitles, and X (Twitter) search from the terminal. Also works as Claude Code skills. Supports Chinese, English, Japanese, and Korean.
+[npm package: **felo-ai**](https://www.npmjs.com/package/felo-ai) ? Real-time search, PPT generation, web page extraction, YouTube subtitles, and X (Twitter) search from the terminal. Also works as Claude Code skills. Supports Chinese, English, Japanese, and Korean.
 
 [![npm version](https://img.shields.io/npm/v/felo-ai.svg)](https://www.npmjs.com/package/felo-ai) [![License](https://img.shields.io/badge/license-MIT-green)]()
 
@@ -43,7 +43,7 @@ export FELO_API_KEY="your-api-key-here"
 $env:FELO_API_KEY="your-api-key-here"
 ```
 
-Get your API key from [felo.ai](https://felo.ai) (Settings → API Keys). Environment variable overrides config if both are set.
+Get your API key from [felo.ai](https://felo.ai) (Settings ? API Keys). Environment variable overrides config if both are set.
 
 ### Commands
 
@@ -177,13 +177,31 @@ This repo also provides **Claude Code** skills. If you use [Claude Code](https:/
 
 ### Quick Start (Search skill)
 
-Install the skill:
+**????????** ? ?? npm ?? [skills](https://www.npmjs.com/package/skills) CLI?
 
 ```bash
-npx @claude/skills add felo-search
+npx skills add Felo-Inc/felo-skills --skill felo-search
 ```
 
-Get your API key from [felo.ai](https://felo.ai) (Settings → API Keys), then configure:
+????????????????????
+
+**Linux/macOS:**
+
+```bash
+git clone https://github.com/Felo-Inc/felo-skills.git && cd felo-skills
+cp -r felo-search ~/.claude/skills/
+```
+
+**Windows (PowerShell):**
+
+```powershell
+git clone https://github.com/Felo-Inc/felo-skills.git; cd felo-skills
+Copy-Item -Recurse felo-search "$env:USERPROFILE\.claude\skills\"
+```
+
+?????? [????](#manual-installation)??
+
+Get your API key from [felo.ai](https://felo.ai) (Settings ? API Keys), then configure:
 
 **Linux/macOS:**
 
@@ -207,7 +225,7 @@ Ask Claude: "What's the weather in Tokyo today?"
 
 **You're done!** The skill triggers automatically for any question needing current information.
 
-**Felo Slides (PPT):** In terminal run `felo slides "your topic"`. In Claude Code install with `npx @claude/skills add felo-slides`, then use `/felo-slides your topic`. See [felo-slides](./felo-slides/README.md).
+**Felo Slides (PPT):** In terminal run `felo slides "your topic"`. In Claude Code install with `npx skills add Felo-Inc/felo-skills --skill felo-slides`, then use `/felo-slides your topic`. See [felo-slides](./felo-slides/README.md).
 
 **Felo Web Fetch:** In terminal run `felo web-fetch --url "https://example.com"` (see [felo-web-fetch](./felo-web-fetch/README.md)). In Claude Code you can install the skill and use it to fetch webpage content from a URL.
 
@@ -276,7 +294,7 @@ Claude: [Recent AI breakthroughs, company announcements]
 
 Works in Chinese (Simplified & Traditional), Japanese, Korean, and English. Ask in any language, get answers in that language.
 
-**[See 40+ more examples →](./docs/EXAMPLES.md)**
+**[See 40+ more examples ?](./docs/EXAMPLES.md)**
 
 ---
 
@@ -290,7 +308,7 @@ Works in Chinese (Simplified & Traditional), Japanese, Korean, and English. Ask 
 
 ### Manual installation
 
-If quick install doesn’t work:
+??????`npx skills add`??????? skills CLI?????????
 
 1. Clone this repository:
 
@@ -312,7 +330,7 @@ If quick install doesn’t work:
    Copy-Item -Recurse felo-search "$env:USERPROFILE\.claude\skills\"
    ```
 
-3. Get API key from [felo.ai](https://felo.ai) (Settings → API Keys)
+3. Get API key from [felo.ai](https://felo.ai) (Settings ? API Keys)
 
 4. Set environment variable (see Quick Start)
 
@@ -326,7 +344,7 @@ claude skills list
 
 You should see `felo-search` in the output.
 
-Test: ask Claude _"Latest news about quantum computing"_. If you see an AI-generated answer, it’s working.
+Test: ask Claude _"Latest news about quantum computing"_. If you see an AI-generated answer, it's working.
 
 ---
 
@@ -350,7 +368,7 @@ Test: ask Claude _"Latest news about quantum computing"_. If you see an AI-gener
 
 ### Q: "INVALID_API_KEY" error?
 
-**A:** Your API key is incorrect or revoked. Generate a new one at [felo.ai](https://felo.ai) (Settings → API Keys).
+**A:** Your API key is incorrect or revoked. Generate a new one at [felo.ai](https://felo.ai) (Settings ? API Keys).
 
 ### Q: Does it work in Chinese/Japanese/Korean?
 
@@ -366,9 +384,9 @@ Test: ask Claude _"Latest news about quantum computing"_. If you see an AI-gener
 
 ### Q: How fast are responses?
 
-**A:** Typically 2–5 seconds depending on query complexity.
+**A:** Typically 2?5 seconds depending on query complexity.
 
-**[Full FAQ →](./docs/FAQ.md)**
+**[Full FAQ ?](./docs/FAQ.md)**
 
 ---
 
@@ -387,19 +405,19 @@ Real-time web search with AI-generated answers.
 - Product comparisons
 - Any question with "latest", "recent", "best", "how to"
 
-**[View skill documentation →](./felo-search/)**
+**[View skill documentation ?](./felo-search/)**
 
 ### felo-slides
 
-Generate PPT: in terminal use `felo slides "your topic"`, in Claude Code use `/felo-slides your topic`. **[View skill documentation →](./felo-slides/)**
+Generate PPT: in terminal use `felo slides "your topic"`, in Claude Code use `/felo-slides your topic`. **[View skill documentation ?](./felo-slides/)**
 
 ### felo-web-fetch
 
-Fetch and extract webpage content: in terminal use `felo web-fetch --url "https://example.com"`, in Claude Code use `/felo-web-fetch https://example.com`. **[View skill documentation →](./felo-web-fetch/)**
+Fetch and extract webpage content: in terminal use `felo web-fetch --url "https://example.com"`, in Claude Code use `/felo-web-fetch https://example.com`. **[View skill documentation ?](./felo-web-fetch/)**
 
 ### felo-x-search
 
-Search X (Twitter) tweets, users, and replies: in terminal use `felo x "query"`, in Claude Code use `/felo-x-search query`. **[View skill documentation →](./felo-x-search/SKILL.md)**
+Search X (Twitter) tweets, users, and replies: in terminal use `felo x "query"`, in Claude Code use `/felo-x-search query`. **[View skill documentation ?](./felo-x-search/SKILL.md)**
 
 ---
 
@@ -413,36 +431,36 @@ We welcome contributions:
 
 Run CLI tests: `npm test`
 
-**[Contributing guide →](./CONTRIBUTING.md)**
+**[Contributing guide ?](./CONTRIBUTING.md)**
 
 ---
 
 ## Links
 
-- **[npm: felo-ai](https://www.npmjs.com/package/felo-ai)** — CLI package
-- **[Felo Open Platform](https://openapi.felo.ai/docs/)** — Get your API key
-- **[API Documentation](https://openapi.felo.ai/docs/api-reference/v2/chat.html)** — API reference
-- **[Claude Code](https://claude.ai/code)** — AI assistant CLI
-- **[Full examples](./docs/EXAMPLES.md)** — 40+ usage examples
-- **[FAQ](./docs/FAQ.md)** — Troubleshooting
-- **[GitHub Issues](https://github.com/Felo-Inc/felo-skills/issues)** — Report bugs
+- **[npm: felo-ai](https://www.npmjs.com/package/felo-ai)** ? CLI package
+- **[Felo Open Platform](https://openapi.felo.ai/docs/)** ? Get your API key
+- **[API Documentation](https://openapi.felo.ai/docs/api-reference/v2/chat.html)** ? API reference
+- **[Claude Code](https://claude.ai/code)** ? AI assistant CLI
+- **[Full examples](./docs/EXAMPLES.md)** ? 40+ usage examples
+- **[FAQ](./docs/FAQ.md)** ? Troubleshooting
+- **[GitHub Issues](https://github.com/Felo-Inc/felo-skills/issues)** ? Report bugs
 
 ---
 
 ## Publishing to npm (maintainers)
 
-自动发布由 GitHub Actions 在**推送 tag** 时执行（参考 [editablejs/editable](https://github.com/editablejs/editable/blob/main/.github/workflows/main.yml) 的流程思路）。
+????? GitHub Actions ?**?? tag** ?????? [editablejs/editable](https://github.com/editablejs/editable/blob/main/.github/workflows/main.yml) ???????
 
-1. **配置 NPM_TOKEN**  
-   在 [npm Access Tokens](https://www.npmjs.com/account/tokens) 创建 **Automation** 类型、具备 Publish 权限的 token，在仓库 **Settings → Secrets and variables → Actions** 里添加名为 `NPM_TOKEN` 的 secret。
+1. **?? NPM_TOKEN**  
+   ? [npm Access Tokens](https://www.npmjs.com/account/tokens) ?? **Automation** ????? Publish ??? token???? **Settings ? Secrets and variables ? Actions** ????? `NPM_TOKEN` ? secret?
 
-2. **发布新版本**  
-   更新 `package.json` 的 `version`，提交并推送，然后打 tag 并推送：
+2. **?????**  
+   ?? `package.json` ? `version`?????????? tag ????
    ```bash
    git tag v0.2.8
    git push origin v0.2.8
    ```
-   CI 会跑测试并通过 `npm publish` 发布到 [npm](https://www.npmjs.com/package/felo-ai)。
+   CI ??????? `npm publish` ??? [npm](https://www.npmjs.com/package/felo-ai)?
 
 ---
 
@@ -456,14 +474,14 @@ Run CLI tests: `npm test`
 
 ## Version history
 
-See [CHANGELOG.md](./CHANGELOG.md) for release notes (e.g. breaking changes such as `web-extract` → `web-fetch` in v0.2.7).
+See [CHANGELOG.md](./CHANGELOG.md) for release notes (e.g. breaking changes such as `web-extract` ? `web-fetch` in v0.2.7).
 
 ---
 
 ## License
 
-MIT — see [LICENSE](./felo-search/LICENSE) in the repo for details.
+MIT ? see [LICENSE](./felo-search/LICENSE) in the repo for details.
 
 ---
 
-Made with ❤️ by the Felo team
+Made with ?? by the Felo team
