@@ -132,6 +132,18 @@ felo x --id "1234567890"                            # Get tweet replies
 /plugin install felo-x-search@felo-ai
 ```
 
+### ClawHub
+
+[ClawHub](https://clawhub.ai) is a public skill registry for AI coding agents. Browse all Felo skills on [ClawHub](https://clawhub.ai/u/wangzhiming1999).
+
+```bash
+clawhub install felo-search
+clawhub install felo-slides
+clawhub install felo-web-fetch
+clawhub install felo-youtube-subtitling
+clawhub install felo-x-search
+```
+
 ### Gemini CLI
 
 ```bash
