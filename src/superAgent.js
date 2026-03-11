@@ -1,6 +1,6 @@
 const DEFAULT_API_BASE = 'https://openapi.felo.ai';
 const DEFAULT_TIMEOUT_MS = 60_000;
-/** 流式读取空闲超时：连续这么久未收到任何数据则断开，默认 5 分钟（生图等长任务需较久） */
+/** Stream idle timeout: disconnect if no data received for this duration (default 2 hours for long tasks like image generation) */
 const STREAM_IDLE_TIMEOUT_MS = 2 * 60 * 60 * 1000;
 /** Tools whose params and results should be silently ignored. */
 const HIDDEN_TOOLS = new Set(['manage_outline']);
@@ -278,11 +278,11 @@ function extractToolResults(data) {
     }
     // Discovery (research report) tool results
     if (t?.name === 'generate_discovery' && callResult?.status === 'success') {
-      out.push({ type: 'discovery', title: callResult?.title || t?.params?.title || '研究报告' });
+      out.push({ type: 'discovery', title: callResult?.title || t?.params?.title || 'Discovery' });
     }
     // Document generation tool results
     if (t?.name === 'generate_document' && callResult?.status === 'success') {
-      out.push({ type: 'document', title: callResult?.title || t?.params?.title || '文档' });
+      out.push({ type: 'document', title: callResult?.title || t?.params?.title || 'Document' });
     }
     // PPT generation tool results
     if (t?.name === 'generate_ppt' && callResult?.status === 'success') {
@@ -362,7 +362,7 @@ function dispatch(eventType, dataStr, onMessage, onError, onDone, onEvent, onToo
             const text = data?.content ?? data?.text ?? data?.delta;
             if (typeof text === 'string') onMessage(text);
           } else if (type === 'message' && onStatusMessage && data?.query) {
-            onStatusMessage(`已收到: ${data.query}`);
+            onStatusMessage(`Received: ${data.query}`);
           } else if (type === 'processing') {
             // Silently ignore processing events
           } else if (type === 'tools' && onToolCall) {
@@ -650,7 +650,7 @@ export async function superAgent(query, options = {}) {
       if (isJson) return;
       if (item.type === 'image') {
         if (liveDocUrl) {
-          console.log(`[${item.title || '图片'}](${liveDocUrl})`);
+          console.log(`[${item.title || 'Image'}](${liveDocUrl})`);
         } else {
           console.log(item.image_url);
         }
@@ -662,9 +662,9 @@ export async function superAgent(query, options = {}) {
         }
       } else if (item.type === 'document') {
         if (liveDocUrl) {
-          console.log(`[${item.title || '文档'}](${liveDocUrl})`);
+          console.log(`[${item.title || 'Document'}](${liveDocUrl})`);
         } else {
-          console.log(item.title || '文档');
+          console.log(item.title || 'Document');
         }
       } else if (item.type === 'ppt') {
         if (liveDocUrl) {
@@ -783,7 +783,7 @@ export async function superAgent(query, options = {}) {
     process.stderr.write(`Error: ${msg}\n`);
     if (String(msg).toLowerCase().includes('stream error')) {
       process.stderr.write(
-        '（流式无客户端超时；若内部接口能拿到完整流，多为代理/防火墙在等待生图等长任务时空闲断连，可直连或调大代理空闲超时后重试）\n'
+        '(Stream idle disconnect — likely a proxy/firewall closing the connection during long tasks like image generation. Try a direct connection or increase proxy idle timeout.)\n'
       );
     }
     return 1;
