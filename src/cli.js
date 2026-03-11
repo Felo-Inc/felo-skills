@@ -7,6 +7,7 @@ import { slides } from "./slides.js";
 import { superAgent } from "./superAgent.js";
 import { webFetch } from "./webFetch.js";
 import { youtubeSubtitling } from "./youtubeSubtitling.js";
+import { contentToSlides } from "./contentToSlides.js";
 import * as xSearch from "./xSearch.js";
 import * as config from "./config.js";
 
@@ -254,6 +255,51 @@ program
       language: opts.language,
       withTime: opts.withTime,
       json: opts.json,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+program
+  .command("content-to-slides")
+  .description(
+    "Fetch content from a webpage or YouTube video, then generate a PPT from that content"
+  )
+  .option("-u, --url <url>", "Web page URL to fetch and turn into slides")
+  .option(
+    "-v, --video <url-or-id>",
+    "YouTube video URL or ID (use subtitles as content)"
+  )
+  .option(
+    "--extra-prompt <text>",
+    "Extra instructions for PPT (e.g. 10页以内)"
+  )
+  .option("--readability", "For --url: use readability (main content only)")
+  .option(
+    "-l, --language <code>",
+    "For --video: subtitle language (e.g. en, zh-CN)"
+  )
+  .option("-t, --timeout <seconds>", "Fetch timeout in seconds", "60")
+  .option(
+    "--poll-timeout <seconds>",
+    "Max seconds to wait for PPT task",
+    "1200"
+  )
+  .option("-j, --json", "Output JSON with task_id and ppt/live_doc URL")
+  .option("--verbose", "Show polling status")
+  .action(async (opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const pollTimeoutMs = parseInt(opts.pollTimeout, 10) * 1000;
+    const code = await contentToSlides({
+      url: opts.url,
+      video: opts.video,
+      extraPrompt: opts.extraPrompt,
+      readability: opts.readability,
+      language: opts.language,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60_000 : timeoutMs,
+      pollTimeoutMs: Number.isNaN(pollTimeoutMs) ? 1_200_000 : pollTimeoutMs,
+      json: opts.json,
+      verbose: opts.verbose,
     });
     process.exitCode = code;
     flushStdioThenExit(code);

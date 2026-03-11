@@ -53,6 +53,7 @@ Get your API key from [felo.ai](https://felo.ai) (Settings > API Keys). Environm
 | `felo slides "<prompt>"`                 | Generate PPT; returns link when done                  |
 | `felo web-fetch --url <url>`             | Fetch webpage content (markdown/text/html)            |
 | `felo youtube-subtitling -v <url-or-id>` | Fetch YouTube video subtitles by video URL or ID      |
+| `felo content-to-slides -u <url>` or `-v <video>` | Fetch URL/YouTube content, then generate PPT   |
 | `felo x "<query>"`                       | Search X (Twitter) tweets, users, and replies         |
 | `felo config set FELO_API_KEY <key>`     | Save API key to config                                |
 | `felo config get FELO_API_KEY`           | Print stored key                                      |
@@ -131,7 +132,15 @@ node felo-youtube-subtitling/scripts/run_youtube_subtitling.mjs --video-code "ht
 node felo-youtube-subtitling/scripts/run_youtube_subtitling.mjs -v "dQw4w9WgXcQ" -l zh-CN --with-time
 ```
 
-Options: `-v/--video-code` (required: **YouTube video URL** or video ID), `-l/--language` (e.g. en, zh-CN), `--with-time`, `-j/--json`. Same `FELO_API_KEY` as other commands. See [felo-youtube-subtitling](./felo-youtube-subtitling/README.md).
+**Content to slides (fetch URL or YouTube → PPT)**
+
+```bash
+felo content-to-slides -u "https://example.com/article" --readability
+felo content-to-slides -v "https://www.youtube.com/watch?v=ID" --extra-prompt "10页以内"
+npx felo-ai content-to-slides --url "https://openclaw.ai/" --readability
+```
+
+Options (YouTube): `-v/--video-code` (required: **YouTube video URL** or video ID), `-l/--language` (e.g. en, zh-CN), `--with-time`, `-j/--json`. Same `FELO_API_KEY` as other commands. See [felo-youtube-subtitling](./felo-youtube-subtitling/README.md).
 
 **X (Twitter) search** (after `npm install -g felo-ai`)
 
@@ -230,6 +239,8 @@ Ask Claude: "What's the weather in Tokyo today?"
 **Felo Web Fetch:** In terminal run `felo web-fetch --url "https://example.com"` (see [felo-web-fetch](./felo-web-fetch/README.md)). In Claude Code you can install the skill and use it to fetch webpage content from a URL.
 
 **Felo YouTube Subtitling:** In terminal run `felo youtube-subtitling -v "URL_or_VIDEO_ID"` (see [felo-youtube-subtitling](./felo-youtube-subtitling/README.md)). Fetches subtitles/captions; accepts full YouTube link or video ID.
+
+**Felo Content to Slides:** Fetch a webpage or YouTube video, then generate a PPT from that content. In terminal: `felo content-to-slides -u "https://example.com"` or `-v "youtube-url"`. In Claude Code: `npx skills add Felo-Inc/felo-skills --skill felo-content-to-slides`, then use `/felo-content-to-slides` or ask to turn a URL into slides. See [felo-content-to-slides](./felo-content-to-slides/README.md).
 
 **Felo X Search:** In terminal run `felo x "query"` to search tweets, users, and replies on X (Twitter) (see [felo-x-search](./felo-x-search/SKILL.md)). In Claude Code install the skill and use it to search X content.
 
@@ -414,6 +425,10 @@ Generate PPT: in terminal use `felo slides "your topic"`, in Claude Code use `/f
 ### felo-web-fetch
 
 Fetch and extract webpage content: in terminal use `felo web-fetch --url "https://example.com"`, in Claude Code use `/felo-web-fetch https://example.com`. **[View skill documentation >](./felo-web-fetch/)**
+
+### felo-content-to-slides
+
+Fetch content from a URL (webpage or YouTube) and generate a PPT: in terminal use `felo content-to-slides -u "<url>"` or `-v "<youtube-url>"`, in Claude Code use `/felo-content-to-slides` or ask to turn a link into slides. **[View skill documentation >](./felo-content-to-slides/README.md)**
 
 ### felo-x-search
 
