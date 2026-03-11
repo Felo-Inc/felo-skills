@@ -1,8 +1,8 @@
 # Felo AI CLI
 
-**Ask anything. Get current answers. Generate slides from a prompt.**
+**Ask anything. Get current answers. Generate slides from a prompt. Chat with SuperAgent.**
 
-[npm package: **felo-ai**](https://www.npmjs.com/package/felo-ai) — Real-time search, PPT generation, web fetch, and YouTube subtitles from the terminal. Also works as Claude Code skills. Supports Chinese, English, Japanese, and Korean.
+[npm package: **felo-ai**](https://www.npmjs.com/package/felo-ai) — Real-time search, PPT generation, SuperAgent conversation, LiveDoc management, web fetch, and YouTube subtitles from the terminal. Also works as Claude Code skills. Supports Chinese, English, Japanese, and Korean.
 
 [![npm version](https://img.shields.io/npm/v/felo-ai.svg)](https://www.npmjs.com/package/felo-ai) [![License](https://img.shields.io/badge/license-MIT-green)]()
 
@@ -51,6 +51,9 @@ Get your API key from [felo.ai](https://felo.ai) (Settings → API Keys). Enviro
 | ------------------------------------ | ----------------------------------------------------- |
 | `felo search "<query>"`              | Search for current info (weather, news, prices, etc.) |
 | `felo slides "<prompt>"`             | Generate PPT; returns link when done                 |
+| `felo superagent "<query>"`          | SuperAgent conversation with SSE streaming            |
+| `felo livedocs`                      | List LiveDocs with pagination and keyword filtering   |
+| `felo livedoc-resources <id>`        | List resources in a specific LiveDoc                  |
 | `felo web-fetch --url <url>`       | Fetch webpage content (markdown/text/html)          |
 | `felo youtube-subtitling -v <url-or-id>` | Fetch YouTube video subtitles by video URL or ID   |
 | `felo config set FELO_API_KEY <key>` | Save API key to config                                |
@@ -77,6 +80,29 @@ felo slides "Felo product intro, 3 slides"
 felo slides "Introduction to React"
 felo slides "Q4 2024 business review, 10 pages" --poll-timeout 300
 npx felo-ai slides "Tokyo travel guide, 5 slides"
+```
+
+**SuperAgent**
+
+```bash
+felo superagent "What is the latest news about AI?"
+felo superagent "帮我搜索大熊猫的最新消息" --accept-language zh
+felo superagent "Tell me more about the first one" --thread-id <thread_short_id>
+felo superagent "Generate an image of a panda" --json
+felo superagent "Write a report" --skill-id <id> --ext '{"style_id":"xxx"}'
+```
+
+Options: `--thread-id` (follow-up conversation), `--live-doc-id` (reuse LiveDoc), `--skill-id`, `--selected-resource-ids`, `--ext` (new conversations only), `--accept-language`, `--json`, `--verbose`, `--timeout`.
+
+**LiveDocs**
+
+```bash
+felo livedocs
+felo livedocs --page 2 --size 10
+felo livedocs --keyword AI
+felo livedocs --json
+felo livedoc-resources <livedoc-id>
+felo livedoc-resources <livedoc-id> --json
 ```
 
 **Web fetch** (after `npm install -g felo-ai`)
@@ -140,6 +166,8 @@ Options: `-v/--video-code` (required: **YouTube video URL** or video ID), `-l/--
 - **Where is config stored?** Run `felo config path` to see the file (e.g. `~/.felo/config.json`).
 - **Web fetch after install?** Use `felo web-fetch --url "<page url>"`. Other params: `--format markdown|text|html`, `--readability`, `--target-selector "selector"`, `--wait-for-selector "selector"`, `--crawl-mode fast|fine`, `--timeout 120`, `--json`. See the "How to pass parameters" table above. Same API key as other commands.
 - **YouTube subtitles?** Use `felo youtube-subtitling -v "<url or video_id>"` (full YouTube link or 11-char ID). Optional: `-l/--language`, `--with-time`, `-j/--json`. See [felo-youtube-subtitling](./felo-youtube-subtitling/README.md).
+- **SuperAgent?** Use `felo superagent "your question"`. Follow-up with `--thread-id`. List LiveDocs with `felo livedocs`, list resources with `felo livedoc-resources <id>`. See [felo-superAgent](./felo-superAgent/README.md).
+- **Custom API base?** Use `felo config set FELO_API_BASE <url>` or set the `FELO_API_BASE` environment variable.
 
 ---
 
@@ -182,6 +210,10 @@ Ask Claude: "What's the weather in Tokyo today?"
 **Felo Slides (PPT):** In terminal run `felo slides "your topic"`. In Claude Code install with `npx @claude/skills add felo-slides`, then use `/felo-slides your topic`. See [felo-slides](./felo-slides/README.md).
 
 **Felo Web Fetch:** In terminal run `felo web-fetch --url "https://example.com"` (see [felo-web-fetch](./felo-web-fetch/README.md)). In Claude Code you can install the skill and use it to fetch webpage content from a URL.
+
+**Felo SuperAgent:** In terminal run `felo superagent "your question"`. Supports SSE streaming, LiveDoc, follow-up conversations (`--thread-id`), and tool invocations. See [felo-superAgent](./felo-superAgent/README.md).
+
+**Felo LiveDocs:** In terminal run `felo livedocs` to list LiveDocs, `felo livedoc-resources <id>` to list resources in a specific LiveDoc.
 
 **Felo YouTube Subtitling:** In terminal run `felo youtube-subtitling -v "URL_or_VIDEO_ID"` (see [felo-youtube-subtitling](./felo-youtube-subtitling/README.md)). Fetches subtitles/captions; accepts full YouTube link or video ID.
 
@@ -366,6 +398,10 @@ Generate PPT: in terminal use `felo slides "your topic"`, in Claude Code use `/f
 ### felo-web-fetch
 
 Fetch and extract webpage content: in terminal use `felo web-fetch --url "https://example.com"`, in Claude Code use `/felo-web-fetch https://example.com`. **[View skill documentation →](./felo-web-fetch/)**
+
+### felo-superAgent
+
+SuperAgent conversation with SSE streaming and LiveDoc integration. In terminal use `felo superagent "your question"`, manage LiveDocs with `felo livedocs` and `felo livedoc-resources <id>`. **[View skill documentation →](./felo-superAgent/)**
 
 ---
 
