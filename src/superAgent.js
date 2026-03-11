@@ -22,6 +22,18 @@ async function getApiKey() {
   return typeof fromConfig === 'string' ? fromConfig.trim() : '';
 }
 
+async function getApiBase() {
+  if (process.env.FELO_API_BASE?.trim()) {
+    return process.env.FELO_API_BASE.trim().replace(/\/$/, '');
+  }
+  const { getConfigValue } = await import('./config.js');
+  const fromConfig = await getConfigValue('FELO_API_BASE');
+  if (typeof fromConfig === 'string' && fromConfig.trim()) {
+    return fromConfig.trim().replace(/\/$/, '');
+  }
+  return DEFAULT_API_BASE;
+}
+
 function getMessage(payload) {
   return (
     payload?.message ||
@@ -351,8 +363,8 @@ function dispatch(eventType, dataStr, onMessage, onError, onDone, onEvent, onToo
             if (typeof text === 'string') onMessage(text);
           } else if (type === 'message' && onStatusMessage && data?.query) {
             onStatusMessage(`已收到: ${data.query}`);
-          } else if (type === 'processing' && onStatusMessage && data?.message) {
-            onStatusMessage(data.message);
+          } else if (type === 'processing') {
+            // Silently ignore processing events
           } else if (type === 'tools' && onToolCall) {
             const params = extractToolParams(data);
             for (const item of params) onToolCall(item);
@@ -380,6 +392,89 @@ function dispatch(eventType, dataStr, onMessage, onError, onDone, onEvent, onToo
 }
 
 /**
+ * List LiveDocs with pagination and optional keyword filtering.
+ * @param {Object} [options]
+ * @param {number} [options.page] - Page number (default 1).
+ * @param {number} [options.size] - Page size (default 20).
+ * @param {string} [options.keyword] - Keyword filter.
+ * @param {boolean} [options.json] - Output raw JSON.
+ * @param {number} [options.timeoutMs] - Request timeout in ms.
+ * @returns {Promise<number>} Exit code 0 or 1.
+ */
+export async function listLiveDocs(options = {}) {
+  const apiKey = await getApiKey();
+  if (!apiKey) {
+    process.stderr.write(NO_KEY_MESSAGE.trim() + '\n');
+    return 1;
+  }
+
+  const apiBase = await getApiBase();
+  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const page = options.page ?? 1;
+  const size = options.size ?? 20;
+
+  const params = new URLSearchParams();
+  params.set('page', String(page));
+  params.set('size', String(size));
+  if (options.keyword) params.set('keyword', options.keyword);
+
+  const url = `${apiBase}/v2/livedocs?${params.toString()}`;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      signal: controller.signal,
+    });
+
+    let data = {};
+    try {
+      data = await res.json();
+    } catch {
+      data = {};
+    }
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${getMessage(data)}`);
+    }
+    if (isApiError(data)) {
+      throw new Error(getMessage(data));
+    }
+
+    const payload = data?.data ?? {};
+    const total = payload.total ?? 0;
+    const items = payload.items ?? [];
+
+    if (options.json) {
+      console.log(JSON.stringify(payload, null, 2));
+    } else {
+      const isDev = apiBase.includes('-dev');
+      const webHost = isDev ? 'https://dev.felo.ai' : 'https://felo.ai';
+      const totalPages = Math.ceil(total / size);
+      console.log(`LiveDocs (total: ${total}, page ${page}/${totalPages})\n`);
+      for (const item of items) {
+        const shortId = item.short_id || '(no ID)';
+        console.log(`${webHost}/livedoc/${shortId}`);
+      }
+    }
+
+    return 0;
+  } catch (err) {
+    const msg = err?.message || err;
+    process.stderr.write(`Error: ${msg}\n`);
+    return 1;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
  * Run SuperAgent: create conversation, consume SSE stream, output answer.
  * @param {string} query - User query (1–2000 chars).
  * @param {Object} [options]
@@ -388,6 +483,9 @@ function dispatch(eventType, dataStr, onMessage, onError, onDone, onEvent, onToo
  * @param {number} [options.timeoutMs] - Request/stream timeout in ms.
  * @param {string} [options.liveDocId] - Reuse existing LiveDoc short_id.
  * @param {string} [options.threadId] - Existing thread/conversation ID for follow-up.
+ * @param {string} [options.skillId] - Skill ID (only for new conversations).
+ * @param {string[]} [options.selectedResourceIds] - Resource IDs (only for new conversations).
+ * @param {Object} [options.ext] - Extra params object (only for new conversations).
  * @param {string} [options.acceptLanguage] - e.g. zh, en.
  * @returns {Promise<number>} Exit code 0 or 1.
  */
@@ -398,7 +496,7 @@ export async function superAgent(query, options = {}) {
     return 1;
   }
 
-  const apiBase = (process.env.FELO_API_BASE?.trim() || DEFAULT_API_BASE).replace(/\/$/, '');
+  const apiBase = await getApiBase();
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const body = {
     query: String(query).trim().slice(0, 2000),
@@ -408,6 +506,19 @@ export async function superAgent(query, options = {}) {
 
   try {
     const threadId = options.threadId;
+
+    // skill_id, selected_resource_ids, ext only supported for new conversations
+    const createOnlyParams = ['skillId', 'selectedResourceIds', 'ext'];
+    const hasCreateOnlyParams = createOnlyParams.some(k => options[k] !== undefined);
+    if (threadId && hasCreateOnlyParams) {
+      process.stderr.write('Warning: --skill-id, --selected-resource-ids, --ext are only supported for new conversations, ignored in follow-up mode.\n');
+    }
+    if (!threadId) {
+      if (options.skillId) body.skill_id = options.skillId;
+      if (options.selectedResourceIds) body.selected_resource_ids = options.selectedResourceIds;
+      if (options.ext) body.ext = options.ext;
+    }
+
     process.stderr.write(threadId ? 'SuperAgent: following up...\n' : 'SuperAgent: creating conversation...\n');
 
     const createData = await createConversation(apiKey, apiBase, body, timeoutMs, threadId);

@@ -4,7 +4,7 @@ import { createRequire } from "module";
 import { Command } from "commander";
 import { search } from "./search.js";
 import { slides } from "./slides.js";
-import { superAgent } from "./superAgent.js";
+import { superAgent, listLiveDocs } from "./superAgent.js";
 import { webFetch } from "./webFetch.js";
 import { youtubeSubtitling } from "./youtubeSubtitling.js";
 import * as config from "./config.js";
@@ -107,8 +107,21 @@ program
   .option("-t, --timeout <seconds>", "request/stream timeout in seconds", "60")
   .option("--live-doc-id <id>", "reuse existing LiveDoc short_id for continuous conversation")
   .option("--thread-id <id>", "existing thread/conversation ID for follow-up questions")
+  .option("--skill-id <id>", "skill ID (only for new conversations)")
+  .option("--selected-resource-ids <ids>", "comma-separated resource IDs (only for new conversations)")
+  .option("--ext <json>", "extra params as JSON string, e.g. '{\"style_id\":\"xxx\"}' (only for new conversations)")
   .option("--accept-language <lang>", "language preference (e.g. zh, en)")
   .action(async (query, opts) => {
+    let ext;
+    if (opts.ext) {
+      try {
+        ext = JSON.parse(opts.ext);
+      } catch {
+        console.error('Error: --ext must be valid JSON');
+        flushStdioThenExit(1);
+        return;
+      }
+    }
     const timeoutMs = parseInt(opts.timeout, 10) * 1000;
     const code = await superAgent(query, {
       json: opts.json,
@@ -116,7 +129,31 @@ program
       timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
       liveDocId: opts.liveDocId || undefined,
       threadId: opts.threadId || undefined,
+      skillId: opts.skillId || undefined,
+      selectedResourceIds: opts.selectedResourceIds ? opts.selectedResourceIds.split(',').map(s => s.trim()).filter(Boolean) : undefined,
+      ext,
       acceptLanguage: opts.acceptLanguage || undefined,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+program
+  .command("livedocs")
+  .description("List LiveDocs with pagination and optional keyword filtering")
+  .option("-p, --page <number>", "page number", "1")
+  .option("-s, --size <number>", "page size", "20")
+  .option("-k, --keyword <keyword>", "keyword filter")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await listLiveDocs({
+      page: parseInt(opts.page, 10) || 1,
+      size: parseInt(opts.size, 10) || 20,
+      keyword: opts.keyword || undefined,
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
     });
     process.exitCode = code;
     flushStdioThenExit(code);
