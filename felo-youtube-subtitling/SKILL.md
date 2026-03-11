@@ -22,7 +22,7 @@ Trigger keywords (examples):
 Do NOT use for:
 
 - Real-time search (use `felo-search`)
-- Web page content (use `felo-web-extract`)
+- Web page content (use `felo-web-fetch`)
 - Generating slides (use `felo-slides`)
 
 ## Setup
