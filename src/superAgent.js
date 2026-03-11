@@ -475,6 +475,77 @@ export async function listLiveDocs(options = {}) {
 }
 
 /**
+ * List resources in a specific LiveDoc.
+ * @param {string} liveDocId - LiveDoc short_id.
+ * @param {Object} [options]
+ * @param {boolean} [options.json] - Output raw JSON.
+ * @param {number} [options.timeoutMs] - Request timeout in ms.
+ * @returns {Promise<number>} Exit code 0 or 1.
+ */
+export async function listLiveDocResources(liveDocId, options = {}) {
+  const apiKey = await getApiKey();
+  if (!apiKey) {
+    process.stderr.write(NO_KEY_MESSAGE.trim() + '\n');
+    return 1;
+  }
+
+  const apiBase = await getApiBase();
+  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const url = `${apiBase}/v2/livedocs/${encodeURIComponent(liveDocId)}/resources`;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      signal: controller.signal,
+    });
+
+    let data = {};
+    try {
+      data = await res.json();
+    } catch {
+      data = {};
+    }
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${getMessage(data)}`);
+    }
+    if (isApiError(data)) {
+      throw new Error(getMessage(data));
+    }
+
+    const payload = data?.data ?? {};
+    const total = payload.total ?? 0;
+    const items = payload.items ?? [];
+
+    if (options.json) {
+      console.log(JSON.stringify(payload, null, 2));
+    } else {
+      console.log(`Resources (total: ${total})\n`);
+      for (const item of items) {
+        const title = item.title || '(no title)';
+        const id = item.id || '(no ID)';
+        console.log(`[${title}] ${id}`);
+      }
+    }
+
+    return 0;
+  } catch (err) {
+    const msg = err?.message || err;
+    process.stderr.write(`Error: ${msg}\n`);
+    return 1;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
  * Run SuperAgent: create conversation, consume SSE stream, output answer.
  * @param {string} query - User query (1–2000 chars).
  * @param {Object} [options]

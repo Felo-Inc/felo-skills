@@ -4,7 +4,7 @@ import { createRequire } from "module";
 import { Command } from "commander";
 import { search } from "./search.js";
 import { slides } from "./slides.js";
-import { superAgent, listLiveDocs } from "./superAgent.js";
+import { superAgent, listLiveDocs, listLiveDocResources } from "./superAgent.js";
 import { webFetch } from "./webFetch.js";
 import { youtubeSubtitling } from "./youtubeSubtitling.js";
 import * as config from "./config.js";
@@ -152,6 +152,22 @@ program
       page: parseInt(opts.page, 10) || 1,
       size: parseInt(opts.size, 10) || 20,
       keyword: opts.keyword || undefined,
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+program
+  .command("livedoc-resources")
+  .description("List resources in a specific LiveDoc")
+  .argument("<livedoc-id>", "LiveDoc short_id")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (liveDocId, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await listLiveDocResources(liveDocId, {
       json: opts.json,
       timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
     });
