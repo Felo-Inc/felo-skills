@@ -11,6 +11,9 @@ importers:
       commander:
         specifier: ^12.0.0
         version: 12.1.0
+      felo-search:
+        specifier: ^0.1.1
+        version: 0.1.1
 
 packages:
 
@@ -18,6 +21,16 @@ packages:
     resolution: {integrity: sha512-Vw8qHK3bZM9y/P10u3Vib8o/DdkvA2OtPtZvD871QKjy74Wj1WSKFILMPRPSdUSx5RFK1arlJzEtA4PkFgnbuA==}
     engines: {node: '>=18'}
 
+  felo-search@0.1.1:
+    resolution: {integrity: sha512-F06kD0pjthZHIHWDIVbOAnGI295bVbSA1PwQXFCg3OMcPAlDVEatE53qK+9e1MIcszUnS5MOr90SOOevYOQyZg==}
+    engines: {node: '>=18'}
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+    hasBin: true
+
 snapshots:
 
   commander@12.1.0: {}
+
+  felo-search@0.1.1:
+    dependencies:
+      commander: 12.1.0
