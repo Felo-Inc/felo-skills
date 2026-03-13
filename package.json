@@ -1,7 +1,7 @@
 {
   "name": "felo-ai",
   "version": "0.2.14",
-  "description": "Felo AI CLI - real-time search, PPT generation, SuperAgent conversation, LiveDoc management, web fetch, YouTube subtitles, and X (Twitter) search from the terminal",
+  "description": "Felo AI CLI - real-time search, PPT generation, SuperAgent conversation, LiveDoc management, web fetch, YouTube subtitles, LiveDoc knowledge base, and X (Twitter) search from the terminal",
   "type": "module",
   "main": "src/cli.js",
   "bin": {
@@ -21,6 +21,8 @@
     "youtube-subtitles",
     "x-search",
     "twitter",
+    "livedoc",
+    "knowledge-base",
     "cli",
     "ai"
   ],
@@ -34,6 +36,7 @@
     "felo-search": "^0.1.1"
   },
   "scripts": {
-    "test": "node --test tests/*.test.js"
+    "test": "node --test tests/",
+    "publish": "npm publish"
   }
 }

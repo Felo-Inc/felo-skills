@@ -5,13 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.3.0] - 2026-03-11
+## [0.2.14] - 2026-03-13
 
 ### Added
 
-- **`felo superagent` new options**: `--thread-id` (follow-up conversation), `--skill-id`, `--selected-resource-ids`, `--ext` (new conversations only)
-- **`felo livedocs` command**: list LiveDocs with pagination (`--page`, `--size`) and keyword filtering (`--keyword`)
-- **`felo livedoc-resources <id>` command**: list resources in a specific LiveDoc
+- **`felo livedoc` command**: full CRUD for LiveDocs (knowledge bases) — `create`, `list`, `update`, `delete`
+- **`felo livedoc` resource management**: `add-doc`, `add-urls`, `upload`, `resources`, `resource`, `remove-resource`
+- **`felo livedoc retrieve <id>`**: semantic search across resources in a LiveDoc
+- **`felo superagent` new options**: `--thread-id` (follow-up conversation), `--skill-id`, `--selected-resource-ids`, `--ext`
 - **`FELO_API_BASE` config persistence**: support `felo config set FELO_API_BASE <url>`, priority: env > config > default
 
 ### Changed
@@ -20,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replaced all hardcoded Chinese strings with English in superAgent
 
 ---
+
+## [0.2.12] - 2026-03-10
+
+Streamline the process and reduce the need for confirmation and selection.
 
 ## [0.2.10] - 2026-03-10
 

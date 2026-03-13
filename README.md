@@ -53,6 +53,7 @@ $env:FELO_API_KEY="..."             # Windows (PowerShell)
 | `felo web-fetch --url <url>`             | Fetch webpage content (markdown/text/html)            |
 | `felo youtube-subtitling -v <url-or-id>` | Fetch YouTube video subtitles                         |
 | `felo x "<query>"`                       | Search X (Twitter) tweets, users, and replies         |
+| `felo livedoc <subcommand>`              | Manage LiveDocs (knowledge bases) and resources       |
 | `felo config <set\|get\|list\|path>`     | Manage API key and config                             |
 
 ---
@@ -98,6 +99,17 @@ felo x --id "elonmusk" --user --tweets              # Get user tweets
 felo x --id "1234567890"                            # Get tweet replies
 ```
 
+**LiveDoc (Knowledge Base)** — [full options →](./felo-livedoc/README.md)
+
+```bash
+felo livedoc create --name "My KB" --description "Project docs"
+felo livedoc list
+felo livedoc add-doc SHORT_ID --content "Hello" --title "Test"
+felo livedoc add-urls SHORT_ID --urls "https://example.com"
+felo livedoc upload SHORT_ID --file ./doc.pdf
+felo livedoc retrieve SHORT_ID --query "search query"
+```
+
 **[See 40+ more examples →](./docs/EXAMPLES.md)**
 
 ---
@@ -113,6 +125,7 @@ felo x --id "1234567890"                            # Get tweet replies
 | **felo-web-fetch**          | Fetch and extract webpage content                             | [→](./felo-web-fetch/)          |
 | **felo-youtube-subtitling** | Fetch YouTube video subtitles                                 | [→](./felo-youtube-subtitling/) |
 | **felo-x-search**           | Search X (Twitter) tweets, users, replies                     | [→](./felo-x-search/SKILL.md)   |
+| **felo-livedoc**            | Manage knowledge bases and semantic retrieval                 | [→](./felo-livedoc/)            |
 
 ---
 
@@ -130,6 +143,7 @@ felo x --id "1234567890"                            # Get tweet replies
 /plugin install felo-web-fetch@felo-ai
 /plugin install felo-youtube-subtitling@felo-ai
 /plugin install felo-x-search@felo-ai
+/plugin install felo-livedoc@felo-ai
 ```
 
 ### ClawHub
@@ -142,6 +156,7 @@ clawhub install felo-slides
 clawhub install felo-web-fetch
 clawhub install felo-youtube-subtitling
 clawhub install felo-x-search
+clawhub install felo-livedoc
 ```
 
 ### Gemini CLI
@@ -191,10 +206,6 @@ cp -r felo-search ~/.claude/skills/
 - **Multi-language?** Yes — Chinese, English, Japanese, and Korean are supported.
 
 **[Full FAQ →](./docs/FAQ.md)**
-
-### felo-superAgent
-
-SuperAgent conversation with SSE streaming and LiveDoc integration. In terminal use `felo superagent "your question"`, manage LiveDocs with `felo livedocs` and `felo livedoc-resources <id>`. **[View skill documentation →](./felo-superAgent/)**
 
 ---
 

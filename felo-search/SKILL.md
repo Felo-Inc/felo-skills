@@ -64,48 +64,18 @@ For permanent configuration, add it to your shell profile (~/.bashrc, ~/.zshrc) 
 
 ## How to Execute
 
-When this skill is triggered, execute the following steps using the Bash tool:
-
-### Step 1: Check API Key
-
-Use the Bash tool to verify the API key is set:
+When this skill is triggered, execute the search script using the Bash tool:
 
 ```bash
-if [ -z "$FELO_API_KEY" ]; then
-  echo "ERROR: FELO_API_KEY not set"
-  exit 1
-fi
-echo "API key configured"
-```
-
-If the API key is not set, inform the user with setup instructions and STOP.
-
-### Step 2: Make API Request
-
-Extract the user's query and call the Felo API using a temporary JSON file to handle special characters:
-
-```bash
-# Create query JSON (replace USER_QUERY with actual query)
-cat > /tmp/felo_query.json << 'EOF'
-{"query": "USER_QUERY_HERE"}
-EOF
-
-# Call Felo API
-curl -s -X POST https://openapi.felo.ai/v2/chat \
-  -H "Authorization: Bearer $FELO_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d @/tmp/felo_query.json
-
-# Clean up
-rm -f /tmp/felo_query.json
+~/.agents/skills/felo-search/scripts/search.sh "USER_QUERY_HERE"
 ```
 
 **Notes:**
 - Replace `USER_QUERY_HERE` with the actual user query
-- Use heredoc (`cat > file << 'EOF'`) to properly handle Chinese, Japanese, and special characters
-- Use `-s` flag with curl for clean output
+- The script handles API key validation, JSON escaping, and API calls
+- Supports all special characters, Unicode (Chinese, Japanese, etc.), and quotes
 
-### Step 3: Parse and Format Response
+### Parse and Format Response
 
 The API returns JSON with this structure:
 ```json
@@ -115,7 +85,7 @@ The API returns JSON with this structure:
 }
 ```
 
-Parse the JSON response and present it to the user in this format:
+Present the response to the user in this format:
 
 ```
 ## Answer
@@ -144,16 +114,7 @@ Optimized search terms: Tokyo weather today, 東京 天気 今日
 
 **Bash command:**
 ```bash
-cat > /tmp/felo_query.json << 'EOF'
-{"query": "What's the weather in Tokyo today?"}
-EOF
-
-curl -s -X POST https://openapi.felo.ai/v2/chat \
-  -H "Authorization: Bearer $FELO_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d @/tmp/felo_query.json
-
-rm -f /tmp/felo_query.json
+~/.agents/skills/felo-search/scripts/search.sh "What's the weather in Tokyo today?"
 ```
 
 ### Example 2: Local news / events
@@ -171,16 +132,7 @@ Optimized search terms: Hangzhou recent news, Hangzhou events, 杭州 最近 新
 
 **Bash command:**
 ```bash
-cat > /tmp/felo_query.json << 'EOF'
-{"query": "What's new in Hangzhou recently"}
-EOF
-
-curl -s -X POST https://openapi.felo.ai/v2/chat \
-  -H "Authorization: Bearer $FELO_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d @/tmp/felo_query.json
-
-rm -f /tmp/felo_query.json
+~/.agents/skills/felo-search/scripts/search.sh "What's new in Hangzhou recently"
 ```
 
 ### Example 3: Travel / things to do
@@ -189,16 +141,7 @@ rm -f /tmp/felo_query.json
 
 **Bash command:**
 ```bash
-cat > /tmp/felo_query.json << 'EOF'
-{"query": "What are the best things to do in Taipei"}
-EOF
-
-curl -s -X POST https://openapi.felo.ai/v2/chat \
-  -H "Authorization: Bearer $FELO_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d @/tmp/felo_query.json
-
-rm -f /tmp/felo_query.json
+~/.agents/skills/felo-search/scripts/search.sh "What are the best things to do in Taipei"
 ```
 
 ### Example 4: Restaurants / recommendations
@@ -207,16 +150,7 @@ rm -f /tmp/felo_query.json
 
 **Bash command:**
 ```bash
-cat > /tmp/felo_query.json << 'EOF'
-{"query": "Popular restaurants in Tokyo"}
-EOF
-
-curl -s -X POST https://openapi.felo.ai/v2/chat \
-  -H "Authorization: Bearer $FELO_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d @/tmp/felo_query.json
-
-rm -f /tmp/felo_query.json
+~/.agents/skills/felo-search/scripts/search.sh "Popular restaurants in Tokyo"
 ```
 
 ## Error Handling
@@ -279,7 +213,7 @@ To use this skill, you need to set up your Felo API Key:
 - This skill should be used for any question requiring current information
 - Execute immediately using the Bash tool - don't just describe what you would do
 - Multi-language support: Fully supports Simplified Chinese, Traditional Chinese (Taiwan), Japanese, and English
-- Handle special characters properly: Use heredoc for JSON files to avoid encoding issues
+- Handle special characters properly: Use the search script which handles JSON escaping via sed
 - Parse JSON response: Extract answer and query_analysis fields
 - Format nicely: Present results in a clean, readable format with proper markdown
 - The API returns results in the same language as the query when possible
