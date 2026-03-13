@@ -10,9 +10,9 @@ description: "Felo SuperAgent API: AI conversation with real-time SSE streaming 
 Trigger this skill for:
 
 - **SuperAgent 对话**：需要与 Felo SuperAgent 进行 AI 对话、流式输出
-- **LiveDoc 集成**：希望回答与 LiveDoc 关联、可追溯资源
-- **连续对话**：在已有会话/文档上继续提问（传入 `live_doc_short_id`）
-- **多轮对话**：需要 thread_short_id / live_doc_short_id 以便后续查询会话详情或 LiveDoc 资源
+- **LiveDoc 关联**：每次会话对应一个 LiveDoc，可后续查看资源
+- **连续对话**：在已有 LiveDoc 上继续提问（传入 `live_doc_short_id`）
+- **多轮对话**：需要 thread_short_id / live_doc_short_id 以便后续查询会话详情
 
 **Trigger words / 触发词：**
 
@@ -25,6 +25,7 @@ Trigger this skill for:
 - 简单单次问答、实时信息查询（优先用 `felo-search`）
 - 仅需抓取网页内容（用 `felo-web-fetch`）
 - 仅需生成 PPT（用 `felo-slides`）
+- 需要 LiveDoc 知识库功能（用 `felo-livedoc`）
 
 ## Setup
 
@@ -83,12 +84,8 @@ node felo-superAgent/scripts/run_superagent.mjs \
 
 Optional:
 
-- **Follow-up conversation:** `--thread-id "TvyKouzJirXjFdst4uKRK3"`
-- **Reuse LiveDoc (连续对话):** `--live-doc-id "PvyKouzJirXjFdst4uKRK3"`
-- **Skill ID (new conversations only):** `--skill-id "xxx"`
-- **Resource IDs (new conversations only):** `--selected-resource-ids "id1,id2"`
-- **Extra params (new conversations only):** `--ext '{"style_id":"xxx"}'`
 - **Language:** `--accept-language zh` or `--accept-language en`
+- **Reuse LiveDoc (连续对话):** `--live-doc-id "PvyKouzJirXjFdst4uKRK3"`
 - **JSON output:** `--json` (includes thread_short_id, live_doc_short_id, full answer)
 - **Verbose:** `--verbose` (logs stream connection to stderr)
 
@@ -127,10 +124,8 @@ If the user asked for conversation detail or LiveDoc resources, you can call the
 1. **POST** `/v2/conversations` → get `stream_key`, `thread_short_id`, `live_doc_short_id`
 2. **GET** `/v2/conversations/stream/{stream_key}` → consume SSE until `done` or `error`
 3. Optionally: **GET** `/v2/conversations/{thread_short_id}` → conversation detail
-4. Optionally: **GET** `/v2/livedocs` → list LiveDocs
-5. Optionally: **GET** `/v2/livedocs/{live_doc_short_id}/resources` → list resources
 
-Base URL: `https://openapi.felo.ai` (override with `FELO_API_BASE` env or `felo config set FELO_API_BASE <url>`).
+Base URL: `https://openapi.felo.ai` (override with `FELO_API_BASE` if needed).
 
 ## Error Handling
 
@@ -139,8 +134,6 @@ Base URL: `https://openapi.felo.ai` (override with `FELO_API_BASE` env or `felo 
 | INVALID_API_KEY                        | 401  | API Key 无效或已撤销     |
 | SUPER_AGENT_CONVERSATION_CREATE_FAILED | 502  | 创建会话失败（下游错误） |
 | SUPER_AGENT_CONVERSATION_QUERY_FAILED  | 502  | 查询会话详情失败         |
-| SUPER_AGENT_LIVEDOC_LIST_FAILED        | 502  | 列举 LiveDocs 失败       |
-| SUPER_AGENT_LIVEDOC_RESOURCES_FAILED   | 502  | 列举 LiveDoc 资源失败    |
 
 SSE stream may send:
 
