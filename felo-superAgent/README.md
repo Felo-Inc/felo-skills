@@ -1,8 +1,8 @@
 # Felo SuperAgent Skill for Claude Code
 
-**AI 对话与流式输出，支持 LiveDoc 与连续会话。**
+**AI 对话与流式输出，支持连续会话。**
 
-通过 Felo Open Platform 的 SuperAgent API，在 Claude Code 中发起与 SuperAgent 的对话、接收 SSE 流式回复，并可关联 LiveDoc、查询会话详情与资源。
+通过 Felo Open Platform 的 SuperAgent API，在 Claude Code 中发起与 SuperAgent 的对话、接收 SSE 流式回复，并可查询会话详情。
 
 ---
 
@@ -24,6 +24,7 @@
 - 仅需单次实时信息检索 → 使用 `felo-search`
 - 仅需抓取网页正文 → 使用 `felo-web-fetch`
 - 仅需生成 PPT → 使用 `felo-slides`
+- 需要 LiveDoc 知识库功能 → 使用 `felo-livedoc`
 
 ---
 
@@ -115,7 +116,7 @@ node felo-superAgent/scripts/run_superagent.mjs --query "What is the latest news
 }
 ```
 
-可用 `thread_short_id` 调用「查询会话详情」接口，用 `live_doc_short_id` 调用「列举 LiveDoc 资源」等接口。
+可用 `thread_short_id` 调用「查询会话详情」接口，`live_doc_short_id` 可传入 `felo-livedoc` 查询相关资源。
 
 ---
 
