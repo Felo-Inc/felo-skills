@@ -146,3 +146,35 @@ export async function webFetch(opts) {
     stopSpinner(spinnerId);
   }
 }
+
+/**
+ * Fetch webpage content and return as string (for content-to-slides). Does not print.
+ * @param {Object} opts - { url, format, readability, timeoutMs }
+ * @returns {Promise<string>} content or throws
+ */
+export async function getWebContent(opts) {
+  const apiKey = await getApiKey();
+  if (!apiKey) throw new Error(NO_KEY_MESSAGE.trim());
+  if (!opts?.url || typeof opts.url !== 'string' || !opts.url.trim()) {
+    throw new Error('URL is required');
+  }
+  const apiBase = await getApiBase();
+  const timeoutMs = Number.isFinite(opts?.timeoutMs) && opts.timeoutMs > 0
+    ? opts.timeoutMs
+    : DEFAULT_TIMEOUT_MS;
+  const body = {
+    url: opts.url,
+    output_format: opts.format || 'markdown',
+    crawl_mode: opts.crawlMode || 'fast',
+    with_readability: Boolean(opts.readability),
+    timeout: timeoutMs,
+  };
+  if (opts.targetSelector) body.target_selector = opts.targetSelector;
+  if (opts.waitForSelector) body.wait_for_selector = opts.waitForSelector;
+  const payload = await fetchContent(apiBase, apiKey, body, timeoutMs);
+  const out = stringifyContent(payload?.data?.content);
+  if (out == null || String(out).trim() === '') {
+    throw new Error(`No content fetched from ${opts.url}`);
+  }
+  return out;
+}

@@ -83,7 +83,11 @@ node felo-superAgent/scripts/run_superagent.mjs \
 
 Optional:
 
+- **Follow-up conversation:** `--thread-id "TvyKouzJirXjFdst4uKRK3"`
 - **Reuse LiveDoc (连续对话):** `--live-doc-id "PvyKouzJirXjFdst4uKRK3"`
+- **Skill ID (new conversations only):** `--skill-id "xxx"`
+- **Resource IDs (new conversations only):** `--selected-resource-ids "id1,id2"`
+- **Extra params (new conversations only):** `--ext '{"style_id":"xxx"}'`
 - **Language:** `--accept-language zh` or `--accept-language en`
 - **JSON output:** `--json` (includes thread_short_id, live_doc_short_id, full answer)
 - **Verbose:** `--verbose` (logs stream connection to stderr)
@@ -126,7 +130,7 @@ If the user asked for conversation detail or LiveDoc resources, you can call the
 4. Optionally: **GET** `/v2/livedocs` → list LiveDocs
 5. Optionally: **GET** `/v2/livedocs/{live_doc_short_id}/resources` → list resources
 
-Base URL: `https://openapi.felo.ai` (override with `FELO_API_BASE` if needed).
+Base URL: `https://openapi.felo.ai` (override with `FELO_API_BASE` env or `felo config set FELO_API_BASE <url>`).
 
 ## Error Handling
 

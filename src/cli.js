@@ -4,9 +4,10 @@ import { createRequire } from "module";
 import { Command } from "commander";
 import { search } from "./search.js";
 import { slides } from "./slides.js";
-import { superAgent } from "./superAgent.js";
+import { superAgent, listLiveDocs, listLiveDocResources } from "./superAgent.js";
 import { webFetch } from "./webFetch.js";
 import { youtubeSubtitling } from "./youtubeSubtitling.js";
+import { contentToSlides } from "./contentToSlides.js";
 import * as xSearch from "./xSearch.js";
 import * as livedoc from "./livedoc.js";
 import * as config from "./config.js";
@@ -109,8 +110,21 @@ program
   .option("-t, --timeout <seconds>", "request/stream timeout in seconds", "60")
   .option("--live-doc-id <id>", "reuse existing LiveDoc short_id for continuous conversation")
   .option("--thread-id <id>", "existing thread/conversation ID for follow-up questions")
+  .option("--skill-id <id>", "skill ID (only for new conversations)")
+  .option("--selected-resource-ids <ids>", "comma-separated resource IDs (only for new conversations)")
+  .option("--ext <json>", "extra params as JSON string, e.g. '{\"style_id\":\"xxx\"}' (only for new conversations)")
   .option("--accept-language <lang>", "language preference (e.g. zh, en)")
   .action(async (query, opts) => {
+    let ext;
+    if (opts.ext) {
+      try {
+        ext = JSON.parse(opts.ext);
+      } catch {
+        console.error('Error: --ext must be valid JSON');
+        flushStdioThenExit(1);
+        return;
+      }
+    }
     const timeoutMs = parseInt(opts.timeout, 10) * 1000;
     const code = await superAgent(query, {
       json: opts.json,
@@ -118,7 +132,47 @@ program
       timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
       liveDocId: opts.liveDocId || undefined,
       threadId: opts.threadId || undefined,
+      skillId: opts.skillId || undefined,
+      selectedResourceIds: opts.selectedResourceIds ? opts.selectedResourceIds.split(',').map(s => s.trim()).filter(Boolean) : undefined,
+      ext,
       acceptLanguage: opts.acceptLanguage || undefined,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+program
+  .command("livedocs")
+  .description("List LiveDocs with pagination and optional keyword filtering")
+  .option("-p, --page <number>", "page number", "1")
+  .option("-s, --size <number>", "page size", "20")
+  .option("-k, --keyword <keyword>", "keyword filter")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await listLiveDocs({
+      page: parseInt(opts.page, 10) || 1,
+      size: parseInt(opts.size, 10) || 20,
+      keyword: opts.keyword || undefined,
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+program
+  .command("livedoc-resources")
+  .description("List resources in a specific LiveDoc")
+  .argument("<livedoc-id>", "LiveDoc short_id")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (liveDocId, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await listLiveDocResources(liveDocId, {
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
     });
     process.exitCode = code;
     flushStdioThenExit(code);
@@ -255,6 +309,51 @@ program
       language: opts.language,
       withTime: opts.withTime,
       json: opts.json,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+program
+  .command("content-to-slides")
+  .description(
+    "Fetch content from a webpage or YouTube video, then generate a PPT from that content"
+  )
+  .option("-u, --url <url>", "Web page URL to fetch and turn into slides")
+  .option(
+    "-v, --video <url-or-id>",
+    "YouTube video URL or ID (use subtitles as content)"
+  )
+  .option(
+    "--extra-prompt <text>",
+    "Extra instructions for PPT (e.g. 10页以内)"
+  )
+  .option("--readability", "For --url: use readability (main content only)")
+  .option(
+    "-l, --language <code>",
+    "For --video: subtitle language (e.g. en, zh-CN)"
+  )
+  .option("-t, --timeout <seconds>", "Fetch timeout in seconds", "60")
+  .option(
+    "--poll-timeout <seconds>",
+    "Max seconds to wait for PPT task",
+    "1200"
+  )
+  .option("-j, --json", "Output JSON with task_id and ppt/live_doc URL")
+  .option("--verbose", "Show polling status")
+  .action(async (opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const pollTimeoutMs = parseInt(opts.pollTimeout, 10) * 1000;
+    const code = await contentToSlides({
+      url: opts.url,
+      video: opts.video,
+      extraPrompt: opts.extraPrompt,
+      readability: opts.readability,
+      language: opts.language,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60_000 : timeoutMs,
+      pollTimeoutMs: Number.isNaN(pollTimeoutMs) ? 1_200_000 : pollTimeoutMs,
+      json: opts.json,
+      verbose: opts.verbose,
     });
     process.exitCode = code;
     flushStdioThenExit(code);
