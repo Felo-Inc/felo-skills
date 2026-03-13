@@ -1,0 +1,12 @@
+{
+  "name": "Felo LiveDoc",
+  "tagline": "Manage knowledge bases (LiveDocs) and semantic retrieval via Felo API in Claude Code",
+  "description": "Felo LiveDoc lets you create, list, update, and delete knowledge bases (LiveDocs), add resources (text, URLs, file uploads), and run semantic retrieval over your knowledge base from Claude Code. Full CRUD for LiveDocs and resources. Requires a Felo API key.",
+  "category": "data",
+  "tags": ["felo", "livedoc", "knowledge-base", "semantic-search", "retrieval", "api", "documents"],
+  "version": "1.0.0",
+  "license": "MIT",
+  "pricing": "free",
+  "support_url": "https://github.com/Felo-Inc/felo-skills/issues",
+  "homepage": "https://github.com/Felo-Inc/felo-skills"
+}
