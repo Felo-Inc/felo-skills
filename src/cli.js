@@ -8,6 +8,7 @@ import { superAgent } from "./superAgent.js";
 import { webFetch } from "./webFetch.js";
 import { youtubeSubtitling } from "./youtubeSubtitling.js";
 import * as xSearch from "./xSearch.js";
+import * as livedoc from "./livedoc.js";
 import * as config from "./config.js";
 
 const require = createRequire(import.meta.url);
@@ -345,6 +346,210 @@ program
       );
     }
 
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+// ── LiveDoc ──
+const livedocCmd = program
+  .command("livedoc")
+  .description("Manage Felo LiveDocs (knowledge bases) and resources");
+
+livedocCmd
+  .command("create")
+  .description("Create a new LiveDoc")
+  .requiredOption("--name <name>", "LiveDoc name")
+  .option("--description <desc>", "LiveDoc description")
+  .option("--icon <icon>", "LiveDoc icon")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await livedoc.createLiveDoc({
+      name: opts.name,
+      description: opts.description,
+      icon: opts.icon,
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+livedocCmd
+  .command("list")
+  .description("List LiveDocs")
+  .option("--keyword <kw>", "search keyword")
+  .option("--page <n>", "page number")
+  .option("--size <n>", "page size")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await livedoc.listLiveDocs({
+      keyword: opts.keyword,
+      page: opts.page,
+      size: opts.size,
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+livedocCmd
+  .command("update <short_id>")
+  .description("Update a LiveDoc")
+  .option("--name <name>", "new name")
+  .option("--description <desc>", "new description")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (shortId, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await livedoc.updateLiveDoc(shortId, {
+      name: opts.name,
+      description: opts.description,
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+livedocCmd
+  .command("delete <short_id>")
+  .description("Delete a LiveDoc")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (shortId, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await livedoc.deleteLiveDoc(shortId, {
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+livedocCmd
+  .command("resources <short_id>")
+  .description("List resources in a LiveDoc")
+  .option("--type <type>", "filter by resource type")
+  .option("--page <n>", "page number")
+  .option("--size <n>", "page size")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (shortId, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await livedoc.listResources(shortId, {
+      type: opts.type,
+      page: opts.page,
+      size: opts.size,
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+livedocCmd
+  .command("resource <short_id> <resource_id>")
+  .description("Get a single resource")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (shortId, resourceId, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await livedoc.getResource(shortId, resourceId, {
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+livedocCmd
+  .command("add-doc <short_id>")
+  .description("Create a text document resource")
+  .requiredOption("--content <content>", "document content")
+  .option("--title <title>", "document title")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (shortId, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await livedoc.addDoc(shortId, {
+      content: opts.content,
+      title: opts.title,
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+livedocCmd
+  .command("add-urls <short_id>")
+  .description("Add URL resources (max 10, comma-separated)")
+  .requiredOption("--urls <urls>", "comma-separated URLs")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (shortId, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await livedoc.addUrls(shortId, {
+      urls: opts.urls,
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+livedocCmd
+  .command("upload <short_id>")
+  .description("Upload a file as resource")
+  .requiredOption("--file <path>", "file path to upload")
+  .option("--convert", "convert file to document (use upload-doc endpoint)")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (shortId, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await livedoc.uploadFile(shortId, {
+      file: opts.file,
+      convert: opts.convert,
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+livedocCmd
+  .command("remove-resource <short_id> <resource_id>")
+  .description("Delete a resource")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (shortId, resourceId, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await livedoc.removeResource(shortId, resourceId, {
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+livedocCmd
+  .command("retrieve <short_id>")
+  .description("Semantic search across resources")
+  .requiredOption("--query <query>", "search query")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (shortId, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await livedoc.retrieve(shortId, {
+      query: opts.query,
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
     process.exitCode = code;
     flushStdioThenExit(code);
   });

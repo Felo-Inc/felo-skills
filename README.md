@@ -46,14 +46,15 @@ $env:FELO_API_KEY="..."             # Windows (PowerShell)
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `felo search "<query>"` | Search for current info (weather, news, prices, etc.) |
-| `felo slides "<prompt>"` | Generate PPT; returns link when done |
-| `felo web-fetch --url <url>` | Fetch webpage content (markdown/text/html) |
-| `felo youtube-subtitling -v <url-or-id>` | Fetch YouTube video subtitles |
-| `felo x "<query>"` | Search X (Twitter) tweets, users, and replies |
-| `felo config <set\|get\|list\|path>` | Manage API key and config |
+| Command                                  | Description                                           |
+| ---------------------------------------- | ----------------------------------------------------- |
+| `felo search "<query>"`                  | Search for current info (weather, news, prices, etc.) |
+| `felo slides "<prompt>"`                 | Generate PPT; returns link when done                  |
+| `felo web-fetch --url <url>`             | Fetch webpage content (markdown/text/html)            |
+| `felo youtube-subtitling -v <url-or-id>` | Fetch YouTube video subtitles                         |
+| `felo x "<query>"`                       | Search X (Twitter) tweets, users, and replies         |
+| `felo livedoc <subcommand>`              | Manage LiveDocs (knowledge bases) and resources       |
+| `felo config <set\|get\|list\|path>`     | Manage API key and config                             |
 
 ---
 
@@ -98,6 +99,17 @@ felo x --id "elonmusk" --user --tweets              # Get user tweets
 felo x --id "1234567890"                            # Get tweet replies
 ```
 
+**LiveDoc (Knowledge Base)** — [full options →](./felo-livedoc/README.md)
+
+```bash
+felo livedoc create --name "My KB" --description "Project docs"
+felo livedoc list
+felo livedoc add-doc SHORT_ID --content "Hello" --title "Test"
+felo livedoc add-urls SHORT_ID --urls "https://example.com"
+felo livedoc upload SHORT_ID --file ./doc.pdf
+felo livedoc retrieve SHORT_ID --query "search query"
+```
+
 **[See 40+ more examples →](./docs/EXAMPLES.md)**
 
 ---
@@ -106,13 +118,14 @@ felo x --id "1234567890"                            # Get tweet replies
 
 5 skills across search, content generation, web scraping, and social media:
 
-| Skill | Description | Docs |
-|-------|-------------|------|
-| **felo-search** | Real-time web search with AI answers. Triggers automatically. | [→](./felo-search/) |
-| **felo-slides** | Generate PPT from a prompt | [→](./felo-slides/) |
-| **felo-web-fetch** | Fetch and extract webpage content | [→](./felo-web-fetch/) |
-| **felo-youtube-subtitling** | Fetch YouTube video subtitles | [→](./felo-youtube-subtitling/) |
-| **felo-x-search** | Search X (Twitter) tweets, users, replies | [→](./felo-x-search/SKILL.md) |
+| Skill                       | Description                                                   | Docs                            |
+| --------------------------- | ------------------------------------------------------------- | ------------------------------- |
+| **felo-search**             | Real-time web search with AI answers. Triggers automatically. | [→](./felo-search/)             |
+| **felo-slides**             | Generate PPT from a prompt                                    | [→](./felo-slides/)             |
+| **felo-web-fetch**          | Fetch and extract webpage content                             | [→](./felo-web-fetch/)          |
+| **felo-youtube-subtitling** | Fetch YouTube video subtitles                                 | [→](./felo-youtube-subtitling/) |
+| **felo-x-search**           | Search X (Twitter) tweets, users, replies                     | [→](./felo-x-search/SKILL.md)   |
+| **felo-livedoc**            | Manage knowledge bases and semantic retrieval                 | [→](./felo-livedoc/)            |
 
 ---
 
@@ -130,6 +143,7 @@ felo x --id "1234567890"                            # Get tweet replies
 /plugin install felo-web-fetch@felo-ai
 /plugin install felo-youtube-subtitling@felo-ai
 /plugin install felo-x-search@felo-ai
+/plugin install felo-livedoc@felo-ai
 ```
 
 ### ClawHub
@@ -142,6 +156,7 @@ clawhub install felo-slides
 clawhub install felo-web-fetch
 clawhub install felo-youtube-subtitling
 clawhub install felo-x-search
+clawhub install felo-livedoc
 ```
 
 ### Gemini CLI
