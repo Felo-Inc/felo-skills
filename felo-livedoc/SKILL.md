@@ -12,10 +12,11 @@ Trigger this skill when users want to:
 - **Create/manage knowledge bases:** Create, list, update, or delete LiveDocs
 - **Add resources:** Upload documents, add URLs, or create text documents in a LiveDoc
 - **Semantic retrieval:** Search across knowledge base resources using natural language queries
+- **Route resources:** Find relevant resource IDs by query for targeted retrieval
 - **Resource management:** List, view, or delete resources within a LiveDoc
 
 **Trigger words:**
-- English: knowledge base, livedoc, live doc, upload document, add URL, semantic search, retrieve, knowledge retrieval
+- English: knowledge base, livedoc, live doc, upload document, add URL, semantic search, retrieve, knowledge retrieval, route resources
 - 简体中文: 知识库, 文档库, 上传文档, 添加链接, 语义检索, 知识检索
 
 **Explicit commands:** `/felo-livedoc`, "livedoc", "felo livedoc"
@@ -110,9 +111,20 @@ node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs remove-resource SHORT
 
 ### Semantic Retrieval
 
-**Search across resources:**
+**Route relevant resources by query:**
+```bash
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs route SHORT_ID --query "your search query"
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs route SHORT_ID --query "your search query" --max-resources 5
+```
+
+**Search across all resources (auto-routes):**
 ```bash
 node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs retrieve SHORT_ID --query "your search query"
+```
+
+**Search within specific resources:**
+```bash
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs retrieve SHORT_ID --query "your search query" --resource-ids "id1,id2,id3"
 ```
 ### Options
 
