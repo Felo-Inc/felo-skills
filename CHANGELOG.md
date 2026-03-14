@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.17] - 2026-03-14
+
+### Added
+
+- **`felo livedoc route <id>`**: route relevant resource IDs by query for targeted retrieval; supports `--max-resources`
+- **`felo livedoc retrieve` `--resource-ids`**: specify resource IDs to search within (comma-separated, max 50); auto-routes when omitted
+
+### Changed
+
+- `felo livedoc retrieve`: renamed request field `content` to `query` to align with backend API
+
+### Fixed
+
+- Fixed truncated README in `felo-livedoc` (was cut off at 53 lines)
+
+---
+
 ## [0.2.14] - 2026-03-13
 
 ### Added
@@ -55,7 +72,6 @@ Streamline the process and reduce the need for confirmation and selection.
 
 Earlier releases: search, slides, web fetch, youtube-subtitling features.
 
-[0.3.0]: https://github.com/Felo-Inc/felo-skills/compare/v0.2.10...v0.3.0
 [0.2.10]: https://github.com/Felo-Inc/felo-skills/compare/v0.2.9...v0.2.10
 [0.2.7]: https://github.com/Felo-Inc/felo-skills/compare/v0.2.6...v0.2.7
 [0.2.6]: https://github.com/Felo-Inc/felo-skills/releases/tag/v0.2.6
