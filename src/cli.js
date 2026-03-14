@@ -640,12 +640,33 @@ livedocCmd
   .command("retrieve <short_id>")
   .description("Semantic search across resources")
   .requiredOption("--query <query>", "search query")
+  .option("--resource-ids <ids>", "comma-separated resource IDs to search within")
   .option("-j, --json", "output raw JSON")
   .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
   .action(async (shortId, opts) => {
     const timeoutMs = parseInt(opts.timeout, 10) * 1000;
     const code = await livedoc.retrieve(shortId, {
       query: opts.query,
+      resourceIds: opts.resourceIds,
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+livedocCmd
+  .command("route <short_id>")
+  .description("Route relevant resource IDs by query")
+  .requiredOption("--query <query>", "routing query")
+  .option("--max-resources <n>", "max resources to return")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (shortId, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await livedoc.route(shortId, {
+      query: opts.query,
+      maxResources: opts.maxResources,
       json: opts.json,
       timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
     });
