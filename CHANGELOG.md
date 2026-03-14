@@ -5,7 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.12] - 2026-03-102
+## [0.2.17] - 2026-03-14
+
+### Added
+
+- **`felo livedoc route <id>`**: route relevant resource IDs by query for targeted retrieval; supports `--max-resources`
+- **`felo livedoc retrieve` `--resource-ids`**: specify resource IDs to search within (comma-separated, max 50); auto-routes when omitted
+
+### Changed
+
+- `felo livedoc retrieve`: renamed request field `content` to `query` to align with backend API
+
+### Fixed
+
+- Fixed truncated README in `felo-livedoc` (was cut off at 53 lines)
+
+---
+
+## [0.2.14] - 2026-03-13
+
+### Added
+
+- **`felo livedoc` command**: full CRUD for LiveDocs (knowledge bases) — `create`, `list`, `update`, `delete`
+- **`felo livedoc` resource management**: `add-doc`, `add-urls`, `upload`, `resources`, `resource`, `remove-resource`
+- **`felo livedoc retrieve <id>`**: semantic search across resources in a LiveDoc
+- **`felo superagent` new options**: `--thread-id` (follow-up conversation), `--skill-id`, `--selected-resource-ids`, `--ext`
+- **`FELO_API_BASE` config persistence**: support `felo config set FELO_API_BASE <url>`, priority: env > config > default
+
+### Changed
+
+- SuperAgent SSE `type=processing` events are now silently ignored
+- Replaced all hardcoded Chinese strings with English in superAgent
+
+---
+
+## [0.2.12] - 2026-03-10
 
 Streamline the process and reduce the need for confirmation and selection.
 
