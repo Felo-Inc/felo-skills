@@ -374,6 +374,36 @@ export async function removeResource(shortId, resourceId, opts = {}) {
   } finally { stopSpinner(spinnerId); }
 }
 
+export async function route(shortId, opts = {}) {
+  const apiKey = await getApiKey();
+  if (!apiKey) { console.error(NO_KEY_MESSAGE.trim()); return 1; }
+  if (!shortId) { process.stderr.write('ERROR: short_id is required.\n'); return 1; }
+  if (!opts.query) { process.stderr.write('ERROR: --query is required.\n'); return 1; }
+
+  const apiBase = await getApiBase();
+  const timeoutMs = opts.timeoutMs || DEFAULT_TIMEOUT_MS;
+  const spinnerId = startSpinner('Routing relevant resources');
+
+  try {
+    const body = { query: opts.query };
+    if (opts.maxResources) {
+      const n = parseInt(opts.maxResources, 10);
+      if (Number.isFinite(n) && n > 0) body.max_resources = n;
+    }
+    const payload = await apiRequest('POST', `/livedocs/${shortId}/resources/route`, body, apiKey, apiBase, timeoutMs);
+    if (opts.json) { console.log(JSON.stringify(payload, null, 2)); return 0; }
+
+    const resourceIds = payload?.data || [];
+    if (!resourceIds.length) { process.stderr.write('No relevant resources found.\n'); return 0; }
+    process.stdout.write(`Found ${resourceIds.length} relevant resource(s):\n\n`);
+    for (const id of resourceIds) process.stdout.write(`- ${id}\n`);
+    return 0;
+  } catch (err) {
+    process.stderr.write(`Failed to route resources: ${err?.message || err}\n`);
+    return 1;
+  } finally { stopSpinner(spinnerId); }
+}
+
 export async function retrieve(shortId, opts = {}) {
   const apiKey = await getApiKey();
   if (!apiKey) { console.error(NO_KEY_MESSAGE.trim()); return 1; }
@@ -385,7 +415,10 @@ export async function retrieve(shortId, opts = {}) {
   const spinnerId = startSpinner('Retrieving from knowledge base');
 
   try {
-    const body = { content: opts.query };
+    const body = { query: opts.query };
+    if (opts.resourceIds) {
+      body.resource_ids = opts.resourceIds.split(',').map(id => id.trim()).filter(Boolean);
+    }
     const payload = await apiRequest('POST', `/livedocs/${shortId}/resources/retrieve`, body, apiKey, apiBase, timeoutMs);
     if (opts.json) { console.log(JSON.stringify(payload, null, 2)); return 0; }
 
