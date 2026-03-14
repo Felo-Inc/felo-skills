@@ -143,7 +143,8 @@ function usage() {
     '  add-urls <short_id>   Add URLs (--urls required, comma-separated, max 10)',
     '  upload <short_id>     Upload file (--file required, --convert optional)',
     '  remove-resource <short_id> <resource_id>  Delete a resource',
-    '  retrieve <short_id>   Semantic search (--query required)',
+    '  retrieve <short_id>   Semantic search (--query required, --resource-ids optional)',
+    '  route <short_id>      Route relevant resources by query (--query required)',
     '',
     'Options:',
     '  --name <name>         LiveDoc name',
@@ -158,7 +159,9 @@ function usage() {
     '  --urls <urls>         Comma-separated URLs',
     '  --file <path>         File path to upload',
     '  --convert             Convert uploaded file to document',
-    '  --query <text>        Retrieval query',
+    '  --query <text>        Retrieval/route query',
+    '  --resource-ids <ids>  Comma-separated resource IDs to search within (retrieve)',
+    '  --max-resources <n>   Max resources to return (route)',
     '  -j, --json            Output raw JSON',
     '  -t, --timeout <ms>    Timeout in ms (default: 60000)',
     '  --help                Show this help',
@@ -168,7 +171,7 @@ function parseArgs(argv) {
   const out = {
     action: '', positional: [], name: '', description: '', icon: '',
     keyword: '', page: '', size: '', type: '', content: '', title: '',
-    urls: '', file: '', convert: false, query: '',
+    urls: '', file: '', convert: false, query: '', resourceIds: '', maxResources: '',
     json: false, timeoutMs: DEFAULT_TIMEOUT_MS, help: false,
   };
   const positional = [];
@@ -189,6 +192,8 @@ function parseArgs(argv) {
     else if (a === '--urls') out.urls = argv[++i] || '';
     else if (a === '--file') out.file = argv[++i] || '';
     else if (a === '--query') out.query = argv[++i] || '';
+    else if (a === '--resource-ids') out.resourceIds = argv[++i] || '';
+    else if (a === '--max-resources') out.maxResources = argv[++i] || '';
     else if (a === '-t' || a === '--timeout') {
       const n = parseInt(argv[++i] || '', 10);
       if (Number.isFinite(n) && n > 0) out.timeoutMs = n;
@@ -359,7 +364,11 @@ async function main() {
         if (!shortId) { console.error('ERROR: short_id is required'); break; }
         if (!args.query) { console.error('ERROR: --query is required'); break; }
         spinnerId = startSpinner('Retrieving from knowledge base');
-        const payload = await apiRequest('POST', `/livedocs/${shortId}/resources/retrieve`, { content: args.query }, apiKey, apiBase, timeoutMs);
+        const body = { query: args.query };
+        if (args.resourceIds) {
+          body.resource_ids = args.resourceIds.split(',').map(id => id.trim()).filter(Boolean);
+        }
+        const payload = await apiRequest('POST', `/livedocs/${shortId}/resources/retrieve`, body, apiKey, apiBase, timeoutMs);
         if (json) { console.log(JSON.stringify(payload, null, 2)); }
         else {
           const results = payload?.data || [];
@@ -367,6 +376,28 @@ async function main() {
           else {
             process.stdout.write(`Found ${results.length} result(s)\n\n`);
             for (const r of results) process.stdout.write(formatRetrieveResult(r));
+          }
+        }
+        code = 0;
+        break;
+      }
+      case 'route': {
+        if (!shortId) { console.error('ERROR: short_id is required'); break; }
+        if (!args.query) { console.error('ERROR: --query is required'); break; }
+        spinnerId = startSpinner('Routing relevant resources');
+        const body = { query: args.query };
+        if (args.maxResources) {
+          const n = parseInt(args.maxResources, 10);
+          if (Number.isFinite(n) && n > 0) body.max_resources = n;
+        }
+        const payload = await apiRequest('POST', `/livedocs/${shortId}/resources/route`, body, apiKey, apiBase, timeoutMs);
+        if (json) { console.log(JSON.stringify(payload, null, 2)); }
+        else {
+          const resourceIds = payload?.data || [];
+          if (!resourceIds.length) { process.stderr.write('No relevant resources found.\n'); }
+          else {
+            process.stdout.write(`Found ${resourceIds.length} relevant resource(s):\n\n`);
+            for (const id of resourceIds) process.stdout.write(`- ${id}\n`);
           }
         }
         code = 0;
