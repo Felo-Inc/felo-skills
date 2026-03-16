@@ -674,6 +674,61 @@ livedocCmd
     flushStdioThenExit(code);
   });
 
+livedocCmd
+  .command("download <short_id> <resource_id>")
+  .description("Download a resource source file to disk")
+  .option("--output <path>", "output file path (default: filename from response)")
+  .option("--expires-in <seconds>", "presigned URL expiry in seconds (default 3600)")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (shortId, resourceId, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await livedoc.downloadResource(shortId, resourceId, {
+      output: opts.output,
+      expiresIn: opts.expiresIn,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+livedocCmd
+  .command("content <short_id> <resource_id>")
+  .description("Get extracted text content of a resource")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (shortId, resourceId, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await livedoc.getResourceContent(shortId, resourceId, {
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+livedocCmd
+  .command("ppt-retrieve <short_id>")
+  .description("Deep content retrieval from a specific PPT page")
+  .requiredOption("--resource-id <id>", "PPT resource ID")
+  .requiredOption("--page-number <n>", "page number (starts from 1)")
+  .requiredOption("--query <query>", "retrieval query")
+  .option("--max-chunk <n>", "max chunks to return (default 3)")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (shortId, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await livedoc.pptRetrieve(shortId, {
+      resourceId: opts.resourceId,
+      pageNumber: opts.pageNumber,
+      query: opts.query,
+      maxChunk: opts.maxChunk,
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
 program
   .command("summarize")
   .description("Summarize text or URL (coming when API is available)")
