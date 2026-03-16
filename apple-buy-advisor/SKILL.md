@@ -21,56 +21,33 @@ Use `felo-web-fetch` to get current specs and pricing from Apple.com:
 - Apple Watch: `https://www.apple.com/watch/compare/`
 - AirPods: `https://www.apple.com/airpods/compare/`
 
-Parse the page to extract: model names, processor, RAM, storage options, battery life, display specs, and pricing. Also fetch the product's dedicated page (e.g. `https://www.apple.com/iphone-16-pro/`) for full spec details.
+Parse the page to extract: model names, processor, RAM, storage options, battery life, display specs, and pricing. Also fetch the product's dedicated page (e.g. `https://www.apple.com/iphone-16-pro/specs`) for full spec details.
 
-### 2. Search Personal User Reviews
+> **Validation:** If the page fails to load or returns incomplete data, do NOT fall back to training knowledge. Instead, explicitly state: "Unable to fetch current specs from Apple.com — specs may be inaccurate." Never silently substitute remembered values for live data.
 
-Gather real individual user experiences — **not press or media**. These sources must be personal opinions from real users.
+### 2. Search Personal User Reviews & Professional Reviews (run in parallel)
 
-**X (Twitter)** — Use `felo-x-search` (3 queries):
+Run all queries simultaneously to save time.
 
-- `"[product]" review experience`
-- `"[product]" worth buying`
-- `"[product]" problem issue`
+**Personal user reviews** — `felo-x-search` (1 query):
 
-**Reddit & Community Forums** — Use `felo-search` (run as separate queries):
+- `"[product]" review OR experience OR problem`
 
-- `site:reddit.com "[product]" review`
-- `site:reddit.com "[product]" experience`
+**Personal user reviews** — `felo-search` (2 queries, run in parallel):
+
+- `site:reddit.com "[product]" review OR experience`
 - `site:forums.macrumors.com "[product]" review`
-- `site:apple.stackexchange.com "[product]"`
-- `site:news.ycombinator.com "[product]"`
 
-> **Source filter:** Only extract content written by individual users (posts, comments, threads). Discard any results that are articles from media outlets or press publications.
+**Professional reviews** — `felo-search` (1 query):
 
-### 3. Search Professional Reviews
+- `site:9to5mac.com OR site:theverge.com OR site:cnet.com "[product]" review`
 
-Use `felo-search` to find structured reviews from tech media and professional publications — **not user posts**.
+> **Source filter — personal:** Only extract content from individual users (posts, comments, threads). Discard media articles.
+> **Source filter — professional:** Only extract editorial content. Discard user comments.
 
-**Apple-focused media:**
+### 3. Generate User Feedback Section (from personal sources in Step 2 only)
 
-- `site:9to5mac.com "[product]" review`
-- `site:macrumors.com "[product]" review`
-
-**Mainstream tech media:**
-
-- `site:theverge.com "[product]" review`
-- `site:cnet.com "[product]" review`
-
-**Technical/benchmark:**
-
-- `site:anandtech.com "[product]" benchmark`
-
-**Chinese tech media:**
-
-- `site:sspai.com "[product]" 评测`
-- `site:ifanr.com "[product]" 评测`
-
-> **Source filter:** Only extract content from editorial staff or professional reviewers. Discard user comments or forum posts found on these sites.
-
-### 4. Generate User Feedback Section (from Steps 2 sources only)
-
-Using **only** data from Step 2 (X, Reddit, MacRumors forums, Stack Exchange, HN):
+Using **only** the personal user data from Step 2 (X, Reddit, MacRumors forums):
 
 - Extract recurring themes from individual user posts and comments
 - Group by sentiment: praise vs. complaints
@@ -78,15 +55,15 @@ Using **only** data from Step 2 (X, Reddit, MacRumors forums, Stack Exchange, HN
 - Apply frequency indicators based on how often a theme appears across sources
 - Attribute each point to its source platform
 
-### 5. Generate Professional Review Section (from Step 3 sources only)
+### 4. Generate Professional Review Section (from professional sources in Step 2 only)
 
-Using **only** data from Step 3 (9to5Mac, The Verge, CNET, AnandTech, sspai, etc.):
+Using **only** the professional review data from Step 2 (9to5Mac, The Verge, CNET):
 
 - Summarize each publication's key findings
 - Note where professional assessments agree or diverge
 - Highlight benchmark data or lab-tested metrics separately from subjective opinions
 
-### 6. Produce Report
+### 5. Produce Report
 
 ```
 ## [Product Name] — Worth Buying?
@@ -104,19 +81,19 @@ Using **only** data from Step 3 (9to5Mac, The Verge, CNET, AnandTech, sspai, etc
 | Price | ... | ... | ... |
 
 ### Real User Feedback
-(Data source: X, Reddit, MacRumors forums, Stack Exchange, HN — Step 2 only)
+(Data source: X, Reddit, MacRumors forums — personal sources from Step 2)
 
 **Common Praise:**
 - [Theme]: [Specific quote or paraphrase — source: X / Reddit r/apple / MacRumors forums]
 
 **Common Complaints:**
-- [Theme]: [Specific quote or paraphrase — source: X / Reddit r/[product] / HN]
+- [Theme]: [Specific quote or paraphrase — source: X / Reddit r/[product] / MacRumors forums]
 
 **Community Consensus:**
 [1-2 sentences synthesizing overall user sentiment, based on frequency across sources]
 
 ### Professional Review Summary
-(Data source: 9to5Mac, The Verge, CNET, AnandTech, sspai, ifanr — Step 3 only)
+(Data source: 9to5Mac, The Verge, CNET — professional sources from Step 2)
 
 - **[Publication name]:** [Key finding or verdict]
 - **[Publication name]:** [Key finding or verdict]
@@ -151,17 +128,15 @@ Using **only** data from Step 3 (9to5Mac, The Verge, CNET, AnandTech, sspai, etc
 - X/Twitter: Real-time reactions
 - Reddit: r/apple, r/[product]
 - MacRumors Forums: enthusiast depth
-- Apple Stack Exchange: technical Q&A
 
 **Professional reviews:**
 
-- Apple-focused: 9to5Mac, MacRumors, Macworld, iMore
+- Apple-focused: 9to5Mac, MacRumors
 - Tech media: The Verge, CNET, Tom's Guide, Engadget
-- Technical: AnandTech, Wired
 
 ## Display Strategy for Personal Reviews
 
-1. **Extract themes** from X, Reddit, forums, Stack Exchange
+1. **Extract themes** from X, Reddit, MacRumors forums
 2. **Group by sentiment** — praise vs complaints
 3. **Quote specifically** — "Battery lasts 8-10 hours" beats "battery is good"
 4. **Show frequency** — note if an issue appears across multiple sources
@@ -208,11 +183,11 @@ Frequency language:
 
 ## Checklist Before Delivery
 
-- [ ] Step 1: Specs fetched from Apple.com (not from memory)
-- [ ] Step 2: Personal user reviews collected from X + 3+ community forum sources
-- [ ] Step 3: Professional reviews collected from 3+ media publications
-- [ ] Step 4: User feedback section built exclusively from Step 2 sources — no media mixed in
-- [ ] Step 5: Professional review section built exclusively from Step 3 sources — no user posts mixed in
+- [ ] Step 1: Specs fetched from Apple.com specs page (not from memory)
+- [ ] Step 2: Personal user reviews collected from X + Reddit + forums (parallel queries)
+- [ ] Step 2: Professional reviews collected from 3+ media publications (parallel queries)
+- [ ] Step 3: User feedback section built exclusively from personal sources — no media mixed in
+- [ ] Step 4: Professional review section built exclusively from media sources — no user posts mixed in
 - [ ] Recurring themes identified and grouped by sentiment
 - [ ] Every claim attributed to its source
 - [ ] Frequency indicators used appropriately
