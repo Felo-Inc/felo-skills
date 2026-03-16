@@ -441,30 +441,66 @@ export async function downloadResource(shortId, resourceId, opts = {}) {
 
   const apiBase = await getApiBase();
   const timeoutMs = opts.timeoutMs || DEFAULT_TIMEOUT_MS;
-  const spinnerId = startSpinner('Getting download URL');
+  const spinnerId = startSpinner('Downloading resource');
 
   try {
     const params = new URLSearchParams();
     if (opts.expiresIn) params.set('expires_in', opts.expiresIn);
     const qs = params.toString();
     const url = `${apiBase}/v2/livedocs/${shortId}/resources/${resourceId}/download${qs ? `?${qs}` : ''}`;
+
+    // Follow redirects to get the actual file stream from S3
     const res = await fetchWithTimeoutAndRetry(
       url,
-      { method: 'GET', headers: { Authorization: `Bearer ${apiKey}` }, redirect: 'manual' },
+      { method: 'GET', headers: { Authorization: `Bearer ${apiKey}` }, redirect: 'follow' },
       timeoutMs,
     );
-    const location = res.headers.get('location');
-    if (opts.json) { console.log(JSON.stringify({ download_url: location }, null, 2)); return 0; }
-    if (location) {
-      process.stdout.write(`Download URL:\n${location}\n`);
-    } else {
-      let data = {};
-      try { data = await res.json(); } catch { data = {}; }
-      process.stdout.write(`Download URL:\n${data?.data || ''}\n`);
+
+    if (!res.ok) {
+      let msg = res.statusText;
+      try { const d = await res.json(); msg = getMessage(d) || msg; } catch { /* ignore */ }
+      process.stderr.write(`ERROR: ${res.status} ${msg}\n`);
+      return 1;
     }
+
+    // Determine output filename
+    let filename = opts.output;
+    if (!filename) {
+      // Try Content-Disposition header first
+      const cd = res.headers.get('content-disposition') || '';
+      const match = cd.match(/filename\*?=(?:UTF-8'')?["']?([^"';\r\n]+)/i);
+      if (match) {
+        filename = decodeURIComponent(match[1].trim());
+      } else {
+        // Fall back to resource_id as filename
+        filename = resourceId;
+      }
+    }
+
+    // Write file stream to disk
+    const { createWriteStream } = await import('fs');
+    const writer = createWriteStream(filename);
+    const reader = res.body.getReader();
+    await new Promise((resolve, reject) => {
+      writer.on('error', reject);
+      writer.on('finish', resolve);
+      const pump = async () => {
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) { writer.end(); break; }
+            writer.write(value);
+          }
+        } catch (err) { reject(err); }
+      };
+      pump();
+    });
+
+    stopSpinner(spinnerId);
+    process.stdout.write(`Downloaded: ${filename}\n`);
     return 0;
   } catch (err) {
-    process.stderr.write(`Failed to get download URL: ${err?.message || err}\n`);
+    process.stderr.write(`Failed to download resource: ${err?.message || err}\n`);
     return 1;
   } finally { stopSpinner(spinnerId); }
 }

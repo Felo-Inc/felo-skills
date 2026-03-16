@@ -676,15 +676,15 @@ livedocCmd
 
 livedocCmd
   .command("download <short_id> <resource_id>")
-  .description("Get presigned download URL for a resource source file (302 redirect)")
-  .option("--expires-in <seconds>", "URL expiry in seconds (default 3600)")
-  .option("-j, --json", "output raw JSON")
+  .description("Download a resource source file to disk")
+  .option("--output <path>", "output file path (default: filename from response)")
+  .option("--expires-in <seconds>", "presigned URL expiry in seconds (default 3600)")
   .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
   .action(async (shortId, resourceId, opts) => {
     const timeoutMs = parseInt(opts.timeout, 10) * 1000;
     const code = await livedoc.downloadResource(shortId, resourceId, {
+      output: opts.output,
       expiresIn: opts.expiresIn,
-      json: opts.json,
       timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
     });
     process.exitCode = code;

@@ -145,7 +145,7 @@ function usage() {
     '  remove-resource <short_id> <resource_id>  Delete a resource',
     '  retrieve <short_id>   Semantic search (--query required, --resource-ids optional)',
     '  route <short_id>      Route relevant resources by query (--query required)',
-    '  download <short_id> <resource_id>  Get download URL for source file',
+    '  download <short_id> <resource_id>  Download source file to disk',
     '  content <short_id> <resource_id>   Get text content of a resource',
     '  ppt-retrieve <short_id>  PPT page deep retrieval (--resource-id, --page-number, --query required)',
     '',
@@ -169,6 +169,7 @@ function usage() {
     '  --page-number <n>     PPT page number, starts from 1 (ppt-retrieve)',
     '  --max-chunk <n>       Max chunks to return (ppt-retrieve, default 3)',
     '  --expires-in <s>      Presigned URL expiry in seconds (download, default 3600)',
+    '  --output <path>       Output file path (download, default: filename from response)',
     '  -j, --json            Output raw JSON',
     '  -t, --timeout <ms>    Timeout in ms (default: 60000)',
     '  --help                Show this help',
@@ -418,12 +419,39 @@ async function main() {
       case 'download': {
         if (!shortId) { console.error('ERROR: short_id is required'); break; }
         if (!resourceId) { console.error('ERROR: resource_id is required'); break; }
-        spinnerId = startSpinner('Getting download URL');
-        const url = `${apiBase}/v2/livedocs/${shortId}/resources/${resourceId}/download${args.expiresIn ? `?expires_in=${args.expiresIn}` : ''}`;
-        const res = await fetchWithRetry(url, { method: 'GET', headers: { Authorization: `Bearer ${apiKey}` }, redirect: 'manual' }, timeoutMs);
-        const location = res.headers.get('location');
-        if (json) { console.log(JSON.stringify({ download_url: location }, null, 2)); }
-        else { process.stdout.write(`Download URL:\n${location || ''}\n`); }
+        spinnerId = startSpinner('Downloading resource');
+        const dlUrl = `${apiBase}/v2/livedocs/${shortId}/resources/${resourceId}/download${args.expiresIn ? `?expires_in=${args.expiresIn}` : ''}`;
+        const dlRes = await fetchWithRetry(dlUrl, { method: 'GET', headers: { Authorization: `Bearer ${apiKey}` }, redirect: 'follow' }, timeoutMs);
+        if (!dlRes.ok) {
+          let msg = dlRes.statusText;
+          try { const d = await dlRes.json(); msg = d?.message || d?.error || msg; } catch { /* ignore */ }
+          console.error(`ERROR: ${dlRes.status} ${msg}`);
+          break;
+        }
+        let filename = args.output;
+        if (!filename) {
+          const cd = dlRes.headers.get('content-disposition') || '';
+          const match = cd.match(/filename\*?=(?:UTF-8'')?["']?([^"';\r\n]+)/i);
+          filename = match ? decodeURIComponent(match[1].trim()) : resourceId;
+        }
+        const { createWriteStream } = await import('fs');
+        const writer = createWriteStream(filename);
+        const reader = dlRes.body.getReader();
+        await new Promise((resolve, reject) => {
+          writer.on('error', reject);
+          writer.on('finish', resolve);
+          const pump = async () => {
+            try {
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) { writer.end(); break; }
+                writer.write(value);
+              }
+            } catch (err) { reject(err); }
+          };
+          pump();
+        });
+        process.stdout.write(`Downloaded: ${filename}\n`);
         code = 0;
         break;
       }
