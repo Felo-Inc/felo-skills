@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.24] - 2026-03-17
+
+### Added
+
+- **`felo livedoc download <id> <resource_id>`**: download a resource's source file directly to disk; follows the 302 redirect to the S3 presigned URL and streams the file; supports `--output <path>` to specify the destination filename (defaults to the filename from the `Content-Disposition` header)
+- **`felo livedoc content <id> <resource_id>`**: fetch the extracted text content of a resource; supported for document, web, video, ai_doc, ai_ppt, text, voice, and mindmap types
+- **`felo livedoc ppt-retrieve <id>`**: deep content retrieval from a specific PPT slide page; requires `--resource-id`, `--page-number`, and `--query`; supports `--max-chunk` (default 3); output format is identical to `retrieve`
+- **`add-urls` custom title support**: the API now accepts each URL entry as either a plain string or a `{"url": "...", "title": "..."}` object, allowing custom resource titles when adding URLs
+
+---
+
 ## [0.2.18] - 2026-03-14
 
 ### Added

@@ -432,3 +432,136 @@ export async function retrieve(shortId, opts = {}) {
     return 1;
   } finally { stopSpinner(spinnerId); }
 }
+
+export async function downloadResource(shortId, resourceId, opts = {}) {
+  const apiKey = await getApiKey();
+  if (!apiKey) { console.error(NO_KEY_MESSAGE.trim()); return 1; }
+  if (!shortId) { process.stderr.write('ERROR: short_id is required.\n'); return 1; }
+  if (!resourceId) { process.stderr.write('ERROR: resource_id is required.\n'); return 1; }
+
+  const apiBase = await getApiBase();
+  const timeoutMs = opts.timeoutMs || DEFAULT_TIMEOUT_MS;
+  const spinnerId = startSpinner('Downloading resource');
+
+  try {
+    const params = new URLSearchParams();
+    if (opts.expiresIn) params.set('expires_in', opts.expiresIn);
+    const qs = params.toString();
+    const url = `${apiBase}/v2/livedocs/${shortId}/resources/${resourceId}/download${qs ? `?${qs}` : ''}`;
+
+    // Follow redirects to get the actual file stream from S3
+    const res = await fetchWithTimeoutAndRetry(
+      url,
+      { method: 'GET', headers: { Authorization: `Bearer ${apiKey}` }, redirect: 'follow' },
+      timeoutMs,
+    );
+
+    if (!res.ok) {
+      let msg = res.statusText;
+      try { const d = await res.json(); msg = getMessage(d) || msg; } catch { /* ignore */ }
+      process.stderr.write(`ERROR: ${res.status} ${msg}\n`);
+      return 1;
+    }
+
+    // Determine output filename
+    let filename = opts.output;
+    if (!filename) {
+      // Try Content-Disposition header first
+      const cd = res.headers.get('content-disposition') || '';
+      const match = cd.match(/filename\*?=(?:UTF-8'')?["']?([^"';\r\n]+)/i);
+      if (match) {
+        filename = decodeURIComponent(match[1].trim());
+      } else {
+        // Fall back to resource_id as filename
+        filename = resourceId;
+      }
+    }
+
+    // Write file stream to disk
+    const { createWriteStream } = await import('fs');
+    const writer = createWriteStream(filename);
+    const reader = res.body.getReader();
+    await new Promise((resolve, reject) => {
+      writer.on('error', reject);
+      writer.on('finish', resolve);
+      const pump = async () => {
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) { writer.end(); break; }
+            writer.write(value);
+          }
+        } catch (err) { reject(err); }
+      };
+      pump();
+    });
+
+    stopSpinner(spinnerId);
+    process.stdout.write(`Downloaded: ${filename}\n`);
+    return 0;
+  } catch (err) {
+    process.stderr.write(`Failed to download resource: ${err?.message || err}\n`);
+    return 1;
+  } finally { stopSpinner(spinnerId); }
+}
+
+export async function getResourceContent(shortId, resourceId, opts = {}) {
+  const apiKey = await getApiKey();
+  if (!apiKey) { console.error(NO_KEY_MESSAGE.trim()); return 1; }
+  if (!shortId) { process.stderr.write('ERROR: short_id is required.\n'); return 1; }
+  if (!resourceId) { process.stderr.write('ERROR: resource_id is required.\n'); return 1; }
+
+  const apiBase = await getApiBase();
+  const timeoutMs = opts.timeoutMs || DEFAULT_TIMEOUT_MS;
+  const spinnerId = startSpinner('Fetching resource content');
+
+  try {
+    const payload = await apiRequest('GET', `/livedocs/${shortId}/resources/${resourceId}/content`, null, apiKey, apiBase, timeoutMs);
+    if (opts.json) { console.log(JSON.stringify(payload, null, 2)); return 0; }
+    const d = payload?.data;
+    if (!d) { process.stderr.write('No content returned.\n'); return 0; }
+    process.stdout.write(`## ${d.title || '(untitled)'}\n`);
+    process.stdout.write(`- Type: ${d.type}\n\n`);
+    process.stdout.write(d.content || '(empty)');
+    process.stdout.write('\n');
+    return 0;
+  } catch (err) {
+    process.stderr.write(`Failed to get resource content: ${err?.message || err}\n`);
+    return 1;
+  } finally { stopSpinner(spinnerId); }
+}
+
+export async function pptRetrieve(shortId, opts = {}) {
+  const apiKey = await getApiKey();
+  if (!apiKey) { console.error(NO_KEY_MESSAGE.trim()); return 1; }
+  if (!shortId) { process.stderr.write('ERROR: short_id is required.\n'); return 1; }
+  if (!opts.resourceId) { process.stderr.write('ERROR: --resource-id is required.\n'); return 1; }
+  if (!opts.pageNumber) { process.stderr.write('ERROR: --page-number is required.\n'); return 1; }
+  if (!opts.query) { process.stderr.write('ERROR: --query is required.\n'); return 1; }
+
+  const apiBase = await getApiBase();
+  const timeoutMs = opts.timeoutMs || DEFAULT_TIMEOUT_MS;
+  const spinnerId = startSpinner('Retrieving PPT page content');
+
+  try {
+    const body = {
+      resource_id: opts.resourceId,
+      page_number: parseInt(opts.pageNumber, 10),
+      query: opts.query,
+    };
+    if (opts.maxChunk) {
+      const n = parseInt(opts.maxChunk, 10);
+      if (Number.isFinite(n) && n > 0) body.max_chunk = n;
+    }
+    const payload = await apiRequest('POST', `/livedocs/${shortId}/resources/ppt-retrieve`, body, apiKey, apiBase, timeoutMs);
+    if (opts.json) { console.log(JSON.stringify(payload, null, 2)); return 0; }
+    const results = payload?.data || [];
+    if (!results.length) { process.stderr.write('No results found.\n'); return 0; }
+    process.stdout.write(`Found ${results.length} result(s)\n\n`);
+    for (const r of results) { process.stdout.write(formatRetrieveResult(r)); }
+    return 0;
+  } catch (err) {
+    process.stderr.write(`Failed to ppt-retrieve: ${err?.message || err}\n`);
+    return 1;
+  } finally { stopSpinner(spinnerId); }
+}
