@@ -33,6 +33,11 @@ Use the `felo-x-search` skill to search for real user experiences. Run these sea
 - `"[product name]" review experience` — general impressions
 - `"[product name]" worth buying` — purchase decisions
 - `"[product name]" problem issue` — common complaints
+- `"[product name]" vs [competitor]` — direct comparisons
+- `"[product name]" regret` — buyer's remorse and disappointments
+- `"[product name]" recommend` — recommendations and endorsements
+- `"[product name]" performance` — real-world performance feedback
+- `"[product name]" battery life` — battery/endurance experiences
 
 Use `--limit 10` for each search to keep results focused.
 
