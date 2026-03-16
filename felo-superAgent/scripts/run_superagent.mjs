@@ -559,6 +559,7 @@ async function main() {
   } else {
     if (answer) console.log('');
     if (!answer && toolResults.length === 0) console.log('(No content in stream)');
+    process.stderr.write(`\n[state] thread_short_id=${thread_short_id || ''} live_doc_short_id=${live_doc_short_id || ''} live_doc_url=${liveDocUrl || ''}\n`);
   }
 }
 
