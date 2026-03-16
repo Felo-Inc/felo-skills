@@ -230,8 +230,7 @@ Examples:
 node felo-superAgent/scripts/run_superagent.mjs \
   --query "USER_QUERY_HERE" \
   --live-doc-id "LIVE_DOC_ID" \
-  --accept-language en \
-  --timeout 3600
+  --accept-language en
 ```
 
 **New conversation with skill ID (e.g., tweet writing):**
@@ -240,8 +239,7 @@ node felo-superAgent/scripts/run_superagent.mjs \
   --query "Write a tweet about the latest AI trends" \
   --live-doc-id "LIVE_DOC_ID" \
   --skill-id twitter-writer \
-  --accept-language en \
-  --timeout 3600
+  --accept-language en
 ```
 
 **Follow-up question (DEFAULT for 2nd+ messages):**
@@ -249,8 +247,7 @@ node felo-superAgent/scripts/run_superagent.mjs \
 node felo-superAgent/scripts/run_superagent.mjs \
   --query "USER_FOLLOW_UP_QUERY" \
   --thread-id "THREAD_SHORT_ID_FROM_PREVIOUS" \
-  --live-doc-id "LIVE_DOC_ID" \
-  --timeout 3600
+  --live-doc-id "LIVE_DOC_ID"
 ```
 
 ### Step 6: Extract State from stderr (Do NOT Re-output the Answer)
@@ -284,7 +281,7 @@ User: "What is quantum computing?"
 node felo-superAgent/scripts/run_superagent.mjs \
   --query "What is quantum computing?" \
   --live-doc-id "QPetunwpGnkKuZHStP7gwt" \
-  --accept-language en --timeout 3600
+  --accept-language en
 ```
 **Step 6:** The answer is already streamed to the user. Extract from stderr `[state]` line: `thread_short_id = "CmYpuGwBgCnrUdDx5ZtmxA"`, `live_doc_id = "QPetunwpGnkKuZHStP7gwt"`. Do NOT repeat the answer.
 
@@ -299,8 +296,7 @@ User: "What are its practical applications?"
 node felo-superAgent/scripts/run_superagent.mjs \
   --query "What are its practical applications?" \
   --thread-id "CmYpuGwBgCnrUdDx5ZtmxA" \
-  --live-doc-id "QPetunwpGnkKuZHStP7gwt" \
-  --timeout 3600
+  --live-doc-id "QPetunwpGnkKuZHStP7gwt"
 ```
 **Step 6:** Answer already streamed. Extract updated `thread_short_id` from stderr `[state]` line (may be the same), keep `live_doc_id`.
 
@@ -326,7 +322,7 @@ node felo-superAgent/scripts/run_superagent.mjs \
   --query "Help me write a tweet about AI trends" \
   --live-doc-id "QPetunwpGnkKuZHStP7gwt" \
   --skill-id twitter-writer \
-  --accept-language en --timeout 3600
+  --accept-language en
 ```
 **Step 6:** Answer already streamed. Extract new `thread_short_id` from stderr `[state]` line, keep same `live_doc_id`.
 
@@ -340,8 +336,7 @@ User: "Make it more casual and add some emojis"
 node felo-superAgent/scripts/run_superagent.mjs \
   --query "Make it more casual and add some emojis" \
   --thread-id "NEW_THREAD_FROM_TWEET" \
-  --live-doc-id "QPetunwpGnkKuZHStP7gwt" \
-  --timeout 3600
+  --live-doc-id "QPetunwpGnkKuZHStP7gwt"
 ```
 
 ### Example C: Logo Design
@@ -357,7 +352,7 @@ node felo-superAgent/scripts/run_superagent.mjs \
   --query "Design a logo for my coffee shop called Bean & Brew" \
   --live-doc-id "QPetunwpGnkKuZHStP7gwt" \
   --skill-id logo-and-branding \
-  --accept-language en --timeout 3600
+  --accept-language en
 ```
 
 ### Example D: E-commerce Product Image
@@ -373,7 +368,7 @@ node felo-superAgent/scripts/run_superagent.mjs \
   --query "Generate a product image for a wireless headphone on white background" \
   --live-doc-id "QPetunwpGnkKuZHStP7gwt" \
   --skill-id ecommerce-product-image \
-  --accept-language en --timeout 3600
+  --accept-language en
 ```
 
 ### Example E: User Requests a New Canvas
@@ -394,7 +389,6 @@ Extract new `live_doc_id`. Discard the old one. All subsequent calls use the new
 - `--query <text>` (REQUIRED) — User question, 1-2000 characters
 - `--live-doc-id <id>` (REQUIRED for new conversations) — LiveDoc ID (`live_doc_id`) to associate with
 - `--thread-id <id>` — Thread ID from previous response, for follow-up conversations
-- `--timeout <seconds>` — Request/stream timeout, default 3600 seconds
 
 **Skill parameters (new conversations only, ignored in follow-up):**
 - `--skill-id <id>` — Skill ID (see Constraint #8 for available skill IDs)
@@ -505,9 +499,8 @@ To use this skill, you need to set up your Felo API Key:
 
 ### Timeout Handling
 
-- Default timeout: 3600 seconds (recommended for all SuperAgent calls due to SSE streaming)
-- Idle timeout: 2 hours (no data received)
-- **Bash tool timeout:** MUST be set to at least 600000ms (10 minutes) when executing the script
+- The SSE stream has its own idle timeout: 2 hours (no data received). The stream stays open as long as data keeps flowing.
+- **Bash tool timeout:** MUST be set to at least 600000ms (10 minutes) when executing the script, because the SSE stream can run for a long time.
 
 ## Important Notes
 

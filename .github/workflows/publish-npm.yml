@@ -21,6 +21,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Sync package.json version from tag
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          echo "Tag ref: $GITHUB_REF"
+          echo "Tag name: $GITHUB_REF_NAME"
+          echo "Setting package.json version to: $VERSION"
+          npm version "$VERSION" --no-git-tag-version
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
