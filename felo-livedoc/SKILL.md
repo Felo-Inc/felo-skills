@@ -88,6 +88,8 @@ node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs add-doc SHORT_ID --ti
 node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs add-urls SHORT_ID --urls "https://example.com,https://example.org"
 ```
 
+Each URL can also be passed as a `url:title` pair using the `--url-titles` option, or by providing a JSON array. The API accepts both plain strings and `{"url": "...", "title": "..."}` objects — the script passes them through as-is when using `--json` mode. To add URLs with custom titles, use the JSON flag and construct the body manually, or rely on the auto-title from the page.
+
 **Upload a file:**
 ```bash
 node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs upload SHORT_ID --file ./document.pdf
@@ -125,6 +127,25 @@ node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs retrieve SHORT_ID --q
 **Search within specific resources:**
 ```bash
 node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs retrieve SHORT_ID --query "your search query" --resource-ids "id1,id2,id3"
+```
+
+### Resource File & Content
+
+**Download resource source file (get presigned URL):**
+```bash
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs download SHORT_ID RESOURCE_ID
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs download SHORT_ID RESOURCE_ID --expires-in 7200
+```
+
+**Get extracted text content of a resource:**
+```bash
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs content SHORT_ID RESOURCE_ID
+```
+
+**PPT page deep retrieval:**
+```bash
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs ppt-retrieve SHORT_ID --resource-id RESOURCE_ID --page-number 3 --query "pricing information"
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs ppt-retrieve SHORT_ID --resource-id RESOURCE_ID --page-number 3 --query "pricing information" --max-chunk 5
 ```
 ### Options
 
