@@ -7,40 +7,86 @@ description: Research and compare Apple products to help decide if they're worth
 
 Research Apple products and produce a structured buying recommendation based on official specs, professional reviews, and real user feedback.
 
+**Language:** Detect the user's input language and respond entirely in that language. If the user writes in Chinese, respond in Chinese. If in English, respond in English. Apply this to all sections of the report.
+
 ## Steps to Execute
 
 ### 1. Fetch Official Specs
+
 Use `felo-web-fetch` to get current specs and pricing from Apple.com:
+
 - Mac: `https://www.apple.com/mac/compare/`
 - iPhone: `https://www.apple.com/iphone/compare/`
 - iPad: `https://www.apple.com/ipad/compare/`
 - Apple Watch: `https://www.apple.com/watch/compare/`
 - AirPods: `https://www.apple.com/airpods/compare/`
 
-### 2. Search User Opinions
-Gather real user experiences from multiple community sources:
+Parse the page to extract: model names, processor, RAM, storage options, battery life, display specs, and pricing. Also fetch the product's dedicated page (e.g. `https://www.apple.com/iphone-16-pro/`) for full spec details.
 
-**X (Twitter)** — Use `felo-x-search`:
+### 2. Search Personal User Reviews
+
+Gather real individual user experiences — **not press or media**. These sources must be personal opinions from real users.
+
+**X (Twitter)** — Use `felo-x-search` (3 queries):
+
 - `"[product]" review experience`
 - `"[product]" worth buying`
 - `"[product]" problem issue`
 
-**Reddit & Forums** — Use `felo-search`:
-- `site:reddit.com/r/apple [product] review`
-- `site:reddit.com/r/[product] experience`
-- `site:forums.macrumors.com [product] review`
-- `site:apple.stackexchange.com [product]`
-- `site:news.ycombinator.com [product]`
+**Reddit & Community Forums** — Use `felo-search` (run as separate queries):
 
-### 3. Research Professional Reviews
-Use `felo-search` with site-specific queries:
+- `site:reddit.com "[product]" review`
+- `site:reddit.com "[product]" experience`
+- `site:forums.macrumors.com "[product]" review`
+- `site:apple.stackexchange.com "[product]"`
+- `site:news.ycombinator.com "[product]"`
 
-**Apple-focused:** `site:9to5mac.com [product] review`, `site:macrumors.com [product] review`
-**Tech media:** `site:theverge.com [product] review`, `site:cnet.com [product] review`
-**Technical:** `site:anandtech.com [product] benchmark`
-**Regional:** `site:sspai.com [product] 评测`, `site:ifanr.com [product] 评测`
+> **Source filter:** Only extract content written by individual users (posts, comments, threads). Discard any results that are articles from media outlets or press publications.
 
-### 4. Produce Report
+### 3. Search Professional Reviews
+
+Use `felo-search` to find structured reviews from tech media and professional publications — **not user posts**.
+
+**Apple-focused media:**
+
+- `site:9to5mac.com "[product]" review`
+- `site:macrumors.com "[product]" review`
+
+**Mainstream tech media:**
+
+- `site:theverge.com "[product]" review`
+- `site:cnet.com "[product]" review`
+
+**Technical/benchmark:**
+
+- `site:anandtech.com "[product]" benchmark`
+
+**Chinese tech media:**
+
+- `site:sspai.com "[product]" 评测`
+- `site:ifanr.com "[product]" 评测`
+
+> **Source filter:** Only extract content from editorial staff or professional reviewers. Discard user comments or forum posts found on these sites.
+
+### 4. Generate User Feedback Section (from Steps 2 sources only)
+
+Using **only** data from Step 2 (X, Reddit, MacRumors forums, Stack Exchange, HN):
+
+- Extract recurring themes from individual user posts and comments
+- Group by sentiment: praise vs. complaints
+- Quote specific user language where possible
+- Apply frequency indicators based on how often a theme appears across sources
+- Attribute each point to its source platform
+
+### 5. Generate Professional Review Section (from Step 3 sources only)
+
+Using **only** data from Step 3 (9to5Mac, The Verge, CNET, AnandTech, sspai, etc.):
+
+- Summarize each publication's key findings
+- Note where professional assessments agree or diverge
+- Highlight benchmark data or lab-tested metrics separately from subjective opinions
+
+### 6. Produce Report
 
 ```
 ## [Product Name] — Worth Buying?
@@ -49,6 +95,7 @@ Use `felo-search` with site-specific queries:
 [One sentence: where this product sits in Apple's lineup]
 
 ### Specs Comparison
+(Data source: Apple.com — Step 1)
 | Spec | This Product | Previous Gen | Competitor |
 |------|---|---|---|
 | Processor | ... | ... | ... |
@@ -57,34 +104,31 @@ Use `felo-search` with site-specific queries:
 | Price | ... | ... | ... |
 
 ### Real User Feedback
+(Data source: X, Reddit, MacRumors forums, Stack Exchange, HN — Step 2 only)
 
 **Common Praise:**
-- [Theme]: [Quote or summary from X/Reddit/forums]
-- [Theme]: [Quote or summary from X/Reddit/forums]
+- [Theme]: [Specific quote or paraphrase — source: X / Reddit r/apple / MacRumors forums]
 
 **Common Complaints:**
-- [Theme]: [Quote or summary from X/Reddit/forums]
-- [Theme]: [Quote or summary from X/Reddit/forums]
+- [Theme]: [Specific quote or paraphrase — source: X / Reddit r/[product] / HN]
 
 **Community Consensus:**
-[1-2 sentences synthesizing overall sentiment]
+[1-2 sentences synthesizing overall user sentiment, based on frequency across sources]
 
 ### Professional Review Summary
+(Data source: 9to5Mac, The Verge, CNET, AnandTech, sspai, ifanr — Step 3 only)
 
-**Key Takeaways:**
-- [Apple-focused perspective]
-- [Tech media perspective]
-- [Technical perspective]
+- **[Publication name]:** [Key finding or verdict]
+- **[Publication name]:** [Key finding or verdict]
+- **[Publication name]:** [Benchmark result or lab-tested metric]
+
+**Where pros agree:** [Common conclusion across publications]
+**Where pros diverge:** [Any notable disagreements, e.g. battery life estimates]
 
 ### Buying Recommendation
 
-**You should buy if:**
-- [Specific use case or need]
-- [Specific use case or need]
-
-**You should NOT buy if:**
-- [Specific use case or concern]
-- [Specific use case or concern]
+**Buy if:** [specific use case]
+**Skip if:** [specific concern]
 
 **Overall Rating:** ⭐⭐⭐⭐☆ (4/5)
 
@@ -93,255 +137,92 @@ Use `felo-search` with site-specific queries:
 
 ## Key Principles
 
-- **Always use fresh data** — Never rely on training knowledge for specs or prices
-- **Multiple sources** — Combine personal reviews (X, Reddit, forums) and professional reviews
-- **Personal reviews first** — Real user experiences are most relatable
+- **Fresh data only** — Never rely on training knowledge for specs or prices
+- **Personal reviews first** — Show community feedback before professional reviews
 - **Source attribution** — Always cite where feedback comes from
 - **Frequency matters** — "Many users report..." vs "One user mentioned..."
-- **Balanced perspective** — Include both positive and negative feedback
-- **User-focused** — Tailor recommendations to their specific needs
+- **Balanced** — Include both praise and complaints
+- **User-focused** — Tailor to their specific needs
 
-## Trusted Review Sites
+## Trusted Sources
 
-**Personal Reviews (Community):**
-- X/Twitter: Real-time user reactions
-- Reddit: r/apple, r/[product], detailed discussions
-- MacRumors Forums: Long-form Apple enthusiast feedback
-- Apple Stack Exchange: Technical Q&A
-- Hacker News: Tech-savvy perspectives
+**Community (personal reviews):**
 
-**Professional Reviews:**
-- Apple-focused: MacRumors, 9to5Mac, Macworld, iMore
+- X/Twitter: Real-time reactions
+- Reddit: r/apple, r/[product]
+- MacRumors Forums: enthusiast depth
+- Apple Stack Exchange: technical Q&A
+
+**Professional reviews:**
+
+- Apple-focused: 9to5Mac, MacRumors, Macworld, iMore
 - Tech media: The Verge, CNET, Tom's Guide, Engadget
 - Technical: AnandTech, Wired
-- Chinese: sspai.com, ifanr.com
 
 ## Display Strategy for Personal Reviews
 
-### Extraction & Organization
 1. **Extract themes** from X, Reddit, forums, Stack Exchange
-2. **Group by sentiment** (praise vs complaints)
-3. **Include specific quotes** to show real user voices
-4. **Highlight frequency** — mention if complaint appears across multiple sources
-5. **Note source diversity** — show feedback comes from different communities
+2. **Group by sentiment** — praise vs complaints
+3. **Quote specifically** — "Battery lasts 8-10 hours" beats "battery is good"
+4. **Show frequency** — note if an issue appears across multiple sources
+5. **Attribute sources** — "(Reddit, MacRumors forums)"
 
-### Presentation Order
-1. **Personal Reviews First** — Real user experiences are most relatable
-2. **Professional Reviews Second** — Expert analysis and benchmarks
+Frequency language:
 
-### Quality Indicators
-- ✅ Multiple sources (X, Reddit, forums, Stack Exchange)
-- ✅ Specific examples and quotes from real users
-- ✅ Both positive and negative perspectives
-- ✅ Frequency indicators ("Many users report...", "Some users experienced...")
-- ✅ Source attribution for each piece of feedback
+- "Many users report..." (50%+)
+- "Some users report..." (20–50%)
+- "A few users report..." (5–20%)
+- "One user mentioned..." (<5%)
 
-## Common Pitfalls
+## Product Category Focus
 
-- ❌ Using single source or outdated reviews
-- ❌ Ignoring user feedback
-- ❌ Not considering user's use case
-- ❌ Assuming newer always means better
-- ❌ Overlooking trade-offs
-- ❌ Presenting personal reviews without source attribution
-- ❌ Over-weighting edge cases or isolated complaints
-
-## Implementation Checklist
-
-Before delivering your recommendation, verify:
-
-- [ ] **Specs**: Fetched current specs from Apple.com (not from memory)
-- [ ] **Personal Reviews**: Gathered from at least 3 different community sources
-- [ ] **Professional Reviews**: Collected from at least 3 different publication types
-- [ ] **Theme Extraction**: Identified recurring themes across sources
-- [ ] **Source Attribution**: Every piece of feedback is attributed to its source
-- [ ] **Balance**: Included both positive and negative perspectives
-- [ ] **Context**: Explained who each recommendation is best for
-- [ ] **Clarity**: Provided a clear, direct answer to the user's question
-
-## Search Query Templates
-
-### For Personal Reviews
-- `"[product name]" review experience`
-- `"[product name]" worth buying 2025`
-- `"[product name]" problems issues`
-- `"[product name]" vs [competitor]`
-- `"[product name]" battery life real world`
-- `"[product name]" long term reliability`
-
-### For Professional Reviews
-- `site:[publication].com [product name] review`
-- `site:[publication].com [product name] benchmark`
-- `site:[publication].com [product name] verdict`
-
-## Tips for Better Recommendations
-
-1. **Lead with personal reviews** — Users relate more to real experiences than specs
-2. **Use specific quotes** — "Battery lasts 8-10 hours" is better than "good battery"
-3. **Mention frequency** — "Many users report..." vs "One user mentioned..."
-4. **Provide context** — "Thermal throttling mainly affects sustained gaming"
-5. **Consider the asker** — Tailor recommendation to their specific needs
-6. **Be honest about trade-offs** — No product is perfect for everyone
-7. **Update regularly** — Check for new reviews and user feedback
-
-## Handling Different Product Categories
-
-### Mac
-- Focus on: Performance, thermal management, software compatibility
-- Common concerns: Thermal throttling, RAM/storage upgrades, port selection
-
-### iPhone
-- Focus on: Camera quality, battery life, durability, 5G performance
-- Common concerns: Battery degradation, thermal issues
-
-### iPad
-- Focus on: Display quality, performance, stylus support
-- Common concerns: Software limitations, thermal throttling
-
-### Apple Watch
-- Focus on: Battery life, fitness tracking accuracy, health features
-- Common concerns: Battery life claims vs reality, durability
-
-### AirPods
-- Focus on: Sound quality, noise cancellation, battery life
-- Common concerns: Fit/comfort, durability, repairability
+| Product     | Key Focus                            | Common Concerns                       |
+| ----------- | ------------------------------------ | ------------------------------------- |
+| Mac         | Performance, thermals, compatibility | Throttling, RAM/storage limits, ports |
+| iPhone      | Camera, battery, durability          | Battery degradation, heat             |
+| iPad        | Display, stylus, keyboard            | Software limits, value vs MacBook     |
+| Apple Watch | Battery, health tracking             | Battery claims vs reality             |
+| AirPods     | Sound, ANC, battery                  | Fit, durability, repairability        |
 
 ## Common User Questions
 
-### "Is it worth the upgrade?"
-- Compare specs and performance gains
-- Mention user feedback on whether improvements justify the cost
-- Suggest who should upgrade vs who should wait
+**"Worth the upgrade?"** — Compare gains, cite user feedback on value, suggest who should/shouldn't upgrade.
 
-### "Should I buy now or wait?"
-- Check for upcoming releases or announcements
-- Consider current pricing and deals
-- Mention if current gen is mature or has known issues
+**"Buy now or wait?"** — Check upcoming releases, current deals, known issues with current gen.
 
-### "How does it compare to [competitor]?"
-- Create side-by-side comparison table
-- Highlight strengths and weaknesses of each
-- Include user feedback on both products
+**"vs [competitor]?"** — Side-by-side table, user feedback on both, ecosystem considerations.
 
-### "Is it reliable/durable?"
-- Search for long-term reliability reports
-- Check for common failure modes
-- Include user experiences with durability
+**"Reliable/durable?"** — Search long-term reports, failure modes, user durability experiences.
 
-### "Is it good for [specific use case]?"
-- Tailor recommendation to their specific needs
-- Highlight relevant specs and features
-- Include feedback from users with similar use cases
-
-## Frequency Indicators
-
-- "Many users report..." (widespread, 50%+)
-- "Some users report..." (common, 20-50%)
-- "A few users report..." (uncommon, 5-20%)
-- "One user mentioned..." (rare, <5%)
-- "Multiple sources report..." (verified across sources)
-
-## Handling Conflicting Information
-
-When sources disagree:
-
-1. **Identify the disagreement**: What specifically are they disagreeing about?
-2. **Understand the context**: What's the reviewer's use case or testing methodology?
-3. **Look for patterns**: Do multiple sources agree on one side?
-4. **Present both sides**: "Some users report X, while others report Y"
-5. **Provide context**: "This depends on [specific factor]"
-
-## Source Credibility Assessment
-
-### Personal Review Credibility
-- **Verified purchase**: Has user actually bought the product?
-- **Experience level**: Is user experienced with similar products?
-- **Specificity**: Does review provide concrete details or vague statements?
-- **Recency**: Is review from recent experience or outdated?
-- **Consistency**: Does review align with other similar reviews?
-
-### Professional Review Credibility
-- **Methodology**: Do they explain testing process?
-- **Benchmarks**: Do they use standardized tests?
-- **Transparency**: Do they disclose conflicts of interest?
-- **Depth**: Do they cover all important aspects?
-- **Consistency**: Do their conclusions align with other reviewers?
-
-## Identifying Emerging Issues
-
-Watch for patterns that indicate emerging problems:
-- **Multiple reports of same issue**: Indicates widespread problem
-- **Increasing frequency over time**: Indicates issue is getting worse
-- **Specific trigger conditions**: Indicates edge case or specific scenario
-- **Workarounds mentioned**: Indicates known issue with solutions
+**"Good for [use case]?"** — Find users with same use case, highlight relevant specs and limitations.
 
 ## Handling Edge Cases
 
-### New Product (< 1 month old)
-- Limited long-term reliability data
-- Focus on early adopter feedback
-- Compare to previous generation
-- Mention that long-term reliability unknown
+**New product (<1 month):** Limited data — focus on early adopters, compare to previous gen, flag unknown long-term reliability.
 
-### Mature Product (> 1 year old)
-- Abundant long-term reliability data
-- Look for retrospective reviews
-- Check for known issues and solutions
-- Consider upcoming replacements
+**Mature product (>1 year):** Rich data — look for retrospective reviews, known issues, upcoming replacements.
 
-### Discontinued Product
-- Limited current availability
-- Focus on retrospective reviews
-- Compare to current alternatives
-- Mention support and repair considerations
+**Discontinued:** Focus on retrospectives, compare to current alternatives, note support/repair considerations.
 
-## Best Practices
+**Conflicting sources:** Identify what they disagree on, look for patterns, present both sides with context (e.g. "Pro reviews show 12h; real-world Reddit reports 8–10h under typical load").
 
-### Do's ✅
-- Always fetch fresh specs from Apple.com
-- Search multiple community sources for personal reviews
-- Include both positive and negative feedback
-- Attribute every piece of information to its source
-- Distinguish between widespread issues and edge cases
-- Tailor recommendations to user's specific needs
-- Mention relevant alternatives
-- Be transparent about limitations
+## Checklist Before Delivery
 
-### Don'ts ❌
-- Don't rely on training knowledge for specs or prices
-- Don't use single source for recommendations
-- Don't ignore negative feedback
-- Don't assume newer always means better
-- Don't present opinions as facts
-- Don't overlook trade-offs
-- Don't mix verified information with speculation
-- Don't over-weight isolated complaints
-
-## Final Checklist Before Delivery
-
-- [ ] All specs verified from Apple.com (current, not from memory)
-- [ ] Personal reviews from at least 3 different sources
-- [ ] Professional reviews from at least 3 different publications
-- [ ] Themes extracted and organized by sentiment
-- [ ] Source attribution for every piece of feedback
-- [ ] Both positive and negative perspectives included
+- [ ] Step 1: Specs fetched from Apple.com (not from memory)
+- [ ] Step 2: Personal user reviews collected from X + 3+ community forum sources
+- [ ] Step 3: Professional reviews collected from 3+ media publications
+- [ ] Step 4: User feedback section built exclusively from Step 2 sources — no media mixed in
+- [ ] Step 5: Professional review section built exclusively from Step 3 sources — no user posts mixed in
+- [ ] Recurring themes identified and grouped by sentiment
+- [ ] Every claim attributed to its source
 - [ ] Frequency indicators used appropriately
-- [ ] User's specific needs considered
-- [ ] Alternatives mentioned if relevant
-- [ ] Clear, direct answer to user's question
-- [ ] Recommendation is balanced and fair
-- [ ] No speculation presented as fact
-- [ ] All information is current and relevant
+- [ ] User's specific needs addressed
+- [ ] Clear, direct answer to their question
 
-## Key Success Factors
+## Do's and Don'ts
 
-1. **Fresh data always** — Never use training knowledge for specs/prices
-2. **Multiple sources** — Minimum 3 personal + 3 professional sources
-3. **Personal first** — Real experiences are most relatable
-4. **Source attribution** — Every claim needs a source
-5. **Frequency matters** — Distinguish widespread vs isolated issues
-6. **User-focused** — Tailor to their specific needs and use case
-7. **Balanced** — Include both pros and cons
-8. **Clear answer** — Direct, actionable recommendation
-
-By following this guide, you'll help users make informed decisions about Apple products that align with their needs, budget, and use cases.
+✅ Always fetch fresh specs | ❌ Never use training knowledge for specs/prices
+✅ Multiple sources | ❌ Never rely on a single source
+✅ Cite sources | ❌ Never present opinions as facts
+✅ Show both sides | ❌ Never ignore negative feedback
+✅ Mention alternatives | ❌ Never over-weight isolated complaints
