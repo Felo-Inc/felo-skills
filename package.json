@@ -36,6 +36,6 @@
   },
   "scripts": {
     "test": "node --test tests/",
-    "publish": "npm publish"
+    "publish:local": "npm publish"
   }
 }
