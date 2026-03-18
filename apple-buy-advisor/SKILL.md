@@ -13,17 +13,26 @@ Research Apple products and produce a structured buying recommendation based on 
 
 ### 1. Fetch Official Specs
 
-Use `felo-web-fetch` to get current specs and pricing from Apple.com:
+Use `felo-web-fetch` in two steps:
 
+**Step 1a — Get model names from compare page** (to identify which models exist):
 - Mac: `https://www.apple.com/mac/compare/`
 - iPhone: `https://www.apple.com/iphone/compare/`
 - iPad: `https://www.apple.com/ipad/compare/`
 - Apple Watch: `https://www.apple.com/watch/compare/`
 - AirPods: `https://www.apple.com/airpods/compare/`
 
-Parse the page to extract: model names, processor, RAM, storage options, battery life, display specs, and pricing. Also fetch the product's dedicated page (e.g. `https://www.apple.com/iphone-16-pro/specs`) for full spec details.
+Use this page only to identify the current model lineup. Do not extract specs from here.
 
-> **Validation:** If the page fails to load or returns incomplete data, do NOT fall back to training knowledge. Instead, explicitly state: "Unable to fetch current specs from Apple.com — specs may be inaccurate." Never silently substitute remembered values for live data.
+**Step 1b — Get full specs from the product specs page** (required for all spec values):
+- `https://www.apple.com/[product-model]/specs/`
+- Example: `https://www.apple.com/iphone-17e/specs/`, `https://www.apple.com/macbook-pro/specs/`
+
+Extract all specs exclusively from this page: processor, RAM, storage options (starting capacity), battery life, display specs, and pricing.
+
+> **CRITICAL:** Storage, RAM, and all other specs must come from the `/specs/` page only. Never use the compare page or training knowledge for spec values. If the specs page fails to load, explicitly state: "Unable to fetch current specs from Apple.com — specs may be inaccurate." Do not silently substitute any remembered values.
+
+> **REQUIRED FIELDS for Mac / iPad / iPhone:** RAM (unified memory / memory) is a mandatory spec. It must always appear in the Specs Comparison table. If the `/specs/` page does not list RAM explicitly, state "RAM: not listed on specs page" — never omit the field or leave it blank.
 
 ### 2. Search Personal User Reviews & Professional Reviews (run in parallel)
 
@@ -184,6 +193,7 @@ Frequency language:
 ## Checklist Before Delivery
 
 - [ ] Step 1: Specs fetched from Apple.com specs page (not from memory)
+- [ ] Step 1: RAM field included in Specs Comparison table for Mac / iPad / iPhone (mandatory)
 - [ ] Step 2: Personal user reviews collected from X + Reddit + forums (parallel queries)
 - [ ] Step 2: Professional reviews collected from 3+ media publications (parallel queries)
 - [ ] Step 3: User feedback section built exclusively from personal sources — no media mixed in
