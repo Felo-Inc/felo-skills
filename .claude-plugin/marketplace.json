@@ -1,0 +1,85 @@
+{
+  "name": "felo-ai",
+  "owner": {
+    "name": "Felo-Inc",
+    "url": "https://github.com/Felo-Inc"
+  },
+  "metadata": {
+    "description": "Felo AI skills for Claude Code — real-time search, PPT generation, SuperAgent, LiveDoc knowledge base, web fetch, YouTube subtitles, and X (Twitter) search",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "felo-search",
+      "description": "Real-time web search powered by Felo AI",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./felo-search"
+      ]
+    },
+    {
+      "name": "felo-livedoc",
+      "description": "Manage knowledge bases (LiveDocs) and semantic retrieval via Felo API",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./felo-livedoc"
+      ]
+    },
+    {
+      "name": "felo-slides",
+      "description": "Generate PPT presentations from a prompt using Felo AI",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./felo-slides"
+      ]
+    },
+    {
+      "name": "felo-superAgent",
+      "description": "SuperAgent conversation with SSE streaming and LiveDoc integration",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./felo-superAgent"
+      ]
+    },
+    {
+      "name": "felo-web-fetch",
+      "description": "Fetch and extract webpage content in markdown, text, or HTML format",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./felo-web-fetch"
+      ]
+    },
+    {
+      "name": "felo-youtube-subtitling",
+      "description": "Fetch YouTube video subtitles and captions by URL or video ID",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./felo-youtube-subtitling"
+      ]
+    },
+    {
+      "name": "felo-x-search",
+      "description": "Search X (Twitter) tweets, users, and replies via Felo API",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./felo-x-search"
+      ]
+    },
+    {
+      "name": "felo-content-to-slides",
+      "description": "Fetch content from a webpage or YouTube video and generate a PPT",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./felo-content-to-slides"
+      ]
+    }
+  ]
+}
