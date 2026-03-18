@@ -8,6 +8,7 @@ const SPINNER_INTERVAL_MS = 80;
 const STATUS_PAD = 56;
 
 function startSpinner(message) {
+  if (!process.stderr.isTTY) return null;
   const start = Date.now();
   let i = 0;
   const id = setInterval(() => {
@@ -21,7 +22,7 @@ function startSpinner(message) {
 
 function stopSpinner(id) {
   if (id != null) clearInterval(id);
-  process.stderr.write(`\r${' '.repeat(STATUS_PAD)}\r`);
+  if (process.stderr.isTTY) process.stderr.write(`\r${' '.repeat(STATUS_PAD)}\r`);
 }
 
 async function getApiBase() {
