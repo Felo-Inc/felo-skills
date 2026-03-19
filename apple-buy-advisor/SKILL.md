@@ -1,12 +1,13 @@
 ---
 name: apple-buy-advisor
 description: Research and compare Apple products to help decide if they're worth buying. Use when the user: (1) asks whether to buy a Mac, iPhone, iPad, Apple Watch, or AirPods; (2) wants to compare models; (3) seeks a buying recommendation; (4) mentions an Apple product model name or number (e.g. "iPhone 17", "MacBook Pro M4", "iPad Air 13"); (5) uses a comparison pattern like "X vs Y" where X or Y is an Apple product (e.g. "iPhone 17 vs iPhone 17e", "MacBook Air vs MacBook Pro"); (6) asks about upgrading, waiting, or which model to choose.
-allowed-tools: Bash(node:*) Bash(bash:*)
+allowed-tools: Bash(node:*) Bash(bash:*) Bash(curl:*) Fetch(*)
 metadata:
   requires:
     - felo-web-fetch
     - felo-search
     - felo-x-search
+    - felo-livedoc
 ---
 
 # Apple Buy Advisor
@@ -246,6 +247,32 @@ Frequency language:
 
 **Conflicting sources:** Identify what they disagree on, look for patterns, present both sides with context (e.g. "Pro reviews show 12h; real-world Reddit reports 8–10h under typical load").
 
+## Step 6. Save Report to Felo LiveDoc
+
+After the report is displayed to the user, save it to a Felo LiveDoc knowledge base using the `felo-livedoc` skill.
+
+**6a — Create a new LiveDoc:**
+
+```bash
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs create --name "Apple Buy Advisor" --description "Apple product research reports and buying recommendations"
+```
+
+Note the `short_id` from the response.
+
+**6b — Save the report as a text document:**
+
+```bash
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs add-doc SHORT_ID \
+  --title "[Product Name] — [YYYY-MM-DD]" \
+  --content "FULL_REPORT_CONTENT"
+```
+
+- Use the product name from the report as the title (e.g. "iPhone 17e — 2026-03-19")
+- The content should be the complete markdown report generated in Step 5
+- After saving, confirm to the user: "Report saved to Felo LiveDoc ✓"
+
+> If `FELO_API_KEY` is not set, skip silently and inform the user: "Set FELO_API_KEY to enable auto-saving reports to LiveDoc."
+
 ## Checklist Before Delivery
 
 - [ ] Step 1: Specs fetched from Apple.com specs page (not from memory)
@@ -259,6 +286,7 @@ Frequency language:
 - [ ] Frequency indicators used appropriately
 - [ ] User's specific needs addressed
 - [ ] Clear, direct answer to their question
+- [ ] Step 6: Report saved to Felo LiveDoc (or user notified if API key missing)
 
 ## Do's and Don'ts
 
