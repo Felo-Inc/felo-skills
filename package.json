@@ -1,7 +1,7 @@
 {
   "name": "felo-ai",
-  "version": "0.2.11",
-  "description": "Felo AI CLI - real-time search, PPT generation, web fetch, and YouTube subtitles from the terminal",
+  "version": "0.2.29",
+  "description": "Felo AI CLI - real-time search, PPT generation, SuperAgent conversation, LiveDoc management, web fetch, YouTube subtitles, LiveDoc knowledge base, and X (Twitter) search from the terminal",
   "type": "module",
   "main": "src/cli.js",
   "bin": {
@@ -15,10 +15,14 @@
     "felo-ai",
     "search",
     "slides",
+    "superagent",
+    "livedoc",
     "web-fetch",
     "youtube-subtitles",
     "x-search",
     "twitter",
+    "livedoc",
+    "knowledge-base",
     "cli",
     "ai"
   ],
@@ -28,10 +32,10 @@
     "url": "git+https://github.com/Felo-Inc/felo-skills.git"
   },
   "dependencies": {
-    "commander": "^12.0.0",
-    "felo-search": "^0.1.1"
+    "commander": "^12.0.0"
   },
   "scripts": {
-    "test": "node --test tests/"
+    "test": "node --test tests/",
+    "publish:local": "npm publish"
   }
 }

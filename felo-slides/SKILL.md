@@ -75,9 +75,22 @@ node felo-slides/scripts/run_ppt_task.mjs \
   --timeout 60
 ```
 
+To apply a specific theme, first list available themes with `felo ppt-themes`, then pass the theme ID:
+
+```bash
+node felo-slides/scripts/run_ppt_task.mjs \
+  --query "USER_PROMPT_HERE" \
+  --theme "THEME_ID_HERE" \
+  --interval 10 \
+  --max-wait 1800 \
+  --timeout 60
+```
+
 Script behavior:
 
 - Creates task via `POST https://openapi.felo.ai/v2/ppts`
+- Supports optional `--theme <id>` to apply a PPT theme (sends `ppt_config.ai_theme_id`)
+- Supports optional `--task-id <id>` to resume polling an existing task (skips creation)
 - Polls via `GET https://openapi.felo.ai/v2/tasks/{task_id}/historical`
 - Treats `COMPLETED`/`SUCCESS` as success terminal (case-insensitive)
 - Treats `FAILED`/`ERROR` as failure terminal
@@ -152,6 +165,14 @@ Timeout handling:
 
 - If timeout reached, return last known status and instruct user to retry later
 - Include `task_id` so user can query again
+- **IMPORTANT**: To resume a timed-out task, use `--task-id` instead of `--query` to avoid creating a duplicate PPT:
+
+```bash
+node felo-slides/scripts/run_ppt_task.mjs \
+  --task-id "TASK_ID_HERE" \
+  --interval 10 \
+  --max-wait 1800
+```
 
 ## Important Notes
 

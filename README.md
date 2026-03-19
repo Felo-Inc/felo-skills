@@ -46,14 +46,15 @@ $env:FELO_API_KEY="..."             # Windows (PowerShell)
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `felo search "<query>"` | Search for current info (weather, news, prices, etc.) |
-| `felo slides "<prompt>"` | Generate PPT; returns link when done |
-| `felo web-fetch --url <url>` | Fetch webpage content (markdown/text/html) |
-| `felo youtube-subtitling -v <url-or-id>` | Fetch YouTube video subtitles |
-| `felo x "<query>"` | Search X (Twitter) tweets, users, and replies |
-| `felo config <set\|get\|list\|path>` | Manage API key and config |
+| Command                                  | Description                                           |
+| ---------------------------------------- | ----------------------------------------------------- |
+| `felo search "<query>"`                  | Search for current info (weather, news, prices, etc.) |
+| `felo slides "<prompt>"`                 | Generate PPT; returns link when done                  |
+| `felo web-fetch --url <url>`             | Fetch webpage content (markdown/text/html)            |
+| `felo youtube-subtitling -v <url-or-id>` | Fetch YouTube video subtitles                         |
+| `felo x "<query>"`                       | Search X (Twitter) tweets, users, and replies         |
+| `felo livedoc <subcommand>`              | Manage LiveDocs (knowledge bases) and resources       |
+| `felo config <set\|get\|list\|path>`     | Manage API key and config                             |
 
 ---
 
@@ -98,6 +99,17 @@ felo x --id "elonmusk" --user --tweets              # Get user tweets
 felo x --id "1234567890"                            # Get tweet replies
 ```
 
+**LiveDoc (Knowledge Base)** — [full options →](./felo-livedoc/README.md)
+
+```bash
+felo livedoc create --name "My KB" --description "Project docs"
+felo livedoc list
+felo livedoc add-doc SHORT_ID --content "Hello" --title "Test"
+felo livedoc add-urls SHORT_ID --urls "https://example.com"
+felo livedoc upload SHORT_ID --file ./doc.pdf
+felo livedoc retrieve SHORT_ID --query "search query"
+```
+
 **[See 40+ more examples →](./docs/EXAMPLES.md)**
 
 ---
@@ -106,13 +118,14 @@ felo x --id "1234567890"                            # Get tweet replies
 
 5 skills across search, content generation, web scraping, and social media:
 
-| Skill | Description | Docs |
-|-------|-------------|------|
-| **felo-search** | Real-time web search with AI answers. Triggers automatically. | [→](./felo-search/) |
-| **felo-slides** | Generate PPT from a prompt | [→](./felo-slides/) |
-| **felo-web-fetch** | Fetch and extract webpage content | [→](./felo-web-fetch/) |
-| **felo-youtube-subtitling** | Fetch YouTube video subtitles | [→](./felo-youtube-subtitling/) |
-| **felo-x-search** | Search X (Twitter) tweets, users, replies | [→](./felo-x-search/SKILL.md) |
+| Skill                       | Description                                                   | Docs                            |
+| --------------------------- | ------------------------------------------------------------- | ------------------------------- |
+| **felo-search**             | Real-time web search with AI answers. Triggers automatically. | [→](./felo-search/)             |
+| **felo-slides**             | Generate PPT from a prompt                                    | [→](./felo-slides/)             |
+| **felo-web-fetch**          | Fetch and extract webpage content                             | [→](./felo-web-fetch/)          |
+| **felo-youtube-subtitling** | Fetch YouTube video subtitles                                 | [→](./felo-youtube-subtitling/) |
+| **felo-x-search**           | Search X (Twitter) tweets, users, replies                     | [→](./felo-x-search/SKILL.md)   |
+| **felo-livedoc**            | Manage knowledge bases and semantic retrieval                 | [→](./felo-livedoc/)            |
 
 ---
 
@@ -130,6 +143,7 @@ felo x --id "1234567890"                            # Get tweet replies
 /plugin install felo-web-fetch@felo-ai
 /plugin install felo-youtube-subtitling@felo-ai
 /plugin install felo-x-search@felo-ai
+/plugin install felo-livedoc@felo-ai
 ```
 
 ### ClawHub
@@ -142,6 +156,7 @@ clawhub install felo-slides
 clawhub install felo-web-fetch
 clawhub install felo-youtube-subtitling
 clawhub install felo-x-search
+clawhub install felo-livedoc
 ```
 
 ### Gemini CLI
@@ -199,6 +214,37 @@ cp -r felo-search ~/.claude/skills/
 We welcome contributions — report bugs, improve docs, or add new skills. Run tests with `npm test`.
 
 **[Contributing guide →](./CONTRIBUTING.md)**
+
+---
+
+## 发布到 npm（维护者）
+
+本仓库通过 GitHub Actions 自动发布到 npm，**不要手动在 CI 里改版本号或重复发布相同版本**。
+
+- **发布一个新版本**
+  1. 确保代码已推到 `main`（或你用来发布的分支）
+  2. 选择一个**尚未在 npm 上使用过的新版本号**（语义化版本号 `MAJOR.MINOR.PATCH`）
+  3. 在本地打 tag 并推送，例如：
+
+     ```bash
+     git tag v0.2.24
+     git push origin v0.2.24
+     ```
+
+  4. GitHub Actions 会在 `push tag v*` 时自动运行：
+     - 从 tag 名中取出版本号（`v0.2.24` → `0.2.24`）
+     - 将 `package.json` 中的 `"version"` 同步为该版本号
+     - 运行测试
+     - 执行 `npm publish --provenance --access public`
+
+- **版本号约定（建议）**
+  - **PATCH（补丁号）**：向下兼容的小修小补（bugfix、文档更新等），例如 `0.2.23` → `0.2.24`
+  - **MINOR（次版本号）**：向下兼容的新功能，例如新增子命令或新的 skill，`0.2.0` → `0.3.0`
+  - **MAJOR（主版本号）**：有破坏性改动时使用，例如 CLI 行为或配置不兼容旧版本，`0.x.x` → `1.0.0`
+
+- **注意事项**
+  - npm 不允许覆盖已发布的版本，**不要重复推送同一个版本号的 tag**（例如已经发布了 `0.2.23`，再次尝试发布会收到 403 错误）
+  - 如果某个已发布版本存在严重问题，可考虑通过 `npm deprecate` 标记为不推荐使用，而不是尝试覆盖它
 
 ---
 
