@@ -1,6 +1,12 @@
 ---
 name: apple-buy-advisor
 description: Research and compare Apple products to help decide if they're worth buying. Use when the user: (1) asks whether to buy a Mac, iPhone, iPad, Apple Watch, or AirPods; (2) wants to compare models; (3) seeks a buying recommendation; (4) mentions an Apple product model name or number (e.g. "iPhone 17", "MacBook Pro M4", "iPad Air 13"); (5) uses a comparison pattern like "X vs Y" where X or Y is an Apple product (e.g. "iPhone 17 vs iPhone 17e", "MacBook Air vs MacBook Pro"); (6) asks about upgrading, waiting, or which model to choose.
+allowed-tools: Bash(node:*) Bash(bash:*)
+metadata:
+  requires:
+    - felo-web-fetch
+    - felo-search
+    - felo-x-search
 ---
 
 # Apple Buy Advisor
@@ -10,6 +16,7 @@ Research Apple products and produce a structured buying recommendation based on 
 **Language:** Detect the user's input language and respond entirely in that language. If the user writes in Chinese, respond in Chinese. If in English, respond in English. Apply this to all sections of the report.
 
 **Input Detection:** This skill activates when the user:
+
 - Mentions an Apple product model by name or number (e.g. "iPhone 17", "M4 MacBook Pro", "Apple Watch Series 10")
 - Uses a comparison pattern: `[Model A] vs [Model B]` (e.g. "iPhone 17 vs iPhone 17e")
 - Asks about buying, upgrading, or choosing between Apple products
