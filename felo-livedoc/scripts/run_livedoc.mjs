@@ -177,7 +177,7 @@ function usage() {
     '  append-readme <short_id> Append to README (--content required)',
     '  delete-readme <short_id> Delete README',
     '  tasks <short_id>         List tasks (--status, --labels optional)',
-    '  create-task <short_id>   Create a task (--title, --status, --sort required)',
+    '  create-task <short_id>   Create a task (--title required; --status default 0, --sort default 0)',
     '  update-task <short_id> <task_id>  Partially update a task',
     '  delete-task <short_id> <task_id>  Delete a task',
     '  task-records <short_id> <task_id> List task records (comments + history)',
@@ -609,12 +609,12 @@ async function main() {
       case 'create-task': {
         if (!shortId) { console.error('ERROR: short_id is required'); break; }
         if (!args.title) { console.error('ERROR: --title is required'); break; }
-        if (args.status === '') { console.error('ERROR: --status is required'); break; }
-        if (args.sort === '') { console.error('ERROR: --sort is required'); break; }
         spinnerId = startSpinner('Creating task');
-        const body = { title: args.title, status: parseInt(args.status, 10), sort: parseInt(args.sort, 10) };
+        const status = (args.status !== '') ? parseInt(args.status, 10) : 0;
+        const sort = (args.sort !== '') ? parseInt(args.sort, 10) : 0;
+        const body = { title: args.title, status, sort };
         if (args.description) body.description = args.description;
-        if (args.labels) body.labels = args.labels.split(',').map(l => l.trim()).filter(Boolean);
+        body.labels = args.labels ? args.labels.split(',').map(l => l.trim()).filter(Boolean) : [];
         const payload = await apiRequest('POST', `/livedocs/${shortId}/tasks`, body, apiKey, apiBase, timeoutMs);
         if (json) { console.log(JSON.stringify(payload, null, 2)); }
         else { process.stdout.write('Task created!\n\n'); process.stdout.write(formatTask(payload?.data)); }
