@@ -700,17 +700,17 @@ export async function createTask(shortId, opts = {}) {
   if (!apiKey) { console.error(NO_KEY_MESSAGE.trim()); return 1; }
   if (!shortId) { process.stderr.write('ERROR: short_id is required.\n'); return 1; }
   if (!opts.title) { process.stderr.write('ERROR: --title is required.\n'); return 1; }
-  if (opts.status === undefined || opts.status === '') { process.stderr.write('ERROR: --status is required.\n'); return 1; }
-  if (opts.sort === undefined || opts.sort === '') { process.stderr.write('ERROR: --sort is required.\n'); return 1; }
 
   const apiBase = await getApiBase();
   const timeoutMs = opts.timeoutMs || DEFAULT_TIMEOUT_MS;
   const spinnerId = startSpinner('Creating task');
 
   try {
-    const body = { title: opts.title, status: parseInt(opts.status, 10), sort: parseInt(opts.sort, 10) };
+    const status = (opts.status !== undefined && opts.status !== '') ? parseInt(opts.status, 10) : 0;
+    const sort = (opts.sort !== undefined && opts.sort !== '') ? parseInt(opts.sort, 10) : 0;
+    const body = { title: opts.title, status, sort };
     if (opts.description) body.description = opts.description;
-    if (opts.labels) body.labels = opts.labels.split(',').map(l => l.trim()).filter(Boolean);
+    body.labels = opts.labels ? opts.labels.split(',').map(l => l.trim()).filter(Boolean) : [];
     const payload = await apiRequest('POST', `/livedocs/${shortId}/tasks`, body, apiKey, apiBase, timeoutMs);
     if (opts.json) { console.log(JSON.stringify(payload, null, 2)); return 0; }
     process.stdout.write('Task created!\n\n');
