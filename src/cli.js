@@ -674,6 +674,27 @@ livedocCmd
   });
 
 livedocCmd
+  .command("update-resource <short_id> <resource_id>")
+  .description("Update a resource's title, snippet, or thumbnail")
+  .option("--title <title>", "new resource title (max 500 characters)")
+  .option("--snippet <text>", "new resource summary (max 2000 characters)")
+  .option("--thumbnail <url>", "new thumbnail URL (max 2000 characters)")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (shortId, resourceId, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await livedoc.updateResource(shortId, resourceId, {
+      title: opts.title,
+      snippet: opts.snippet,
+      thumbnail: opts.thumbnail,
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+livedocCmd
   .command("retrieve <short_id>")
   .description("Semantic search across resources")
   .requiredOption("--query <query>", "search query")
@@ -759,6 +780,200 @@ livedocCmd
       pageNumber: opts.pageNumber,
       query: opts.query,
       maxChunk: opts.maxChunk,
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+// ── LiveDoc README ──
+
+livedocCmd
+  .command("get-readme <short_id>")
+  .description("Get the README of a LiveDoc")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (shortId, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await livedoc.getReadme(shortId, {
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+livedocCmd
+  .command("update-readme <short_id>")
+  .description("Create or replace the README of a LiveDoc")
+  .requiredOption("--content <text>", "README content (Markdown)")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (shortId, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await livedoc.upsertReadme(shortId, {
+      content: opts.content,
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+livedocCmd
+  .command("append-readme <short_id>")
+  .description("Append content to the README of a LiveDoc")
+  .requiredOption("--content <text>", "content to append (Markdown)")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (shortId, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await livedoc.appendReadme(shortId, {
+      content: opts.content,
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+livedocCmd
+  .command("delete-readme <short_id>")
+  .description("Delete the README of a LiveDoc")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (shortId, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await livedoc.deleteReadme(shortId, {
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+// ── LiveDoc Tasks ──
+
+livedocCmd
+  .command("tasks <short_id>")
+  .description("List tasks in a LiveDoc")
+  .option("--status <n>", "filter by status: 0=TODO, 1=IN_PROGRESS, 2=DONE")
+  .option("--labels <labels>", "filter by labels (comma-separated)")
+  .option("--page <n>", "page number")
+  .option("--size <n>", "page size")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (shortId, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await livedoc.listTasks(shortId, {
+      status: opts.status,
+      labels: opts.labels,
+      page: opts.page,
+      size: opts.size,
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+livedocCmd
+  .command("create-task <short_id>")
+  .description("Create a task in a LiveDoc")
+  .requiredOption("--title <title>", "task title")
+  .requiredOption("--status <n>", "task status: 0=TODO, 1=IN_PROGRESS, 2=DONE")
+  .requiredOption("--sort <n>", "sort order (non-negative integer)")
+  .option("--description <desc>", "task description")
+  .option("--labels <labels>", "comma-separated labels (max 10)")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (shortId, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await livedoc.createTask(shortId, {
+      title: opts.title,
+      status: opts.status,
+      sort: opts.sort,
+      description: opts.description,
+      labels: opts.labels,
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+livedocCmd
+  .command("update-task <short_id> <task_id>")
+  .description("Partially update a task (only provided fields are changed)")
+  .option("--title <title>", "new task title")
+  .option("--description <desc>", "new task description")
+  .option("--status <n>", "new status: 0=TODO, 1=IN_PROGRESS, 2=DONE")
+  .option("--sort <n>", "new sort order")
+  .option("--labels <labels>", "new comma-separated labels")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (shortId, taskId, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await livedoc.updateTask(shortId, taskId, {
+      title: opts.title,
+      description: opts.description,
+      status: opts.status,
+      sort: opts.sort,
+      labels: opts.labels,
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+livedocCmd
+  .command("delete-task <short_id> <task_id>")
+  .description("Delete a task")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (shortId, taskId, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await livedoc.deleteTask(shortId, taskId, {
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+livedocCmd
+  .command("task-records <short_id> <task_id>")
+  .description("List records (comments + change history) for a task")
+  .option("--record-type <type>", "filter by type: comment, edit, status_change")
+  .option("--page <n>", "page number")
+  .option("--size <n>", "page size")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (shortId, taskId, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await livedoc.listTaskRecords(shortId, taskId, {
+      recordType: opts.recordType,
+      page: opts.page,
+      size: opts.size,
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+livedocCmd
+  .command("add-task-comment <short_id> <task_id>")
+  .description("Add a comment to a task")
+  .requiredOption("--content <text>", "comment content")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (shortId, taskId, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await livedoc.createTaskComment(shortId, taskId, {
+      content: opts.content,
       json: opts.json,
       timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
     });

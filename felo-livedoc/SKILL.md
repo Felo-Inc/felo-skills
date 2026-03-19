@@ -14,10 +14,12 @@ Trigger this skill when users want to:
 - **Semantic retrieval:** Search across knowledge base resources using natural language queries
 - **Route resources:** Find relevant resource IDs by query for targeted retrieval
 - **Resource management:** List, view, or delete resources within a LiveDoc
+- **README management:** Get, create, update, append, or delete a LiveDoc's README
+- **Task management:** Create, update, delete tasks; add comments; view change history
 
 **Trigger words:**
-- English: knowledge base, livedoc, live doc, upload document, add URL, semantic search, retrieve, knowledge retrieval, route resources
-- 简体中文: 知识库, 文档库, 上传文档, 添加链接, 语义检索, 知识检索
+- English: knowledge base, livedoc, live doc, upload document, add URL, semantic search, retrieve, knowledge retrieval, route resources, readme, task, task management, comment
+- 简体中文: 知识库, 文档库, 上传文档, 添加链接, 语义检索, 知识检索, 任务, 任务管理, 评论
 
 **Explicit commands:** `/felo-livedoc`, "livedoc", "felo livedoc"
 
@@ -111,6 +113,12 @@ node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs resource SHORT_ID RES
 node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs remove-resource SHORT_ID RESOURCE_ID
 ```
 
+**Update a resource (title/snippet/thumbnail):**
+```bash
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs update-resource SHORT_ID RESOURCE_ID --title "New Title"
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs update-resource SHORT_ID RESOURCE_ID --snippet "New summary" --thumbnail "https://example.com/thumb.png"
+```
+
 ### Semantic Retrieval
 
 **Route relevant resources by query:**
@@ -146,6 +154,67 @@ node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs content SHORT_ID RESO
 ```bash
 node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs ppt-retrieve SHORT_ID --resource-id RESOURCE_ID --page-number 3 --query "pricing information"
 node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs ppt-retrieve SHORT_ID --resource-id RESOURCE_ID --page-number 3 --query "pricing information" --max-chunk 5
+```
+
+### README Management
+
+**Get README:**
+```bash
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs get-readme SHORT_ID
+```
+
+**Create or replace README:**
+```bash
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs update-readme SHORT_ID --content "# My KB\n\nThis is the README."
+```
+
+**Append to README:**
+```bash
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs append-readme SHORT_ID --content "\n\n## New Section\n\nAdditional content."
+```
+
+**Delete README:**
+```bash
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs delete-readme SHORT_ID
+```
+
+### Task Management
+
+**List tasks (with optional filters):**
+```bash
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs tasks SHORT_ID
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs tasks SHORT_ID --status 0
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs tasks SHORT_ID --labels "docs,priority-high"
+```
+
+**Create a task:**
+```bash
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs create-task SHORT_ID --title "Write docs" --status 0 --sort 0
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs create-task SHORT_ID --title "Write docs" --status 0 --sort 0 --description "API docs" --labels "docs"
+```
+
+Task status values: `0`=TODO, `1`=IN_PROGRESS, `2`=DONE
+
+**Update a task (partial update):**
+```bash
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs update-task SHORT_ID TASK_ID --status 1
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs update-task SHORT_ID TASK_ID --title "New title" --labels "docs,done"
+```
+
+**Delete a task:**
+```bash
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs delete-task SHORT_ID TASK_ID
+```
+
+**List task records (comments + change history):**
+```bash
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs task-records SHORT_ID TASK_ID
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs task-records SHORT_ID TASK_ID --record-type comment
+```
+
+**Add a comment to a task:**
+```bash
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs add-task-comment SHORT_ID TASK_ID --content "This is a comment."
 ```
 ### Options
 
@@ -194,6 +263,16 @@ The API returns JSON with this structure:
 - `LIVEDOC_RESOURCE_UPLOAD_FAILED` — File upload failed
 - `LIVEDOC_RESOURCE_ADD_URLS_FAILED` — URL addition failed
 - `LIVEDOC_RESOURCE_RETRIEVE_FAILED` — Semantic retrieval failed
+- `LIVEDOC_README_GET_FAILED` — Failed to get README
+- `LIVEDOC_README_UPDATE_FAILED` — Failed to create or update README
+- `LIVEDOC_README_DELETE_FAILED` — Failed to delete README
+- `LIVEDOC_TASK_LIST_FAILED` — Failed to list tasks
+- `LIVEDOC_TASK_CREATE_FAILED` — Failed to create task
+- `LIVEDOC_TASK_UPDATE_FAILED` — Failed to update task
+- `LIVEDOC_TASK_DELETE_FAILED` — Failed to delete task
+- `LIVEDOC_TASK_NOT_FOUND` — Task does not exist
+- `LIVEDOC_TASK_RECORD_LIST_FAILED` — Failed to list task records
+- `LIVEDOC_TASK_COMMENT_CREATE_FAILED` — Failed to add comment
 
 ### Missing API Key
 
