@@ -8,6 +8,7 @@ const SPINNER_INTERVAL_MS = 80;
 const STATUS_PAD = 52;
 
 function startSpinner(message) {
+  if (!process.stderr.isTTY) return null;
   const start = Date.now();
   let i = 0;
   const id = setInterval(() => {
@@ -21,7 +22,7 @@ function startSpinner(message) {
 
 function stopSpinner(id) {
   if (id != null) clearInterval(id);
-  process.stderr.write(`\r${' '.repeat(STATUS_PAD)}\r`);
+  if (process.stderr.isTTY) process.stderr.write(`\r${' '.repeat(STATUS_PAD)}\r`);
 }
 
 /** Extract video ID from a YouTube URL or return the string if it looks like a plain ID. Returns null if invalid. */
@@ -176,4 +177,36 @@ export async function youtubeSubtitling(opts) {
   } finally {
     stopSpinner(spinnerId);
   }
+}
+
+/**
+ * Fetch YouTube subtitles and return as string (for content-to-slides). Does not print.
+ * @param {Object} opts - { videoCode, language, withTime, timeoutMs }
+ * @returns {Promise<string>} title + transcript text or throws
+ */
+export async function getYoutubeContent(opts) {
+  const apiKey = await getApiKey();
+  if (!apiKey) throw new Error(NO_KEY_MESSAGE.trim());
+  const raw = opts?.videoCode != null ? String(opts.videoCode).trim() : '';
+  if (!raw) throw new Error('YouTube video URL or video ID is required.');
+  const videoCode = extractVideoId(raw);
+  if (!videoCode) {
+    throw new Error('Invalid YouTube URL or video ID. Use a link or an 11-character video ID.');
+  }
+  const apiBase = await getApiBase();
+  const timeoutMs =
+    Number.isFinite(opts?.timeoutMs) && opts.timeoutMs > 0 ? opts.timeoutMs : DEFAULT_TIMEOUT_MS;
+  const params = new URLSearchParams({ video_code: videoCode });
+  if (opts?.language && String(opts.language).trim()) params.set('language', String(opts.language).trim());
+  if (opts?.withTime) params.set('with_time', 'true');
+  const payload = await fetchSubtitling(apiBase, apiKey, params, timeoutMs);
+  const data = payload?.data ?? {};
+  const title = data?.title ?? '';
+  const contents = data?.contents ?? [];
+  const text = formatContents(contents, opts?.withTime ?? false);
+  if (!text || text.trim() === '') {
+    throw new Error(`No subtitles found for video ${videoCode}`);
+  }
+  if (title) return `# ${title}\n\n${text}`;
+  return text;
 }

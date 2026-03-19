@@ -1,487 +1,257 @@
 # Felo AI CLI
 
-**Ask anything. Get current answers. Generate slides from a prompt.**
+<p align="center">
+  <img src="https://felo.ai/icon.svg" alt="Felo AI" width="120">
+</p>
 
-[npm package: **felo-ai**](https://www.npmjs.com/package/felo-ai) - Real-time search, PPT generation, web page extraction, YouTube subtitles, and X (Twitter) search from the terminal. Also works as Claude Code skills. Supports Chinese, English, Japanese, and Korean.
+<p align="center">
+  <strong>Ask anything. Get current answers. Generate slides from a prompt.</strong>
+</p>
 
-[![npm version](https://img.shields.io/npm/v/felo-ai.svg)](https://www.npmjs.com/package/felo-ai) [![License](https://img.shields.io/badge/license-MIT-green)]()
+<p align="center">
+  <a href="https://www.npmjs.com/package/felo-ai"><img src="https://img.shields.io/npm/v/felo-ai.svg?style=for-the-badge" alt="npm version"></a>
+  <a href="https://discord.gg/9W8NubHA"><img src="https://img.shields.io/discord/1078608933607976980?label=Discord&logo=discord&logoColor=white&color=5865F2&style=for-the-badge" alt="Discord"></a>
+  <a href="https://x.com/felo_ai"><img src="https://img.shields.io/badge/X-@felo__ai-black?logo=x&style=for-the-badge" alt="X (Twitter)"></a>
+  <a href="./felo-search/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="MIT License"></a>
+</p>
+
+**Felo AI CLI** — Real-time search, PPT generation, web fetch, YouTube subtitles, and X (Twitter) search from the terminal. Also works as Claude Code skills. Supports Chinese, English, Japanese, and Korean.
+
+<p align="center">
+  <a href="https://felo.ai">Felo AI</a> · <a href="https://openapi.felo.ai/docs/">Docs</a> · <a href="https://openapi.felo.ai/docs/api-reference/v2/chat.html">API Reference</a> · <a href="./docs/EXAMPLES.md">Examples</a> · <a href="./docs/FAQ.md">FAQ</a> · <a href="https://clawhub.ai/u/wangzhiming1999">ClawHub</a> · <a href="https://discord.gg/9W8NubHA">Discord</a> · <a href="https://x.com/felo_ai">X (Twitter)</a>
+</p>
 
 ---
 
-## Install (CLI)
+## Install
 
 ```bash
 npm install -g felo-ai
 ```
 
-Run without installing:
-
-```bash
-npx felo-ai search "Tokyo weather"
-npx felo-ai slides "Introduction to React, 5 slides"
-```
-
-After install, the command is `felo` (package name: **felo-ai**).
-
-### Configure API key
-
-**Option 1: Persist with config (recommended)**
+Get your API key from [Felo AI](https://felo.ai) (Settings → API Keys), then:
 
 ```bash
 felo config set FELO_API_KEY your-api-key-here
 ```
 
-The key is stored in `~/.felo/config.json` (Windows: `%USERPROFILE%\.felo\config.json`). You only need to set it once.
-
-**Option 2: Environment variable**
+That's it. The key is persisted in `~/.felo/config.json`. You can also use environment variables as an alternative:
 
 ```bash
-# Linux/macOS
-export FELO_API_KEY="your-api-key-here"
-
-# Windows (PowerShell)
-$env:FELO_API_KEY="your-api-key-here"
+export FELO_API_KEY="..."           # Linux/macOS
+$env:FELO_API_KEY="..."             # Windows (PowerShell)
 ```
 
-Get your API key from [felo.ai](https://felo.ai) (Settings > API Keys). Environment variable overrides config if both are set.
+---
 
-### Commands
+## Commands
 
 | Command                                  | Description                                           |
 | ---------------------------------------- | ----------------------------------------------------- |
 | `felo search "<query>"`                  | Search for current info (weather, news, prices, etc.) |
 | `felo slides "<prompt>"`                 | Generate PPT; returns link when done                  |
 | `felo web-fetch --url <url>`             | Fetch webpage content (markdown/text/html)            |
-| `felo youtube-subtitling -v <url-or-id>` | Fetch YouTube video subtitles by video URL or ID      |
+| `felo youtube-subtitling -v <url-or-id>` | Fetch YouTube video subtitles                         |
 | `felo x "<query>"`                       | Search X (Twitter) tweets, users, and replies         |
-| `felo config set FELO_API_KEY <key>`     | Save API key to config                                |
-| `felo config get FELO_API_KEY`           | Print stored key                                      |
-| `felo config list`                       | List config keys                                      |
-| `felo config path`                       | Show config file path                                 |
+| `felo livedoc <subcommand>`              | Manage LiveDocs (knowledge bases) and resources       |
+| `felo config <set\|get\|list\|path>`     | Manage API key and config                             |
 
-### Examples
+---
+
+## Examples
 
 **Search**
 
 ```bash
 felo search "Tokyo weather"
-felo search "MacBook Air M3 price"
 felo search "React 19 new features" --verbose
-felo search "Hangzhou tomorrow weather" --json
-npx felo-ai search "Tokyo weather"
+felo search "MacBook Air M3 price" --json
 ```
 
 **Slides**
 
 ```bash
 felo slides "Felo product intro, 3 slides"
-felo slides "Introduction to React"
 felo slides "Q4 2024 business review, 10 pages" --poll-timeout 300
-npx felo-ai slides "Tokyo travel guide, 5 slides"
 ```
 
-**Web fetch** (after `npm install -g felo-ai`)
+**Web Fetch** — [full options →](./felo-web-fetch/README.md)
 
 ```bash
-# Packaged CLI
 felo web-fetch --url "https://example.com"
-felo web-fetch --url "https://example.com/article" --format markdown --readability
-felo web-fetch --url "https://example.com" --target-selector "article.main" --format text
-felo web-fetch --url "https://example.com" -j
-npx felo-ai web-fetch --url "https://example.com" --format markdown
-
-# From repo: run script directly (no install)
-node felo-web-fetch/scripts/run_web_fetch.mjs --url "https://example.com" --format markdown
-node felo-web-fetch/scripts/run_web_fetch.mjs --url "https://example.com" --readability -f text
+felo web-fetch --url "https://example.com" --format markdown --readability
 ```
 
-**How to pass parameters**
-
-| Parameter          | CLI option            | Example                            | Description                                            |
-| ------------------ | --------------------- | ---------------------------------- | ------------------------------------------------------ |
-| URL (required)     | `-u`, `--url`         | `--url "https://example.com"`      | Page to fetch                                          |
-| Output format      | `-f`, `--format`      | `--format text` or `-f markdown`   | `html`, `text`, or `markdown` (default: markdown)      |
-| Target element     | `--target-selector`   | `--target-selector "article.main"` | CSS selector; only this element is fetched             |
-| Wait for element   | `--wait-for-selector` | `--wait-for-selector ".content"`   | Wait for selector before fetching (e.g. dynamic pages) |
-| Readability        | `--readability`       | `--readability`                    | Main article content only (no nav/ads)                 |
-| Crawl mode         | `--crawl-mode`        | `--crawl-mode fine`                | `fast` (default) or `fine`                             |
-| Timeout (seconds)  | `-t`, `--timeout`     | `--timeout 120` or `-t 90`         | Request timeout (default: 60)                          |
-| Full JSON response | `-j`, `--json`        | `-j` or `--json`                   | Print full API response instead of content only        |
-
-Examples with multiple options:
+**YouTube Subtitling** — [full options →](./felo-youtube-subtitling/README.md)
 
 ```bash
-felo web-fetch -u "https://example.com" -f text --readability -t 90
-felo web-fetch --url "https://example.com" --target-selector "#main" --wait-for-selector ".loaded" --format markdown --json
-```
-
-Same `FELO_API_KEY` as search/slides.
-
-**YouTube subtitling** (after `npm install -g felo-ai`)
-
-```bash
-# Packaged CLI
 felo youtube-subtitling -v "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-felo youtube-subtitling -v "dQw4w9WgXcQ" --language zh-CN
-felo youtube-subtitling -v "https://youtu.be/dQw4w9WgXcQ" --with-time -j
-npx felo-ai youtube-subtitling -v "dQw4w9WgXcQ"
-
-# From repo: run script directly (no install)
-node felo-youtube-subtitling/scripts/run_youtube_subtitling.mjs --video-code "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-node felo-youtube-subtitling/scripts/run_youtube_subtitling.mjs -v "dQw4w9WgXcQ" -l zh-CN --with-time
+felo youtube-subtitling -v "dQw4w9WgXcQ" --language zh-CN --with-time
 ```
 
-Options: `-v/--video-code` (required: **YouTube video URL** or video ID), `-l/--language` (e.g. en, zh-CN), `--with-time`, `-j/--json`. Same `FELO_API_KEY` as other commands. See [felo-youtube-subtitling](./felo-youtube-subtitling/README.md).
-
-**X (Twitter) search** (after `npm install -g felo-ai`)
+**X (Twitter) Search** — [full options →](./felo-x-search/SKILL.md)
 
 ```bash
-# Search tweets
-felo x "AI news"
-felo x "AI news" --limit 10 --json
-
-# Search users
-felo x "OpenAI" --user
-
-# Get user info
-felo x --id "elonmusk" --user
-
-# Get user tweets
-felo x --id "elonmusk" --user --tweets
-felo x --id "elonmusk" --user --tweets --include-replies --limit 20
-
-# Get tweet replies
-felo x --id "1234567890"
-
-# From repo: run script directly (no install)
-node felo-x-search/scripts/run_x_search.mjs "AI news"
+felo x "AI news"                                    # Search tweets
+felo x "OpenAI" --user                              # Search users
+felo x --id "elonmusk" --user                       # Get user info
+felo x --id "elonmusk" --user --tweets              # Get user tweets
+felo x --id "1234567890"                            # Get tweet replies
 ```
 
-Options: `[query]` or `-q/--query` (search keyword), `--id` (tweet IDs or usernames, comma-separated), `--user` (user mode), `--tweets` (get user tweets), `-l/--limit`, `--cursor`, `--include-replies`, `--query-type`, `--since-time`, `--until-time`, `-j/--json`, `-t/--timeout`. Same `FELO_API_KEY` as other commands. See [felo-x-search](./felo-x-search/SKILL.md).
+**LiveDoc (Knowledge Base)** — [full options →](./felo-livedoc/README.md)
 
-### CLI FAQ
+```bash
+felo livedoc create --name "My KB" --description "Project docs"
+felo livedoc list
+felo livedoc add-doc SHORT_ID --content "Hello" --title "Test"
+felo livedoc add-urls SHORT_ID --urls "https://example.com"
+felo livedoc upload SHORT_ID --file ./doc.pdf
+felo livedoc retrieve SHORT_ID --query "search query"
+```
 
-- **Key not found?** Run `felo config set FELO_API_KEY <key>` or set the `FELO_API_KEY` environment variable.
-- **Request timeout?** Use `felo search "query" --timeout 120` (default 60 seconds). 5xx errors are retried automatically with backoff.
-- **Slides taking long?** Use `felo slides "topic" --poll-timeout 300` (default 1200s) to limit wait.
-- **Where is config stored?** Run `felo config path` to see the file (e.g. `~/.felo/config.json`).
-- **Web fetch after install?** Use `felo web-fetch --url "<page url>"`. Other params: `--format markdown|text|html`, `--readability`, `--target-selector "selector"`, `--wait-for-selector "selector"`, `--crawl-mode fast|fine`, `--timeout 120`, `--json`. See the "How to pass parameters" table above. Same API key as other commands.
-- **YouTube subtitles?** Use `felo youtube-subtitling -v "<url or video_id>"` (full YouTube link or 11-char ID). Optional: `-l/--language`, `--with-time`, `-j/--json`. See [felo-youtube-subtitling](./felo-youtube-subtitling/README.md).
-- **X (Twitter) search?** Use `felo x "<query>"` to search tweets, `felo x "<query>" --user` to search users, `felo x --id "<username>" --user` for user info, `felo x --id "<username>" --user --tweets` for user tweets, `felo x --id "<tweet_id>"` for tweet replies. See [felo-x-search](./felo-x-search/SKILL.md).
+**[See 40+ more examples →](./docs/EXAMPLES.md)**
 
 ---
 
-## Claude Code Skills (optional)
+## Skills Overview
 
-This repo also provides **Claude Code** skills. If you use [Claude Code](https://claude.ai/code), you can install search and/or slides as skills so Claude can run them in chat.
+5 skills across search, content generation, web scraping, and social media:
 
-### Quick Start (Search skill)
+| Skill                       | Description                                                   | Docs                            |
+| --------------------------- | ------------------------------------------------------------- | ------------------------------- |
+| **felo-search**             | Real-time web search with AI answers. Triggers automatically. | [→](./felo-search/)             |
+| **felo-slides**             | Generate PPT from a prompt                                    | [→](./felo-slides/)             |
+| **felo-web-fetch**          | Fetch and extract webpage content                             | [→](./felo-web-fetch/)          |
+| **felo-youtube-subtitling** | Fetch YouTube video subtitles                                 | [→](./felo-youtube-subtitling/) |
+| **felo-x-search**           | Search X (Twitter) tweets, users, replies                     | [→](./felo-x-search/SKILL.md)   |
+| **felo-livedoc**            | Manage knowledge bases and semantic retrieval                 | [→](./felo-livedoc/)            |
 
-**Quick Start**: Using the npm [skills](https://www.npmjs.com/package/skills) CLI:
+---
+
+## Skills Install
+
+### Claude Code (Recommended)
 
 ```bash
-npx skills add Felo-Inc/felo-skills --skill felo-search
+# Add the marketplace
+/plugin marketplace add Felo-Inc/felo-skills
+
+# Install individual skills
+/plugin install felo-search@felo-ai
+/plugin install felo-slides@felo-ai
+/plugin install felo-web-fetch@felo-ai
+/plugin install felo-youtube-subtitling@felo-ai
+/plugin install felo-x-search@felo-ai
+/plugin install felo-livedoc@felo-ai
 ```
 
-Or manually copy to the skills directory:
+### ClawHub
 
-**Linux/macOS:**
+[ClawHub](https://clawhub.ai) is a public skill registry for AI coding agents. Browse all Felo skills on [ClawHub](https://clawhub.ai/u/wangzhiming1999).
 
 ```bash
-git clone https://github.com/Felo-Inc/felo-skills.git && cd felo-skills
+clawhub install felo-search
+clawhub install felo-slides
+clawhub install felo-web-fetch
+clawhub install felo-youtube-subtitling
+clawhub install felo-x-search
+clawhub install felo-livedoc
+```
+
+### Gemini CLI
+
+```bash
+git clone https://github.com/Felo-Inc/felo-skills.git
+cd felo-skills
+
+# Copy skill folders to Gemini CLI skills directory
+cp -r felo-search ~/.gemini/skills/
+cp -r felo-slides ~/.gemini/skills/
+```
+
+### OpenAI Codex
+
+```bash
+git clone https://github.com/Felo-Inc/felo-skills.git
+# Copy any skill folder to ~/.codex/skills/
+cp -r felo-search ~/.codex/skills/
+```
+
+### OpenClaw
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/Felo-Inc/felo-skills/main/scripts/openclaw-install.sh)
+```
+
+### Manual Installation
+
+```bash
+git clone https://github.com/Felo-Inc/felo-skills.git
+# Copy any skill folder to the skills directory of your AI coding agent
+# Claude Code: ~/.claude/skills/
+# Gemini CLI:  ~/.gemini/skills/
+# Codex:       ~/.codex/skills/
 cp -r felo-search ~/.claude/skills/
 ```
-
-**Windows (PowerShell):**
-
-```powershell
-git clone https://github.com/Felo-Inc/felo-skills.git; cd felo-skills
-Copy-Item -Recurse felo-search "$env:USERPROFILE\.claude\skills\"
-```
-
-See [Manual installation](#manual-installation) for details.
-
-Get your API key from [felo.ai](https://felo.ai) (Settings > API Keys), then configure:
-
-**Linux/macOS:**
-
-```bash
-export FELO_API_KEY="your-api-key-here"
-# Add to ~/.bashrc or ~/.zshrc for persistence
-```
-
-**Windows (PowerShell):**
-
-```powershell
-$env:FELO_API_KEY="your-api-key-here"
-# For persistence, add to system environment variables
-```
-
-Test it:
-
-```
-Ask Claude: "What's the weather in Tokyo today?"
-```
-
-**You're done!** The skill triggers automatically for any question needing current information.
-
-**Felo Slides (PPT):** In terminal run `felo slides "your topic"`. In Claude Code install with `npx skills add Felo-Inc/felo-skills --skill felo-slides`, then use `/felo-slides your topic`. See [felo-slides](./felo-slides/README.md).
-
-**Felo Web Fetch:** In terminal run `felo web-fetch --url "https://example.com"` (see [felo-web-fetch](./felo-web-fetch/README.md)). In Claude Code you can install the skill and use it to fetch webpage content from a URL.
-
-**Felo YouTube Subtitling:** In terminal run `felo youtube-subtitling -v "URL_or_VIDEO_ID"` (see [felo-youtube-subtitling](./felo-youtube-subtitling/README.md)). Fetches subtitles/captions; accepts full YouTube link or video ID.
-
-**Felo X Search:** In terminal run `felo x "query"` to search tweets, users, and replies on X (Twitter) (see [felo-x-search](./felo-x-search/SKILL.md)). In Claude Code install the skill and use it to search X content.
-
----
-
-## Usage Examples
-
-### Daily life
-
-**Weather**
-
-```
-You: What's the weather in Tokyo today?
-Claude: [Current temperature, conditions, forecast]
-```
-
-**Restaurants & food**
-
-```
-You: Best ramen in Osaka
-Claude: [Top-rated ramen shops with addresses, ratings, reviews]
-```
-
-**Shopping & prices**
-
-```
-You: iPhone 15 Pro price comparison
-Claude: [Prices from different retailers with links]
-```
-
-**Travel**
-
-```
-You: Things to do in Kyoto this weekend
-Claude: [Events, attractions, seasonal activities]
-```
-
-### Developer scenarios
-
-**Latest documentation**
-
-```
-You: React 19 new features
-Claude: [Latest React 19 features with official docs links]
-```
-
-**Library comparison**
-
-```
-You: Vite vs Webpack 2024 comparison
-Claude: [Performance, features, use cases comparison]
-```
-
-**Tech trends**
-
-```
-You: Latest AI developments January 2026
-Claude: [Recent AI breakthroughs, company announcements]
-```
-
-### Multi-language queries
-
-Works in Chinese (Simplified & Traditional), Japanese, Korean, and English. Ask in any language, get answers in that language.
-
-**[See 40+ more examples >](./docs/EXAMPLES.md)**
-
----
-
-## Installation details
-
-### Prerequisites
-
-- [Claude Code](https://claude.ai/code) CLI installed
-- Node.js (for npx)
-- Internet connection
-
-### Manual installation
-
-If you don't want to use `npx skills add` or don't have the skills CLI, you can install it manually:
-
-1. Clone this repository:
-
-   ```bash
-   git clone https://github.com/Felo-Inc/felo-skills.git
-   cd felo-skills
-   ```
-
-2. Copy to Claude Code skills directory:
-
-   - **Linux/macOS:** `~/.claude/skills/`
-   - **Windows:** `C:\Users\<YourUsername>\.claude\skills\`
-
-   ```bash
-   # Linux/macOS
-   cp -r felo-search ~/.claude/skills/
-
-   # Windows (PowerShell)
-   Copy-Item -Recurse felo-search "$env:USERPROFILE\.claude\skills\"
-   ```
-
-3. Get API key from [felo.ai](https://felo.ai) (Settings > API Keys)
-
-4. Set environment variable (see Quick Start)
-
-5. Restart Claude Code: `claude restart`
-
-### Verify installation
-
-```bash
-claude skills list
-```
-
-You should see `felo-search` in the output.
-
-Test: ask Claude _"Latest news about quantum computing"_. If you see an AI-generated answer, it's working.
 
 ---
 
 ## FAQ
 
-### Q: Skill not triggering automatically?
+- **Key not found?** Run `felo config set FELO_API_KEY <key>` or set the `FELO_API_KEY` environment variable.
+- **Request timeout?** Use `--timeout 120` (default 60s). 5xx errors are retried automatically.
+- **Slides taking long?** Use `--poll-timeout 300` (default 1200s) to limit wait.
+- **Skill not triggering?** Use `/felo-search your query` to trigger manually.
+- **Multi-language?** Yes — Chinese, English, Japanese, and Korean are supported.
 
-**A:** The skill triggers for questions needing current info (weather, news, prices, etc.). For manual trigger, use:
-
-```
-/felo-search your query here
-```
-
-### Q: "FELO_API_KEY not set" error?
-
-**A:** Set the environment variable (see Quick Start), then restart Claude Code.
-
-### Q: Environment variable not persisting?
-
-**A:** Add to your shell profile: **bash** `~/.bashrc`, **zsh** `~/.zshrc`, **Windows** system environment variables.
-
-### Q: "INVALID_API_KEY" error?
-
-**A:** Your API key is incorrect or revoked. Generate a new one at [felo.ai](https://felo.ai) (Settings > API Keys).
-
-### Q: Does it work in Chinese/Japanese/Korean?
-
-**A:** Yes. Multi-language queries are supported; ask in any language.
-
-### Q: Rate limits?
-
-**A:** Check your Felo account tier at [felo.ai](https://felo.ai). Free tier available.
-
-### Q: Can I use it offline?
-
-**A:** No, it requires an internet connection to the Felo API.
-
-### Q: How fast are responses?
-
-**A:** Typically 2-5 seconds depending on query complexity.
-
-**[Full FAQ >](./docs/FAQ.md)**
-
----
-
-## Available Skills
-
-### felo-search
-
-Real-time web search with AI-generated answers.
-
-**Triggers automatically for:**
-
-- Current events & news
-- Weather, prices, reviews
-- Location info (restaurants, attractions)
-- Latest documentation & tech trends
-- Product comparisons
-- Any question with "latest", "recent", "best", "how to"
-
-**[View skill documentation >](./felo-search/)**
-
-### felo-slides
-
-Generate PPT: in terminal use `felo slides "your topic"`, in Claude Code use `/felo-slides your topic`. **[View skill documentation >](./felo-slides/)**
-
-### felo-web-fetch
-
-Fetch and extract webpage content: in terminal use `felo web-fetch --url "https://example.com"`, in Claude Code use `/felo-web-fetch https://example.com`. **[View skill documentation >](./felo-web-fetch/)**
-
-### felo-x-search
-
-Search X (Twitter) tweets, users, and replies: in terminal use `felo x "query"`, in Claude Code use `/felo-x-search query`. **[View skill documentation >](./felo-x-search/SKILL.md)**
+**[Full FAQ →](./docs/FAQ.md)**
 
 ---
 
 ## Contributing
 
-We welcome contributions:
+We welcome contributions — report bugs, improve docs, or add new skills. Run tests with `npm test`.
 
-- Report bugs or request features
-- Improve documentation
-- Add new skills
-
-Run CLI tests: `npm test`
-
-**[Contributing guide >](./CONTRIBUTING.md)**
+**[Contributing guide →](./CONTRIBUTING.md)**
 
 ---
 
-## Links
+## 发布到 npm（维护者）
 
-- **[npm: felo-ai](https://www.npmjs.com/package/felo-ai)** - CLI package
-- **[Felo Open Platform](https://openapi.felo.ai/docs/)** - Get your API key
-- **[API Documentation](https://openapi.felo.ai/docs/api-reference/v2/chat.html)** - API reference
-- **[Claude Code](https://claude.ai/code)** - AI assistant CLI
-- **[Full examples](./docs/EXAMPLES.md)** - 40+ usage examples
-- **[FAQ](./docs/FAQ.md)** - Troubleshooting
-- **[GitHub Issues](https://github.com/Felo-Inc/felo-skills/issues)** - Report bugs
+本仓库通过 GitHub Actions 自动发布到 npm，**不要手动在 CI 里改版本号或重复发布相同版本**。
 
----
+- **发布一个新版本**
+  1. 确保代码已推到 `main`（或你用来发布的分支）
+  2. 选择一个**尚未在 npm 上使用过的新版本号**（语义化版本号 `MAJOR.MINOR.PATCH`）
+  3. 在本地打 tag 并推送，例如：
 
-## Publishing to npm (maintainers)
+     ```bash
+     git tag v0.2.24
+     git push origin v0.2.24
+     ```
 
-This project uses GitHub Actions to automatically publish when **pushing a tag** (referencing the [editablejs/editable](https://github.com/editablejs/editable/blob/main/.github/workflows/main.yml) publishing workflow).
+  4. GitHub Actions 会在 `push tag v*` 时自动运行：
+     - 从 tag 名中取出版本号（`v0.2.24` → `0.2.24`）
+     - 将 `package.json` 中的 `"version"` 同步为该版本号
+     - 运行测试
+     - 执行 `npm publish --provenance --access public`
 
-1. **Configure NPM_TOKEN**
-   Generate an **Automation** type Publish token in [npm Access Tokens](https://www.npmjs.com/account/tokens). Add a secret named `NPM_TOKEN` in the repository's **Settings > Secrets and variables > Actions**.
+- **版本号约定（建议）**
+  - **PATCH（补丁号）**：向下兼容的小修小补（bugfix、文档更新等），例如 `0.2.23` → `0.2.24`
+  - **MINOR（次版本号）**：向下兼容的新功能，例如新增子命令或新的 skill，`0.2.0` → `0.3.0`
+  - **MAJOR（主版本号）**：有破坏性改动时使用，例如 CLI 行为或配置不兼容旧版本，`0.x.x` → `1.0.0`
 
-2. **Publish a new version**
-   Update the `version` in `package.json`, then commit and push the tag:
-   ```bash
-   git tag v0.2.8
-   git push origin v0.2.8
-   ```
-   CI will automatically run `npm publish` to publish to [npm](https://www.npmjs.com/package/felo-ai).
-
----
-
-## Support
-
-- **Documentation**: [FAQ](./docs/FAQ.md) and skill READMEs
-- **Issues**: [GitHub Issues](https://github.com/Felo-Inc/felo-skills/issues)
-- **Email**: support@felo.ai
-
----
-
-## Version history
-
-See [CHANGELOG.md](./CHANGELOG.md) for release notes (e.g. breaking changes such as `web-extract` -> `web-fetch` in v0.2.7).
+- **注意事项**
+  - npm 不允许覆盖已发布的版本，**不要重复推送同一个版本号的 tag**（例如已经发布了 `0.2.23`，再次尝试发布会收到 403 错误）
+  - 如果某个已发布版本存在严重问题，可考虑通过 `npm deprecate` 标记为不推荐使用，而不是尝试覆盖它
 
 ---
 
 ## License
 
-MIT - see [LICENSE](./felo-search/LICENSE) in the repo for details.
+MIT — see [LICENSE](./felo-search/LICENSE) for details.
 
 ---
 
-Made with ❤️ by the Felo team
+<p align="center">Made with ❤️ by the <a href="https://felo.ai">Felo</a> team</p>

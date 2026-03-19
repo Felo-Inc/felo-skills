@@ -1,6 +1,6 @@
 const DEFAULT_API_BASE = 'https://openapi.felo.ai';
 const DEFAULT_TIMEOUT_MS = 60_000;
-/** 流式读取空闲超时：连续这么久未收到任何数据则断开，默认 5 分钟（生图等长任务需较久） */
+/** Stream idle timeout: disconnect if no data received for this duration (default 2 hours for long tasks like image generation) */
 const STREAM_IDLE_TIMEOUT_MS = 2 * 60 * 60 * 1000;
 /** Tools whose params and results should be silently ignored. */
 const HIDDEN_TOOLS = new Set(['manage_outline']);
@@ -20,6 +20,18 @@ async function getApiKey() {
   const { getConfigValue } = await import('./config.js');
   const fromConfig = await getConfigValue('FELO_API_KEY');
   return typeof fromConfig === 'string' ? fromConfig.trim() : '';
+}
+
+async function getApiBase() {
+  if (process.env.FELO_API_BASE?.trim()) {
+    return process.env.FELO_API_BASE.trim().replace(/\/$/, '');
+  }
+  const { getConfigValue } = await import('./config.js');
+  const fromConfig = await getConfigValue('FELO_API_BASE');
+  if (typeof fromConfig === 'string' && fromConfig.trim()) {
+    return fromConfig.trim().replace(/\/$/, '');
+  }
+  return DEFAULT_API_BASE;
 }
 
 function getMessage(payload) {
@@ -266,11 +278,11 @@ function extractToolResults(data) {
     }
     // Discovery (research report) tool results
     if (t?.name === 'generate_discovery' && callResult?.status === 'success') {
-      out.push({ type: 'discovery', title: callResult?.title || t?.params?.title || '研究报告' });
+      out.push({ type: 'discovery', title: callResult?.title || t?.params?.title || 'Discovery' });
     }
     // Document generation tool results
     if (t?.name === 'generate_document' && callResult?.status === 'success') {
-      out.push({ type: 'document', title: callResult?.title || t?.params?.title || '文档' });
+      out.push({ type: 'document', title: callResult?.title || t?.params?.title || 'Document' });
     }
     // PPT generation tool results
     if (t?.name === 'generate_ppt' && callResult?.status === 'success') {
@@ -350,9 +362,9 @@ function dispatch(eventType, dataStr, onMessage, onError, onDone, onEvent, onToo
             const text = data?.content ?? data?.text ?? data?.delta;
             if (typeof text === 'string') onMessage(text);
           } else if (type === 'message' && onStatusMessage && data?.query) {
-            onStatusMessage(`已收到: ${data.query}`);
-          } else if (type === 'processing' && onStatusMessage && data?.message) {
-            onStatusMessage(data.message);
+            onStatusMessage(`Received: ${data.query}`);
+          } else if (type === 'processing') {
+            // Silently ignore processing events
           } else if (type === 'tools' && onToolCall) {
             const params = extractToolParams(data);
             for (const item of params) onToolCall(item);
@@ -380,6 +392,160 @@ function dispatch(eventType, dataStr, onMessage, onError, onDone, onEvent, onToo
 }
 
 /**
+ * List LiveDocs with pagination and optional keyword filtering.
+ * @param {Object} [options]
+ * @param {number} [options.page] - Page number (default 1).
+ * @param {number} [options.size] - Page size (default 20).
+ * @param {string} [options.keyword] - Keyword filter.
+ * @param {boolean} [options.json] - Output raw JSON.
+ * @param {number} [options.timeoutMs] - Request timeout in ms.
+ * @returns {Promise<number>} Exit code 0 or 1.
+ */
+export async function listLiveDocs(options = {}) {
+  const apiKey = await getApiKey();
+  if (!apiKey) {
+    process.stderr.write(NO_KEY_MESSAGE.trim() + '\n');
+    return 1;
+  }
+
+  const apiBase = await getApiBase();
+  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const page = options.page ?? 1;
+  const size = options.size ?? 20;
+
+  const params = new URLSearchParams();
+  params.set('page', String(page));
+  params.set('size', String(size));
+  if (options.keyword) params.set('keyword', options.keyword);
+
+  const url = `${apiBase}/v2/livedocs?${params.toString()}`;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      signal: controller.signal,
+    });
+
+    let data = {};
+    try {
+      data = await res.json();
+    } catch {
+      data = {};
+    }
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${getMessage(data)}`);
+    }
+    if (isApiError(data)) {
+      throw new Error(getMessage(data));
+    }
+
+    const payload = data?.data ?? {};
+    const total = payload.total ?? 0;
+    const items = payload.items ?? [];
+
+    if (options.json) {
+      console.log(JSON.stringify(payload, null, 2));
+    } else {
+      const isDev = apiBase.includes('-dev');
+      const webHost = isDev ? 'https://dev.felo.ai' : 'https://felo.ai';
+      const totalPages = Math.ceil(total / size);
+      console.log(`LiveDocs (total: ${total}, page ${page}/${totalPages})\n`);
+      for (const item of items) {
+        const shortId = item.short_id || '(no ID)';
+        console.log(`${webHost}/livedoc/${shortId}`);
+      }
+    }
+
+    return 0;
+  } catch (err) {
+    const msg = err?.message || err;
+    process.stderr.write(`Error: ${msg}\n`);
+    return 1;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * List resources in a specific LiveDoc.
+ * @param {string} liveDocId - LiveDoc short_id.
+ * @param {Object} [options]
+ * @param {boolean} [options.json] - Output raw JSON.
+ * @param {number} [options.timeoutMs] - Request timeout in ms.
+ * @returns {Promise<number>} Exit code 0 or 1.
+ */
+export async function listLiveDocResources(liveDocId, options = {}) {
+  const apiKey = await getApiKey();
+  if (!apiKey) {
+    process.stderr.write(NO_KEY_MESSAGE.trim() + '\n');
+    return 1;
+  }
+
+  const apiBase = await getApiBase();
+  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const url = `${apiBase}/v2/livedocs/${encodeURIComponent(liveDocId)}/resources`;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      signal: controller.signal,
+    });
+
+    let data = {};
+    try {
+      data = await res.json();
+    } catch {
+      data = {};
+    }
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${getMessage(data)}`);
+    }
+    if (isApiError(data)) {
+      throw new Error(getMessage(data));
+    }
+
+    const payload = data?.data ?? {};
+    const total = payload.total ?? 0;
+    const items = payload.items ?? [];
+
+    if (options.json) {
+      console.log(JSON.stringify(payload, null, 2));
+    } else {
+      console.log(`Resources (total: ${total})\n`);
+      for (const item of items) {
+        const title = item.title || '(no title)';
+        const id = item.id || '(no ID)';
+        console.log(`[${title}] ${id}`);
+      }
+    }
+
+    return 0;
+  } catch (err) {
+    const msg = err?.message || err;
+    process.stderr.write(`Error: ${msg}\n`);
+    return 1;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
  * Run SuperAgent: create conversation, consume SSE stream, output answer.
  * @param {string} query - User query (1–2000 chars).
  * @param {Object} [options]
@@ -388,6 +554,9 @@ function dispatch(eventType, dataStr, onMessage, onError, onDone, onEvent, onToo
  * @param {number} [options.timeoutMs] - Request/stream timeout in ms.
  * @param {string} [options.liveDocId] - Reuse existing LiveDoc short_id.
  * @param {string} [options.threadId] - Existing thread/conversation ID for follow-up.
+ * @param {string} [options.skillId] - Skill ID (only for new conversations).
+ * @param {string[]} [options.selectedResourceIds] - Resource IDs (only for new conversations).
+ * @param {Object} [options.ext] - Extra params object (only for new conversations).
  * @param {string} [options.acceptLanguage] - e.g. zh, en.
  * @returns {Promise<number>} Exit code 0 or 1.
  */
@@ -398,7 +567,7 @@ export async function superAgent(query, options = {}) {
     return 1;
   }
 
-  const apiBase = (process.env.FELO_API_BASE?.trim() || DEFAULT_API_BASE).replace(/\/$/, '');
+  const apiBase = await getApiBase();
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const body = {
     query: String(query).trim().slice(0, 2000),
@@ -408,6 +577,19 @@ export async function superAgent(query, options = {}) {
 
   try {
     const threadId = options.threadId;
+
+    // skill_id, selected_resource_ids, ext only supported for new conversations
+    const createOnlyParams = ['skillId', 'selectedResourceIds', 'ext'];
+    const hasCreateOnlyParams = createOnlyParams.some(k => options[k] !== undefined);
+    if (threadId && hasCreateOnlyParams) {
+      process.stderr.write('Warning: --skill-id, --selected-resource-ids, --ext are only supported for new conversations, ignored in follow-up mode.\n');
+    }
+    if (!threadId) {
+      if (options.skillId) body.skill_id = options.skillId;
+      if (options.selectedResourceIds) body.selected_resource_ids = options.selectedResourceIds;
+      if (options.ext) body.ext = options.ext;
+    }
+
     process.stderr.write(threadId ? 'SuperAgent: following up...\n' : 'SuperAgent: creating conversation...\n');
 
     const createData = await createConversation(apiKey, apiBase, body, timeoutMs, threadId);
@@ -468,7 +650,7 @@ export async function superAgent(query, options = {}) {
       if (isJson) return;
       if (item.type === 'image') {
         if (liveDocUrl) {
-          console.log(`[${item.title || '图片'}](${liveDocUrl})`);
+          console.log(`[${item.title || 'Image'}](${liveDocUrl})`);
         } else {
           console.log(item.image_url);
         }
@@ -480,9 +662,9 @@ export async function superAgent(query, options = {}) {
         }
       } else if (item.type === 'document') {
         if (liveDocUrl) {
-          console.log(`[${item.title || '文档'}](${liveDocUrl})`);
+          console.log(`[${item.title || 'Document'}](${liveDocUrl})`);
         } else {
-          console.log(item.title || '文档');
+          console.log(item.title || 'Document');
         }
       } else if (item.type === 'ppt') {
         if (liveDocUrl) {
@@ -601,7 +783,7 @@ export async function superAgent(query, options = {}) {
     process.stderr.write(`Error: ${msg}\n`);
     if (String(msg).toLowerCase().includes('stream error')) {
       process.stderr.write(
-        '（流式无客户端超时；若内部接口能拿到完整流，多为代理/防火墙在等待生图等长任务时空闲断连，可直连或调大代理空闲超时后重试）\n'
+        '(Stream idle disconnect — likely a proxy/firewall closing the connection during long tasks like image generation. Try a direct connection or increase proxy idle timeout.)\n'
       );
     }
     return 1;
