@@ -3,7 +3,7 @@
 import { createRequire } from "module";
 import { Command } from "commander";
 import { search } from "./search.js";
-import { slides } from "./slides.js";
+import { slides, listPptThemes } from "./slides.js";
 import { superAgent, listLiveDocs, listLiveDocResources } from "./superAgent.js";
 import { webFetch } from "./webFetch.js";
 import { youtubeSubtitling } from "./youtubeSubtitling.js";
@@ -71,7 +71,7 @@ program
     "Generate PPT/slides from a prompt (async task, outputs live doc URL when done)"
   )
   .argument(
-    "<query>",
+    "[query]",
     'PPT generation prompt (e.g. "Felo, 2 pages" or "Introduction to React")'
   )
   .option("-j, --json", "output raw JSON with task_id and live_doc_url")
@@ -86,14 +86,49 @@ program
     "max seconds to wait for task completion",
     "1200"
   )
+  .option("--theme <id>", "PPT theme ID (from ppt-themes command)")
+  .option("--task-id <id>", "resume polling an existing task (skip creation)")
   .action(async (query, opts) => {
+    if (!query && !opts.taskId) {
+      console.error("Error: provide a <query> or --task-id to resume an existing task");
+      flushStdioThenExit(1);
+      return;
+    }
     const timeoutMs = parseInt(opts.timeout, 10) * 1000;
     const pollTimeoutMs = parseInt(opts.pollTimeout, 10) * 1000 || 1_200_000;
-    const code = await slides(query, {
+    const pptConfig = opts.theme ? { ai_theme_id: opts.theme } : undefined;
+    const code = await slides(query || "", {
       json: opts.json,
       verbose: opts.verbose,
       timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
       pollTimeoutMs: Number.isNaN(pollTimeoutMs) ? 1_200_000 : pollTimeoutMs,
+      pptConfig,
+      taskId: opts.taskId,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+program
+  .command("ppt-themes")
+  .description("List available PPT themes with optional filtering")
+  .option("--lang <code>", "language code (e.g. en, zh-Hans)")
+  .option("--type <type>", "filter by theme type (e.g. default, custom)")
+  .option("-k, --keyword <keyword>", "search keyword for theme titles")
+  .option("-p, --page <number>", "page number (starting from 1)", "1")
+  .option("-s, --size <number>", "page size (max 100)", "20")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await listPptThemes({
+      lang: opts.lang,
+      type: opts.type,
+      keyword: opts.keyword,
+      page: parseInt(opts.page, 10) || 1,
+      size: parseInt(opts.size, 10) || 20,
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
     });
     process.exitCode = code;
     flushStdioThenExit(code);
@@ -341,6 +376,7 @@ program
   )
   .option("-j, --json", "Output JSON with task_id and ppt/live_doc URL")
   .option("--verbose", "Show polling status")
+  .option("--theme <id>", "PPT theme ID (from ppt-themes command)")
   .action(async (opts) => {
     const timeoutMs = parseInt(opts.timeout, 10) * 1000;
     const pollTimeoutMs = parseInt(opts.pollTimeout, 10) * 1000;
@@ -354,6 +390,7 @@ program
       pollTimeoutMs: Number.isNaN(pollTimeoutMs) ? 1_200_000 : pollTimeoutMs,
       json: opts.json,
       verbose: opts.verbose,
+      theme: opts.theme,
     });
     process.exitCode = code;
     flushStdioThenExit(code);
