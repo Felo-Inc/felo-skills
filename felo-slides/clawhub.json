@@ -1,0 +1,12 @@
+{
+  "name": "Felo Slides",
+  "tagline": "Generate PPT/slides with Felo PPT Task API in Claude Code",
+  "description": "Felo Slides creates presentation decks from a prompt using the Felo PPT Task API: API key check, task creation, polling, theme support, task resume, and final ppt_url output. Use from Claude Code when users ask to create or export slides/PPT.",
+  "category": "productivity",
+  "tags": ["felo", "slides", "ppt", "presentation", "api", "claude-code"],
+  "version": "1.0.1",
+  "license": "MIT",
+  "pricing": "free",
+  "support_url": "https://github.com/Felo-Inc/felo-skills/issues",
+  "homepage": "https://github.com/Felo-Inc/felo-skills"
+}
