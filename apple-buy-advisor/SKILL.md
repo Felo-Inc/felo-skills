@@ -1,6 +1,6 @@
 ---
 name: apple-buy-advisor
-description: Research and compare Apple products to help decide if they're worth buying. Use when the user asks whether to buy a Mac, iPhone, iPad, Apple Watch, or AirPods; wants to compare models; or seeks a buying recommendation.
+description: Research and compare Apple products to help decide if they're worth buying. Use when the user: (1) asks whether to buy a Mac, iPhone, iPad, Apple Watch, or AirPods; (2) wants to compare models; (3) seeks a buying recommendation; (4) mentions an Apple product model name or number (e.g. "iPhone 17", "MacBook Pro M4", "iPad Air 13"); (5) uses a comparison pattern like "X vs Y" where X or Y is an Apple product (e.g. "iPhone 17 vs iPhone 17e", "MacBook Air vs MacBook Pro"); (6) asks about upgrading, waiting, or which model to choose.
 ---
 
 # Apple Buy Advisor
@@ -9,13 +9,23 @@ Research Apple products and produce a structured buying recommendation based on 
 
 **Language:** Detect the user's input language and respond entirely in that language. If the user writes in Chinese, respond in Chinese. If in English, respond in English. Apply this to all sections of the report.
 
+**Input Detection:** This skill activates when the user:
+- Mentions an Apple product model by name or number (e.g. "iPhone 17", "M4 MacBook Pro", "Apple Watch Series 10")
+- Uses a comparison pattern: `[Model A] vs [Model B]` (e.g. "iPhone 17 vs iPhone 17e")
+- Asks about buying, upgrading, or choosing between Apple products
+
 ## Steps to Execute
+
+### 0. Tool Usage Rule
+
+> **CRITICAL: Always use `felo-web-fetch` to retrieve any URL content.** Never use built-in WebFetch, curl, or any other tool to fetch web pages. All HTTP requests to external URLs — Apple specs pages, review sites, or any other URL — must go through `felo-web-fetch`.
 
 ### 1. Fetch Official Specs
 
 Use `felo-web-fetch` in two steps:
 
 **Step 1a — Get model names from compare page** (to identify which models exist):
+
 - Mac: `https://www.apple.com/mac/compare/`
 - iPhone: `https://www.apple.com/iphone/compare/`
 - iPad: `https://www.apple.com/ipad/compare/`
@@ -25,12 +35,13 @@ Use `felo-web-fetch` in two steps:
 Use this page only to identify the current model lineup. Do not extract specs from here.
 
 **Step 1b — Get full specs from the product specs page** (required for all spec values):
+
 - `https://www.apple.com/[product-model]/specs/`
 - Example: `https://www.apple.com/iphone-17e/specs/`, `https://www.apple.com/macbook-pro/specs/`
 
 Extract all specs exclusively from this page: processor, RAM, storage options (starting capacity), battery life, display specs, and pricing.
 
-> **CRITICAL:** Storage, RAM, and all other specs must come from the `/specs/` page only. Never use the compare page or training knowledge for spec values. If the specs page fails to load, explicitly state: "Unable to fetch current specs from Apple.com — specs may be inaccurate." Do not silently substitute any remembered values.
+> **CRITICAL:** Storage, RAM, and all other specs must come from the `/specs/` page only. Never use the compare page or training knowledge for spec values. If the specs page fails to load, explicitly state: "Unable to fetch current specs from Apple.com — specs may be inaccurate." Do not silently substitute any remembered values. **Always fetch via `felo-web-fetch`.**
 
 > **REQUIRED FIELDS for Mac / iPad / iPhone:** RAM (unified memory / memory) is a mandatory spec. It must always appear in the Specs Comparison table. If the `/specs/` page does not list RAM explicitly, state "RAM: not listed on specs page" — never omit the field or leave it blank.
 
@@ -74,6 +85,8 @@ Using **only** the professional review data from Step 2 (9to5Mac, The Verge, CNE
 
 ### 5. Produce Report
 
+**If single product query:**
+
 ```
 ## [Product Name] — Worth Buying?
 
@@ -86,6 +99,7 @@ Using **only** the professional review data from Step 2 (9to5Mac, The Verge, CNE
 |------|---|---|---|
 | Processor | ... | ... | ... |
 | RAM | ... | ... | ... |
+| Capacity | ... | ... | ... |
 | Battery | ... | ... | ... |
 | Price | ... | ... | ... |
 
@@ -119,6 +133,41 @@ Using **only** the professional review data from Step 2 (9to5Mac, The Verge, CNE
 **Overall Rating:** ⭐⭐⭐⭐☆ (4/5)
 
 **Conclusion:** [Clear answer to user's question]
+```
+
+**If comparison query (A vs B):**
+
+```
+## [Product A] vs [Product B] — Which Should You Buy?
+
+### Head-to-Head Specs
+(Data source: Apple.com — Step 1)
+| Spec | [Product A] | [Product B] | Winner |
+|------|---|---|---|
+| Processor | ... | ... | ... |
+| RAM | ... | ... | ... |
+| Capacity | ... | ... | ... |
+| Battery | ... | ... | ... |
+| Price | ... | ... | ... |
+
+### Real User Feedback
+**[Product A] users say:**
+- Praise: ...
+- Complaints: ...
+
+**[Product B] users say:**
+- Praise: ...
+- Complaints: ...
+
+### Professional Review Summary
+- **[Publication]:** [Verdict on A vs B]
+
+### Who Should Buy Which
+
+**Choose [Product A] if:** [specific use case]
+**Choose [Product B] if:** [specific use case]
+
+**Overall Verdict:** [Clear recommendation with reasoning]
 ```
 
 ## Key Principles
