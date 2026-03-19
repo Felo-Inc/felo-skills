@@ -77,5 +77,6 @@ export async function contentToSlides(opts) {
     verbose: opts?.verbose,
     timeoutMs: fetchTimeoutMs,
     pollTimeoutMs: opts?.pollTimeoutMs,
+    pptConfig: opts?.theme ? { ai_theme_id: opts.theme } : undefined,
   });
 }

@@ -12,7 +12,9 @@ function usage() {
       '  node felo-slides/scripts/run_ppt_task.mjs --query "your prompt" [options]',
       '',
       'Options:',
-      '  --query <text>        PPT prompt (required)',
+      '  --query <text>        PPT prompt (required unless --task-id is given)',
+      '  --task-id <id>        Resume polling an existing task (skip creation)',
+      '  --theme <id>          PPT theme ID (from ppt-themes)',
       '  --interval <seconds>  Poll interval, default 10',
       '  --max-wait <seconds>  Max wait time, default 1800',
       '  --timeout <seconds>   Request timeout, default 60',
@@ -26,6 +28,8 @@ function usage() {
 function parseArgs(argv) {
   const out = {
     query: '',
+    taskId: '',
+    theme: '',
     intervalSec: DEFAULT_INTERVAL_SEC,
     maxWaitSec: DEFAULT_MAX_WAIT_SEC,
     timeoutSec: DEFAULT_TIMEOUT_SEC,
@@ -43,6 +47,12 @@ function parseArgs(argv) {
       out.verbose = true;
     } else if (a === '--query') {
       out.query = argv[i + 1] ?? '';
+      i += 1;
+    } else if (a === '--task-id') {
+      out.taskId = argv[i + 1] ?? '';
+      i += 1;
+    } else if (a === '--theme') {
+      out.theme = argv[i + 1] ?? '';
       i += 1;
     } else if (a === '--interval') {
       out.intervalSec = Number.parseInt(argv[i + 1] ?? '', 10);
@@ -128,7 +138,11 @@ function extractTaskUrls(historicalData, createData) {
   };
 }
 
-async function createTask(apiKey, apiBase, query, timeoutMs) {
+async function createTask(apiKey, apiBase, query, timeoutMs, theme) {
+  const reqBody = { query };
+  if (theme) {
+    reqBody.ppt_config = { ai_theme_id: theme };
+  }
   const payload = await fetchJson(
     `${apiBase}/v2/ppts`,
     {
@@ -138,7 +152,7 @@ async function createTask(apiKey, apiBase, query, timeoutMs) {
         Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ query }),
+      body: JSON.stringify(reqBody),
     },
     timeoutMs
   );
@@ -170,7 +184,7 @@ async function main() {
     usage();
     process.exit(0);
   }
-  if (!args.query) {
+  if (!args.query && !args.taskId) {
     usage();
     process.exit(1);
   }
@@ -186,10 +200,22 @@ async function main() {
   const intervalMs = args.intervalSec * 1000;
   const maxWaitMs = args.maxWaitSec * 1000;
 
-  const createData = await createTask(apiKey, apiBase, args.query, timeoutMs);
-  const taskId = createData.task_id;
-  if (args.verbose) {
-    console.error(`Task ID: ${taskId}`);
+  let createData = {};
+  let taskId;
+
+  if (args.taskId) {
+    // Resume polling an existing task
+    taskId = args.taskId;
+    if (args.verbose) {
+      console.error(`Resuming task: ${taskId}`);
+    }
+  } else {
+    // Create a new task
+    createData = await createTask(apiKey, apiBase, args.query, timeoutMs, args.theme);
+    taskId = createData.task_id;
+    if (args.verbose) {
+      console.error(`Task ID: ${taskId}`);
+    }
   }
 
   const startAt = Date.now();
