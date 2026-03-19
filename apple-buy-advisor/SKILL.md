@@ -178,7 +178,7 @@ Using **only** the professional review data from Step 2 (9to5Mac, The Verge, CNE
 **Overall Verdict:** [Clear recommendation with reasoning]
 ```
 
-## Key Principles
+#### Key Principles
 
 - **Fresh data only** — Never rely on training knowledge for specs or prices
 - **Personal reviews first** — Show community feedback before professional reviews
@@ -187,7 +187,7 @@ Using **only** the professional review data from Step 2 (9to5Mac, The Verge, CNE
 - **Balanced** — Include both praise and complaints
 - **User-focused** — Tailor to their specific needs
 
-## Trusted Sources
+#### Trusted Sources
 
 **Community (personal reviews):**
 
@@ -200,7 +200,7 @@ Using **only** the professional review data from Step 2 (9to5Mac, The Verge, CNE
 - Apple-focused: 9to5Mac, MacRumors
 - Tech media: The Verge, CNET, Tom's Guide, Engadget
 
-## Display Strategy for Personal Reviews
+#### Display Strategy for Personal Reviews
 
 1. **Extract themes** from X, Reddit, MacRumors forums
 2. **Group by sentiment** — praise vs complaints
@@ -215,7 +215,7 @@ Frequency language:
 - "A few users report..." (5–20%)
 - "One user mentioned..." (<5%)
 
-## Product Category Focus
+#### Product Category Focus
 
 | Product     | Key Focus                            | Common Concerns                       |
 | ----------- | ------------------------------------ | ------------------------------------- |
@@ -225,7 +225,7 @@ Frequency language:
 | Apple Watch | Battery, health tracking             | Battery claims vs reality             |
 | AirPods     | Sound, ANC, battery                  | Fit, durability, repairability        |
 
-## Common User Questions
+#### Common User Questions
 
 **"Worth the upgrade?"** — Compare gains, cite user feedback on value, suggest who should/shouldn't upgrade.
 
@@ -237,7 +237,7 @@ Frequency language:
 
 **"Good for [use case]?"** — Find users with same use case, highlight relevant specs and limitations.
 
-## Handling Edge Cases
+#### Handling Edge Cases
 
 **New product (<1 month):** Limited data — focus on early adopters, compare to previous gen, flag unknown long-term reliability.
 
@@ -249,29 +249,25 @@ Frequency language:
 
 ## Step 6. Save Report to Felo LiveDoc
 
-After the report is displayed to the user, save it to a Felo LiveDoc knowledge base using the `felo-livedoc` skill.
+After the report is displayed, invoke the `felo-livedoc` skill to save it. Execute both steps sequentially.
 
-**6a — Create a new LiveDoc:**
+**6a — Create a LiveDoc** (invoke `felo-livedoc` skill):
 
-```bash
-node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs create --name "Apple Buy Advisor" --description "Apple product research reports and buying recommendations"
+```
+felo-livedoc create --name "Apple Buy Advisor" --description "Apple product research reports and buying recommendations"
 ```
 
-Note the `short_id` from the response.
+Extract the `short_id` from the response.
 
-**6b — Save the report as a text document:**
+**6b — Add a text document** (invoke `felo-livedoc` skill with the `short_id` from 6a):
 
-```bash
-node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs add-doc SHORT_ID \
-  --title "[Product Name] — [YYYY-MM-DD]" \
-  --content "FULL_REPORT_CONTENT"
+```
+felo-livedoc add-doc <short_id> --title "<Product Name> — <YYYY-MM-DD>" --content "<full markdown report from Step 5>"
 ```
 
-- Use the product name from the report as the title (e.g. "iPhone 17e — 2026-03-19")
-- The content should be the complete markdown report generated in Step 5
-- After saving, confirm to the user: "Report saved to Felo LiveDoc ✓"
+After success, confirm to the user: "Report saved to Felo LiveDoc ✓"
 
-> If `FELO_API_KEY` is not set, skip silently and inform the user: "Set FELO_API_KEY to enable auto-saving reports to LiveDoc."
+> If `FELO_API_KEY` is not set, skip and inform the user: "Set FELO_API_KEY to enable auto-saving reports to LiveDoc."
 
 ## Checklist Before Delivery
 
