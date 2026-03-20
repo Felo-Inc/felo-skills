@@ -1,7 +1,7 @@
 ---
 name: apple-buy-advisor
 description: Research and compare Apple products to help decide if they're worth buying. Use when the user: (1) asks whether to buy a Mac, iPhone, iPad, Apple Watch, or AirPods; (2) wants to compare models; (3) seeks a buying recommendation; (4) mentions an Apple product model name or number (e.g. "iPhone 17", "MacBook Pro M4", "iPad Air 13"); (5) uses a comparison pattern like "X vs Y" where X or Y is an Apple product (e.g. "iPhone 17 vs iPhone 17e", "MacBook Air vs MacBook Pro"); (6) asks about upgrading, waiting, or which model to choose.
-allowed-tools: Bash(node:*) Bash(bash:*) Bash(curl:*) Fetch(*)
+allowed-tools: Bash(node:*) Bash(bash:*) Bash(curl:*) Fetch(*) Write(*)
 metadata:
   requires:
     - felo-web-fetch
@@ -23,6 +23,8 @@ Research Apple products and produce a structured buying recommendation based on 
 - Asks about buying, upgrading, or choosing between Apple products
 
 ## Steps to Execute
+
+> **Completion rule:** The task is not complete after Step 5. You must execute Step 6 before ending the turn. Never stop at "I now have all the data needed. Let me compile the full report." or after showing the markdown report alone.
 
 ### 0. Tool Usage Rule
 
@@ -247,11 +249,25 @@ Frequency language:
 
 **Conflicting sources:** Identify what they disagree on, look for patterns, present both sides with context (e.g. "Pro reviews show 12h; real-world Reddit reports 8–10h under typical load").
 
-## Step 6. Save Report to Felo LiveDoc
+## Step 6. Save Report (Mandatory)
 
-After the report is displayed, invoke the `felo-livedoc` skill to save it. Execute both steps sequentially.
+Step 6 is required. After generating the report in Step 5, immediately save it before ending the response. A report that is only displayed but not saved is incomplete. Execute the save steps sequentially.
 
-**6a — Create a LiveDoc** (invoke `felo-livedoc` skill):
+**6a — Save report to local `.md` file:**
+
+Write the full markdown report to a local file using the filename format:
+
+```
+apple-buy-advisor-<product-slug>-<YYYY-MM-DD>.md
+```
+
+Example: `apple-buy-advisor-iphone-17e-2026-03-20.md`
+
+Save the file in the current working directory. After writing, confirm to the user: "Report saved locally: `<filename>` ✓"
+
+> **Required behavior:** Do not ask the user whether to save. Perform the local save automatically every time. The final answer must not be sent until the file write succeeds or an explicit file-write failure is reported.
+
+**6b — Create a LiveDoc** (invoke `felo-livedoc` skill):
 
 ```
 felo-livedoc create --name "Apple Buy Advisor" --description "Apple product research reports and buying recommendations"
@@ -259,7 +275,7 @@ felo-livedoc create --name "Apple Buy Advisor" --description "Apple product rese
 
 Extract the `short_id` from the response.
 
-**6b — Add a text document** (invoke `felo-livedoc` skill with the `short_id` from 6a):
+**6c — Add a text document** (invoke `felo-livedoc` skill with the `short_id` from 6b):
 
 ```
 felo-livedoc add-doc <short_id> --title "<Product Name> — <YYYY-MM-DD>" --content "<full markdown report from Step 5>"
@@ -268,6 +284,16 @@ felo-livedoc add-doc <short_id> --title "<Product Name> — <YYYY-MM-DD>" --cont
 After success, confirm to the user: "Report saved to Felo LiveDoc ✓"
 
 > If `FELO_API_KEY` is not set, skip and inform the user: "Set FELO_API_KEY to enable auto-saving reports to LiveDoc."
+>
+> If LiveDoc save is skipped, local `.md` save is still mandatory and must already be completed.
+
+## Final Response Requirements
+
+- First show the full report from Step 5
+- Then confirm the local save result with the exact filename
+- Then confirm the LiveDoc save result, or explicitly state that it was skipped because `FELO_API_KEY` is missing
+- Never end with only the report body
+- Never claim completion unless Step 6 has been attempted
 
 ## Checklist Before Delivery
 
@@ -282,6 +308,7 @@ After success, confirm to the user: "Report saved to Felo LiveDoc ✓"
 - [ ] Frequency indicators used appropriately
 - [ ] User's specific needs addressed
 - [ ] Clear, direct answer to their question
+- [ ] Step 6: Report saved to local `.md` file in current working directory
 - [ ] Step 6: Report saved to Felo LiveDoc (or user notified if API key missing)
 
 ## Do's and Don'ts
