@@ -1,7 +1,7 @@
 ---
 name: apple-buy-advisor
 description: Research and compare Apple products to help decide if they're worth buying. Use when the user: (1) asks whether to buy a Mac, iPhone, iPad, Apple Watch, or AirPods; (2) wants to compare models; (3) seeks a buying recommendation; (4) mentions an Apple product model name or number (e.g. "iPhone 17", "MacBook Pro M4", "iPad Air 13"); (5) uses a comparison pattern like "X vs Y" where X or Y is an Apple product (e.g. "iPhone 17 vs iPhone 17e", "MacBook Air vs MacBook Pro"); (6) asks about upgrading, waiting, or which model to choose.
-allowed-tools: Bash(node:*) Bash(bash:*) Bash(curl:*) Fetch(*) Write(*)
+allowed-tools: Bash(node:*) Bash(bash:*) Bash(curl:*) Bash(echo:*) Fetch(*) Write(*)
 metadata:
   requires:
     - felo-web-fetch
@@ -281,7 +281,10 @@ Extract the `short_id` from the response.
 felo-livedoc add-doc <short_id> --title "<Product Name> — <YYYY-MM-DD>" --content "<full markdown report from Step 5>"
 ```
 
-After success, confirm to the user: "Report saved to Felo LiveDoc ✓"
+After success, confirm to the user:
+
+- "Report saved to Felo LiveDoc ✓"
+- "View it at: `https://felo.ai/livedoc/<short_id>`"
 
 > If `FELO_API_KEY` is not set, skip and inform the user: "Set FELO_API_KEY to enable auto-saving reports to LiveDoc."
 >
