@@ -54,6 +54,7 @@ $env:FELO_API_KEY="..."             # Windows (PowerShell)
 | `felo youtube-subtitling -v <url-or-id>` | Fetch YouTube video subtitles                         |
 | `felo x "<query>"`                       | Search X (Twitter) tweets, users, and replies         |
 | `felo livedoc <subcommand>`              | Manage LiveDocs (knowledge bases) and resources       |
+| `felo apple-buy-advisor "<query>"`       | Research and compare Apple products before you buy    |
 | `felo config <set\|get\|list\|path>`     | Manage API key and config                             |
 
 ---
@@ -108,6 +109,15 @@ felo livedoc add-doc SHORT_ID --content "Hello" --title "Test"
 felo livedoc add-urls SHORT_ID --urls "https://example.com"
 felo livedoc upload SHORT_ID --file ./doc.pdf
 felo livedoc retrieve SHORT_ID --query "search query"
+```
+
+**Apple Buy Advisor** — [full options →](./apple-buy-advisor/SKILL.md)
+
+```bash
+# Use as Claude Code skill
+/apple-buy-advisor Should I buy MacBook Pro M4?
+/apple-buy-advisor Compare iPhone 17 vs iPhone 17e
+/apple-buy-advisor Is it worth upgrading to iPad Air 13?
 ```
 
 **[See 40+ more examples →](./docs/EXAMPLES.md)**
