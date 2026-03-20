@@ -48,9 +48,18 @@ function normalizeTaskStatus(status) {
 /**
  * Create a PPT task. Returns { task_id, livedoc_short_id, ppt_business_id } or throws.
  * Uses fetchWithTimeoutAndRetry for 5xx retry (per PPT Task API error codes).
+ * @param {string} apiKey
+ * @param {string} query
+ * @param {number} timeoutMs
+ * @param {string} apiBase
+ * @param {{ ai_theme_id?: string }} [pptConfig]
  */
-async function createPptTask(apiKey, query, timeoutMs, apiBase) {
+async function createPptTask(apiKey, query, timeoutMs, apiBase, pptConfig) {
   const url = `${apiBase}/v2/ppts`;
+  const body = { query: query.trim() };
+  if (pptConfig && Object.keys(pptConfig).length > 0) {
+    body.ppt_config = pptConfig;
+  }
   const res = await fetchWithTimeoutAndRetry(
     url,
     {
@@ -60,7 +69,7 @@ async function createPptTask(apiKey, query, timeoutMs, apiBase) {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ query: query.trim() }),
+      body: JSON.stringify(body),
     },
     timeoutMs
   );
@@ -150,18 +159,30 @@ export async function slides(query, options = {}) {
   try {
     const apiBase = await getApiBase();
 
-    process.stderr.write("Creating PPT task...\n");
+    let createResult = {};
+    let taskId;
 
-    const createResult = await createPptTask(
-      apiKey,
-      query,
-      requestTimeoutMs,
-      apiBase
-    );
-    const taskId = createResult.task_id;
+    if (options.taskId) {
+      // Resume polling an existing task
+      taskId = options.taskId;
+      if (options.verbose || options.json) {
+        process.stderr.write(`Resuming task: ${taskId}\n`);
+      }
+    } else {
+      process.stderr.write("Creating PPT task...\n");
 
-    if (options.json && options.verbose) {
-      process.stderr.write(`Task ID: ${taskId}\n`);
+      createResult = await createPptTask(
+        apiKey,
+        query,
+        requestTimeoutMs,
+        apiBase,
+        options.pptConfig
+      );
+      taskId = createResult.task_id;
+
+      if (options.json && options.verbose) {
+        process.stderr.write(`Task ID: ${taskId}\n`);
+      }
     }
 
     // 默认显示 spinner 动画；仅在使用 -v/--json 时改为逐行状态输出
@@ -326,6 +347,82 @@ export async function slides(query, options = {}) {
   } catch (err) {
     if (process.stderr.isTTY && !options.verbose && !options.json)
       clearStatusLine();
+    console.error("Error:", err.message || err);
+    return 1;
+  }
+}
+
+/**
+ * List available PPT themes. Returns exit code (0 success, 1 failure).
+ * @param {Object} options - { lang?, type?, keyword?, page?, size?, json?, timeoutMs? }
+ */
+export async function listPptThemes(options = {}) {
+  const apiKey = await getApiKey();
+  if (!apiKey) {
+    console.error(NO_KEY_MESSAGE.trim());
+    return 1;
+  }
+
+  const timeoutMs = options.timeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS;
+
+  try {
+    const apiBase = await getApiBase();
+    const params = new URLSearchParams();
+    if (options.lang) params.set("lang", options.lang);
+    if (options.type) params.set("type", options.type);
+    if (options.keyword) params.set("keyword", options.keyword);
+    if (options.page) params.set("page", String(options.page));
+    if (options.size) params.set("size", String(options.size));
+
+    const qs = params.toString();
+    const url = `${apiBase}/v2/ppt-themes${qs ? `?${qs}` : ""}`;
+
+    const res = await fetchWithTimeoutAndRetry(
+      url,
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+      },
+      timeoutMs
+    );
+
+    const data = await res.json().catch(() => ({}));
+
+    if (data.status === "error") {
+      const msg = data.message || data.code || "Unknown error";
+      throw new Error(msg);
+    }
+
+    if (!res.ok) {
+      const msg =
+        data.message || data.error || res.statusText || `HTTP ${res.status}`;
+      throw new Error(msg);
+    }
+
+    const themes = data.data ?? [];
+
+    if (options.json) {
+      console.log(JSON.stringify(data, null, 2));
+      return 0;
+    }
+
+    if (!Array.isArray(themes) || themes.length === 0) {
+      console.log("No themes found.");
+      return 0;
+    }
+
+    for (const t of themes) {
+      console.log(`${t.id}  ${t.title || "(untitled)"}`);
+      if (t.subtitle) console.log(`  subtitle: ${t.subtitle}`);
+      if (t.description) console.log(`  ${t.description}`);
+      console.log();
+    }
+
+    return 0;
+  } catch (err) {
     console.error("Error:", err.message || err);
     return 1;
   }

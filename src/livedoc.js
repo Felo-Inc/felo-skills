@@ -375,6 +375,31 @@ export async function removeResource(shortId, resourceId, opts = {}) {
   } finally { stopSpinner(spinnerId); }
 }
 
+export async function updateResource(shortId, resourceId, opts = {}) {
+  const apiKey = await getApiKey();
+  if (!apiKey) { console.error(NO_KEY_MESSAGE.trim()); return 1; }
+  if (!shortId || !resourceId) { process.stderr.write('ERROR: short_id and resource_id are required.\n'); return 1; }
+
+  const apiBase = await getApiBase();
+  const timeoutMs = opts.timeoutMs || DEFAULT_TIMEOUT_MS;
+  const spinnerId = startSpinner('Updating resource');
+
+  try {
+    const body = {};
+    if (opts.title !== undefined) body.title = opts.title;
+    if (opts.snippet !== undefined) body.snippet = opts.snippet;
+    if (opts.thumbnail !== undefined) body.thumbnail = opts.thumbnail;
+    const payload = await apiRequest('PUT', `/livedocs/${shortId}/resources/${resourceId}`, body, apiKey, apiBase, timeoutMs);
+    if (opts.json) { console.log(JSON.stringify(payload, null, 2)); return 0; }
+    process.stdout.write('Resource updated!\n\n');
+    process.stdout.write(formatResource(payload?.data));
+    return 0;
+  } catch (err) {
+    process.stderr.write(`Failed to update resource: ${err?.message || err}\n`);
+    return 1;
+  } finally { stopSpinner(spinnerId); }
+}
+
 export async function route(shortId, opts = {}) {
   const apiKey = await getApiKey();
   if (!apiKey) { console.error(NO_KEY_MESSAGE.trim()); return 1; }
@@ -528,6 +553,268 @@ export async function getResourceContent(shortId, resourceId, opts = {}) {
     return 0;
   } catch (err) {
     process.stderr.write(`Failed to get resource content: ${err?.message || err}\n`);
+    return 1;
+  } finally { stopSpinner(spinnerId); }
+}
+
+// ── README ──
+
+export async function getReadme(shortId, opts = {}) {
+  const apiKey = await getApiKey();
+  if (!apiKey) { console.error(NO_KEY_MESSAGE.trim()); return 1; }
+  if (!shortId) { process.stderr.write('ERROR: short_id is required.\n'); return 1; }
+
+  const apiBase = await getApiBase();
+  const timeoutMs = opts.timeoutMs || DEFAULT_TIMEOUT_MS;
+  const spinnerId = startSpinner('Fetching README');
+
+  try {
+    const payload = await apiRequest('GET', `/livedocs/${shortId}/readme`, null, apiKey, apiBase, timeoutMs);
+    if (opts.json) { console.log(JSON.stringify(payload, null, 2)); return 0; }
+    const content = payload?.data?.content ?? '';
+    process.stdout.write(content || '(empty)\n');
+    return 0;
+  } catch (err) {
+    process.stderr.write(`Failed to get README: ${err?.message || err}\n`);
+    return 1;
+  } finally { stopSpinner(spinnerId); }
+}
+
+export async function upsertReadme(shortId, opts = {}) {
+  const apiKey = await getApiKey();
+  if (!apiKey) { console.error(NO_KEY_MESSAGE.trim()); return 1; }
+  if (!shortId) { process.stderr.write('ERROR: short_id is required.\n'); return 1; }
+  if (opts.content === undefined || opts.content === null) { process.stderr.write('ERROR: --content is required.\n'); return 1; }
+
+  const apiBase = await getApiBase();
+  const timeoutMs = opts.timeoutMs || DEFAULT_TIMEOUT_MS;
+  const spinnerId = startSpinner('Updating README');
+
+  try {
+    const payload = await apiRequest('PUT', `/livedocs/${shortId}/readme`, { content: opts.content }, apiKey, apiBase, timeoutMs);
+    if (opts.json) { console.log(JSON.stringify(payload, null, 2)); return 0; }
+    process.stdout.write('README updated.\n');
+    return 0;
+  } catch (err) {
+    process.stderr.write(`Failed to update README: ${err?.message || err}\n`);
+    return 1;
+  } finally { stopSpinner(spinnerId); }
+}
+
+export async function appendReadme(shortId, opts = {}) {
+  const apiKey = await getApiKey();
+  if (!apiKey) { console.error(NO_KEY_MESSAGE.trim()); return 1; }
+  if (!shortId) { process.stderr.write('ERROR: short_id is required.\n'); return 1; }
+  if (!opts.content) { process.stderr.write('ERROR: --content is required.\n'); return 1; }
+
+  const apiBase = await getApiBase();
+  const timeoutMs = opts.timeoutMs || DEFAULT_TIMEOUT_MS;
+  const spinnerId = startSpinner('Appending to README');
+
+  try {
+    const payload = await apiRequest('POST', `/livedocs/${shortId}/readme/append`, { content: opts.content }, apiKey, apiBase, timeoutMs);
+    if (opts.json) { console.log(JSON.stringify(payload, null, 2)); return 0; }
+    process.stdout.write('README appended.\n');
+    return 0;
+  } catch (err) {
+    process.stderr.write(`Failed to append README: ${err?.message || err}\n`);
+    return 1;
+  } finally { stopSpinner(spinnerId); }
+}
+
+export async function deleteReadme(shortId, opts = {}) {
+  const apiKey = await getApiKey();
+  if (!apiKey) { console.error(NO_KEY_MESSAGE.trim()); return 1; }
+  if (!shortId) { process.stderr.write('ERROR: short_id is required.\n'); return 1; }
+
+  const apiBase = await getApiBase();
+  const timeoutMs = opts.timeoutMs || DEFAULT_TIMEOUT_MS;
+  const spinnerId = startSpinner('Deleting README');
+
+  try {
+    await apiRequest('DELETE', `/livedocs/${shortId}/readme`, null, apiKey, apiBase, timeoutMs);
+    if (opts.json) { console.log(JSON.stringify({ status: 'ok' }, null, 2)); return 0; }
+    process.stdout.write('README deleted.\n');
+    return 0;
+  } catch (err) {
+    process.stderr.write(`Failed to delete README: ${err?.message || err}\n`);
+    return 1;
+  } finally { stopSpinner(spinnerId); }
+}
+
+// ── Tasks ──
+
+function formatTask(t) {
+  if (!t) return '';
+  let out = `### ${t.title || '(untitled)'}\n`;
+  out += `- Task ID: \`${t.id}\`\n`;
+  out += `- Status: ${t.status === 0 ? 'TODO' : t.status === 1 ? 'IN_PROGRESS' : t.status === 2 ? 'DONE' : t.status}\n`;
+  if (t.sort != null) out += `- Sort: ${t.sort}\n`;
+  if (t.description) out += `- Description: ${t.description}\n`;
+  if (t.labels?.length) out += `- Labels: ${t.labels.join(', ')}\n`;
+  if (t.created_at) out += `- Created: ${t.created_at}\n`;
+  out += '\n';
+  return out;
+}
+
+function formatTaskRecord(r) {
+  if (!r) return '';
+  let out = `- [${r.record_type}] `;
+  if (r.content) out += r.content;
+  else if (r.meta) out += JSON.stringify(r.meta);
+  out += `  (id: ${r.id}, ${r.created_at || ''})\n`;
+  return out;
+}
+
+export async function listTasks(shortId, opts = {}) {
+  const apiKey = await getApiKey();
+  if (!apiKey) { console.error(NO_KEY_MESSAGE.trim()); return 1; }
+  if (!shortId) { process.stderr.write('ERROR: short_id is required.\n'); return 1; }
+
+  const apiBase = await getApiBase();
+  const timeoutMs = opts.timeoutMs || DEFAULT_TIMEOUT_MS;
+  const spinnerId = startSpinner('Listing tasks');
+
+  try {
+    const params = new URLSearchParams();
+    if (opts.status !== undefined && opts.status !== '') params.set('status', opts.status);
+    if (opts.labels) opts.labels.split(',').map(l => l.trim()).filter(Boolean).forEach(l => params.append('labels', l));
+    if (opts.page) params.set('page', opts.page);
+    if (opts.size) params.set('size', opts.size);
+    const qs = params.toString();
+    const payload = await apiRequest('GET', `/livedocs/${shortId}/tasks${qs ? `?${qs}` : ''}`, null, apiKey, apiBase, timeoutMs);
+    if (opts.json) { console.log(JSON.stringify(payload, null, 2)); return 0; }
+    const items = payload?.data?.items || [];
+    if (!items.length) { process.stderr.write('No tasks found.\n'); return 0; }
+    process.stdout.write(`Found ${payload.data.total || items.length} task(s)\n\n`);
+    for (const t of items) process.stdout.write(formatTask(t));
+    return 0;
+  } catch (err) {
+    process.stderr.write(`Failed to list tasks: ${err?.message || err}\n`);
+    return 1;
+  } finally { stopSpinner(spinnerId); }
+}
+
+export async function createTask(shortId, opts = {}) {
+  const apiKey = await getApiKey();
+  if (!apiKey) { console.error(NO_KEY_MESSAGE.trim()); return 1; }
+  if (!shortId) { process.stderr.write('ERROR: short_id is required.\n'); return 1; }
+  if (!opts.title) { process.stderr.write('ERROR: --title is required.\n'); return 1; }
+
+  const apiBase = await getApiBase();
+  const timeoutMs = opts.timeoutMs || DEFAULT_TIMEOUT_MS;
+  const spinnerId = startSpinner('Creating task');
+
+  try {
+    const status = (opts.status !== undefined && opts.status !== '') ? parseInt(opts.status, 10) : 0;
+    const sort = (opts.sort !== undefined && opts.sort !== '') ? parseInt(opts.sort, 10) : 0;
+    const body = { title: opts.title, status, sort };
+    if (opts.description) body.description = opts.description;
+    body.labels = opts.labels ? opts.labels.split(',').map(l => l.trim()).filter(Boolean) : [];
+    const payload = await apiRequest('POST', `/livedocs/${shortId}/tasks`, body, apiKey, apiBase, timeoutMs);
+    if (opts.json) { console.log(JSON.stringify(payload, null, 2)); return 0; }
+    process.stdout.write('Task created!\n\n');
+    process.stdout.write(formatTask(payload?.data));
+    return 0;
+  } catch (err) {
+    process.stderr.write(`Failed to create task: ${err?.message || err}\n`);
+    return 1;
+  } finally { stopSpinner(spinnerId); }
+}
+
+export async function updateTask(shortId, taskId, opts = {}) {
+  const apiKey = await getApiKey();
+  if (!apiKey) { console.error(NO_KEY_MESSAGE.trim()); return 1; }
+  if (!shortId || !taskId) { process.stderr.write('ERROR: short_id and task_id are required.\n'); return 1; }
+
+  const apiBase = await getApiBase();
+  const timeoutMs = opts.timeoutMs || DEFAULT_TIMEOUT_MS;
+  const spinnerId = startSpinner('Updating task');
+
+  try {
+    const body = {};
+    if (opts.title) body.title = opts.title;
+    if (opts.description !== undefined) body.description = opts.description;
+    if (opts.status !== undefined && opts.status !== '') body.status = parseInt(opts.status, 10);
+    if (opts.sort !== undefined && opts.sort !== '') body.sort = parseInt(opts.sort, 10);
+    if (opts.labels !== undefined) body.labels = opts.labels.split(',').map(l => l.trim()).filter(Boolean);
+    const payload = await apiRequest('PATCH', `/livedocs/${shortId}/tasks/${taskId}`, body, apiKey, apiBase, timeoutMs);
+    if (opts.json) { console.log(JSON.stringify(payload, null, 2)); return 0; }
+    process.stdout.write('Task updated!\n\n');
+    process.stdout.write(formatTask(payload?.data));
+    return 0;
+  } catch (err) {
+    process.stderr.write(`Failed to update task: ${err?.message || err}\n`);
+    return 1;
+  } finally { stopSpinner(spinnerId); }
+}
+
+export async function deleteTask(shortId, taskId, opts = {}) {
+  const apiKey = await getApiKey();
+  if (!apiKey) { console.error(NO_KEY_MESSAGE.trim()); return 1; }
+  if (!shortId || !taskId) { process.stderr.write('ERROR: short_id and task_id are required.\n'); return 1; }
+
+  const apiBase = await getApiBase();
+  const timeoutMs = opts.timeoutMs || DEFAULT_TIMEOUT_MS;
+  const spinnerId = startSpinner('Deleting task');
+
+  try {
+    await apiRequest('DELETE', `/livedocs/${shortId}/tasks/${taskId}`, null, apiKey, apiBase, timeoutMs);
+    if (opts.json) { console.log(JSON.stringify({ status: 'ok' }, null, 2)); return 0; }
+    process.stdout.write(`Task \`${taskId}\` deleted.\n`);
+    return 0;
+  } catch (err) {
+    process.stderr.write(`Failed to delete task: ${err?.message || err}\n`);
+    return 1;
+  } finally { stopSpinner(spinnerId); }
+}
+
+export async function listTaskRecords(shortId, taskId, opts = {}) {
+  const apiKey = await getApiKey();
+  if (!apiKey) { console.error(NO_KEY_MESSAGE.trim()); return 1; }
+  if (!shortId || !taskId) { process.stderr.write('ERROR: short_id and task_id are required.\n'); return 1; }
+
+  const apiBase = await getApiBase();
+  const timeoutMs = opts.timeoutMs || DEFAULT_TIMEOUT_MS;
+  const spinnerId = startSpinner('Fetching task records');
+
+  try {
+    const params = new URLSearchParams();
+    if (opts.recordType) params.set('record_type', opts.recordType);
+    if (opts.page) params.set('page', opts.page);
+    if (opts.size) params.set('size', opts.size);
+    const qs = params.toString();
+    const payload = await apiRequest('GET', `/livedocs/${shortId}/tasks/${taskId}/records${qs ? `?${qs}` : ''}`, null, apiKey, apiBase, timeoutMs);
+    if (opts.json) { console.log(JSON.stringify(payload, null, 2)); return 0; }
+    const items = payload?.data?.items || [];
+    if (!items.length) { process.stderr.write('No records found.\n'); return 0; }
+    process.stdout.write(`Found ${payload.data.total || items.length} record(s)\n\n`);
+    for (const r of items) process.stdout.write(formatTaskRecord(r));
+    return 0;
+  } catch (err) {
+    process.stderr.write(`Failed to list task records: ${err?.message || err}\n`);
+    return 1;
+  } finally { stopSpinner(spinnerId); }
+}
+
+export async function createTaskComment(shortId, taskId, opts = {}) {
+  const apiKey = await getApiKey();
+  if (!apiKey) { console.error(NO_KEY_MESSAGE.trim()); return 1; }
+  if (!shortId || !taskId) { process.stderr.write('ERROR: short_id and task_id are required.\n'); return 1; }
+  if (!opts.content) { process.stderr.write('ERROR: --content is required.\n'); return 1; }
+
+  const apiBase = await getApiBase();
+  const timeoutMs = opts.timeoutMs || DEFAULT_TIMEOUT_MS;
+  const spinnerId = startSpinner('Adding comment');
+
+  try {
+    const payload = await apiRequest('POST', `/livedocs/${shortId}/tasks/${taskId}/comments`, { content: opts.content }, apiKey, apiBase, timeoutMs);
+    if (opts.json) { console.log(JSON.stringify(payload, null, 2)); return 0; }
+    process.stdout.write('Comment added.\n');
+    process.stdout.write(formatTaskRecord(payload?.data));
+    return 0;
+  } catch (err) {
+    process.stderr.write(`Failed to add comment: ${err?.message || err}\n`);
     return 1;
   } finally { stopSpinner(spinnerId); }
 }

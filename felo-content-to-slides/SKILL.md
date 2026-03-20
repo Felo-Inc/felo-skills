@@ -56,6 +56,7 @@ felo content-to-slides -v "https://www.youtube.com/watch?v=ID" [options]
 | `-l, --language <code>` | For --video: subtitle language (e.g. en, zh-CN) |
 | `-t, --timeout <seconds>` | Fetch timeout (default 60) |
 | `--poll-timeout <seconds>` | Max seconds to wait for PPT task (default 1200) |
+| `--theme <id>` | PPT theme ID (list themes with `felo ppt-themes`) |
 | `-j, --json` | Output JSON with task_id and ppt/live_doc URL |
 | `--verbose` | Show polling status |
 
@@ -66,6 +67,9 @@ Provide **either** `--url` or `--video`, not both.
 ```bash
 # Web page → PPT (with readability)
 node src/cli.js content-to-slides --url "https://openclaw.ai/" --readability
+
+# Web page → PPT with a specific theme
+node src/cli.js content-to-slides --url "https://openclaw.ai/" --readability --theme "THEME_ID"
 
 # YouTube → PPT, with extra instruction
 node src/cli.js content-to-slides -v "https://www.youtube.com/watch?v=xxx" --extra-prompt "max 10 slides"

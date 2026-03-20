@@ -11,6 +11,8 @@ Manage knowledge bases (LiveDocs) and their resources via the Felo API.
 - Semantic retrieval across knowledge base resources
 - Route relevant resources by query for targeted retrieval
 - Full CRUD for resources within a LiveDoc
+- Manage README content for each LiveDoc
+- Task management: create, update, delete tasks with comments and change history
 
 **When to use:**
 - Building or managing a knowledge base
@@ -87,8 +89,19 @@ felo livedoc route SHORT_ID --query "latest AI research" --max-resources 5
 | `add-urls <short_id>` | Add URL resources (max 10) |
 | `upload <short_id>` | Upload a file resource |
 | `remove-resource <short_id> <resource_id>` | Delete a resource |
+| `update-resource <short_id> <resource_id>` | Update resource title, snippet, or thumbnail |
 | `retrieve <short_id>` | Semantic retrieval (auto-routes if no `--resource-ids`) |
 | `route <short_id>` | Route relevant resource IDs by query |
+| `get-readme <short_id>` | Get README content |
+| `update-readme <short_id>` | Create or replace README |
+| `append-readme <short_id>` | Append content to README |
+| `delete-readme <short_id>` | Delete README |
+| `tasks <short_id>` | List tasks (filter by `--status`, `--labels`) |
+| `create-task <short_id>` | Create a task |
+| `update-task <short_id> <task_id>` | Partially update a task |
+| `delete-task <short_id> <task_id>` | Delete a task |
+| `task-records <short_id> <task_id>` | List task records (comments + change history) |
+| `add-task-comment <short_id> <task_id>` | Add a comment to a task |
 
 ---
 
