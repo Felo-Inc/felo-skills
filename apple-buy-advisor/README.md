@@ -18,6 +18,7 @@ When a user asks about buying or comparing Apple products, this skill:
 2. **Searches user opinions** on X (Twitter) via `felo-x-search`
 3. **Researches community & professional reviews** via `felo-search`
 4. **Produces a structured report** — single product or head-to-head comparison
+5. **Saves the report automatically** to a local `.md` file and, when available, to Felo LiveDoc
 
 ## Trigger Conditions
 
@@ -36,6 +37,7 @@ Activates when users:
 ✅ **Balanced** — Separates personal user feedback from professional reviews
 ✅ **Clear recommendations** — Specific buying conditions with overall rating
 ✅ **Multilingual** — Responds in the user's input language
+✅ **Auto-save workflow** — Always writes a local markdown report; also saves to Felo LiveDoc when configured
 
 ## Report Formats
 
@@ -50,6 +52,16 @@ Activates when users:
 | `felo-web-fetch` | Fetch all URLs (Apple specs pages, review sites) |
 | `felo-x-search` | Real-time user reactions on X/Twitter |
 | `felo-search` | Reddit, MacRumors forums, professional review sites |
+| `felo-livedoc` | Create a LiveDoc and save the final report for sharing/reference |
+
+## Save Behavior
+
+After generating the report, the skill must complete a save step before ending:
+
+- Always save the full report to a local file named `apple-buy-advisor-<product-slug>-<YYYY-MM-DD>.md`
+- If `FELO_API_KEY` is configured, also create a Felo LiveDoc entry and save the report there
+- If LiveDoc save succeeds, the user is reminded they can open it at `https://felo.ai/livedoc/<short_id>`
+- If `FELO_API_KEY` is missing, LiveDoc save is skipped and the user is told why
 
 ## Trusted Sources
 
@@ -78,12 +90,13 @@ Copy-Item -Recurse apple-buy-advisor "$env:USERPROFILE\.claude\skills\"
 
 ### Step 2: Install required skills
 
-This skill depends on three other Felo skills. Install them all:
+This skill depends on four other Felo skills. Install them all:
 
 ```bash
 npx skills add Felo-Inc/felo-skills --skill felo-web-fetch
 npx skills add Felo-Inc/felo-skills --skill felo-search
 npx skills add Felo-Inc/felo-skills --skill felo-x-search
+npx skills add Felo-Inc/felo-skills --skill felo-livedoc
 ```
 
 ### Step 3: Get API Key
@@ -109,13 +122,15 @@ $env:FELO_API_KEY="your-api-key-here"
 
 Restart Claude Code to load the environment variable.
 
+`FELO_API_KEY` is also used for the optional Felo LiveDoc auto-save step.
+
 ### Step 5: Test
 
 ```
 Should I buy the iPhone 17?
 ```
 
-If you get a structured report with specs and reviews, you're all set.
+If you get a structured report with specs and reviews, plus a saved local `.md` file, you're all set.
 
 ---
 
