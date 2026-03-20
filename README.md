@@ -116,7 +116,7 @@ felo livedoc retrieve SHORT_ID --query "search query"
 
 ## Skills Overview
 
-5 skills across search, content generation, web scraping, and social media:
+7 skills across search, content generation, web scraping, social media, knowledge base, and shopping advice:
 
 | Skill                       | Description                                                   | Docs                            |
 | --------------------------- | ------------------------------------------------------------- | ------------------------------- |
@@ -126,6 +126,7 @@ felo livedoc retrieve SHORT_ID --query "search query"
 | **felo-youtube-subtitling** | Fetch YouTube video subtitles                                 | [→](./felo-youtube-subtitling/) |
 | **felo-x-search**           | Search X (Twitter) tweets, users, replies                     | [→](./felo-x-search/SKILL.md)   |
 | **felo-livedoc**            | Manage knowledge bases and semantic retrieval                 | [→](./felo-livedoc/)            |
+| **apple-buy-advisor**       | Research and compare Apple products before you buy            | [→](./apple-buy-advisor/)       |
 
 ---
 
@@ -144,6 +145,7 @@ felo livedoc retrieve SHORT_ID --query "search query"
 /plugin install felo-youtube-subtitling@felo-ai
 /plugin install felo-x-search@felo-ai
 /plugin install felo-livedoc@felo-ai
+/plugin install apple-buy-advisor@felo-ai
 ```
 
 ### ClawHub
@@ -157,6 +159,7 @@ clawhub install felo-web-fetch
 clawhub install felo-youtube-subtitling
 clawhub install felo-x-search
 clawhub install felo-livedoc
+clawhub install apple-buy-advisor
 ```
 
 ### Gemini CLI
@@ -168,6 +171,7 @@ cd felo-skills
 # Copy skill folders to Gemini CLI skills directory
 cp -r felo-search ~/.gemini/skills/
 cp -r felo-slides ~/.gemini/skills/
+cp -r apple-buy-advisor ~/.gemini/skills/
 ```
 
 ### OpenAI Codex
@@ -176,6 +180,7 @@ cp -r felo-slides ~/.gemini/skills/
 git clone https://github.com/Felo-Inc/felo-skills.git
 # Copy any skill folder to ~/.codex/skills/
 cp -r felo-search ~/.codex/skills/
+cp -r apple-buy-advisor ~/.codex/skills/
 ```
 
 ### OpenClaw
@@ -193,6 +198,7 @@ git clone https://github.com/Felo-Inc/felo-skills.git
 # Gemini CLI:  ~/.gemini/skills/
 # Codex:       ~/.codex/skills/
 cp -r felo-search ~/.claude/skills/
+cp -r apple-buy-advisor ~/.claude/skills/
 ```
 
 ---
