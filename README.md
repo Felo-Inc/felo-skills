@@ -114,6 +114,13 @@ felo livedoc retrieve SHORT_ID --query "search query"
 **Apple Buy Advisor** — [full options →](./apple-buy-advisor/SKILL.md)
 
 ```bash
+# Use as Felo CLI command
+felo apple-buy-advisor "Should I buy MacBook Pro M4?"
+felo apple-buy-advisor "Compare iPhone 17 vs iPhone 17e"
+felo apple-buy-advisor "Is it worth upgrading to iPad Air 13?"
+```
+
+```bash
 # Use as Claude Code skill
 /apple-buy-advisor Should I buy MacBook Pro M4?
 /apple-buy-advisor Compare iPhone 17 vs iPhone 17e
