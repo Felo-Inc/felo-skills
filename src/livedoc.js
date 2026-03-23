@@ -711,6 +711,7 @@ export async function createTask(shortId, opts = {}) {
     const body = { title: opts.title, status, sort };
     if (opts.description) body.description = opts.description;
     body.labels = opts.labels ? opts.labels.split(',').map(l => l.trim()).filter(Boolean) : [];
+    if (opts.operatedBy) body.operated_by = opts.operatedBy;
     const payload = await apiRequest('POST', `/livedocs/${shortId}/tasks`, body, apiKey, apiBase, timeoutMs);
     if (opts.json) { console.log(JSON.stringify(payload, null, 2)); return 0; }
     process.stdout.write('Task created!\n\n');
@@ -738,6 +739,7 @@ export async function updateTask(shortId, taskId, opts = {}) {
     if (opts.status !== undefined && opts.status !== '') body.status = parseInt(opts.status, 10);
     if (opts.sort !== undefined && opts.sort !== '') body.sort = parseInt(opts.sort, 10);
     if (opts.labels !== undefined) body.labels = opts.labels.split(',').map(l => l.trim()).filter(Boolean);
+    if (opts.operatedBy) body.operated_by = opts.operatedBy;
     const payload = await apiRequest('PATCH', `/livedocs/${shortId}/tasks/${taskId}`, body, apiKey, apiBase, timeoutMs);
     if (opts.json) { console.log(JSON.stringify(payload, null, 2)); return 0; }
     process.stdout.write('Task updated!\n\n');
@@ -808,7 +810,9 @@ export async function createTaskComment(shortId, taskId, opts = {}) {
   const spinnerId = startSpinner('Adding comment');
 
   try {
-    const payload = await apiRequest('POST', `/livedocs/${shortId}/tasks/${taskId}/comments`, { content: opts.content }, apiKey, apiBase, timeoutMs);
+    const body = { content: opts.content };
+    if (opts.operatedBy) body.operated_by = opts.operatedBy;
+    const payload = await apiRequest('POST', `/livedocs/${shortId}/tasks/${taskId}/comments`, body, apiKey, apiBase, timeoutMs);
     if (opts.json) { console.log(JSON.stringify(payload, null, 2)); return 0; }
     process.stdout.write('Comment added.\n');
     process.stdout.write(formatTaskRecord(payload?.data));

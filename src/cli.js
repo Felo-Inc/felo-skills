@@ -911,6 +911,7 @@ livedocCmd
   .option("--sort <n>", "sort order (non-negative integer, default: 0)")
   .option("--description <desc>", "task description")
   .option("--labels <labels>", "comma-separated labels (max 10)")
+  .option("--operated-by <signature>", "operator signature, e.g. claude-code, openclaw (max 100 characters)")
   .option("-j, --json", "output raw JSON")
   .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
   .action(async (shortId, opts) => {
@@ -921,6 +922,7 @@ livedocCmd
       sort: opts.sort,
       description: opts.description,
       labels: opts.labels,
+      operatedBy: opts.operatedBy,
       json: opts.json,
       timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
     });
@@ -936,6 +938,7 @@ livedocCmd
   .option("--status <n>", "new status: 0=TODO, 1=IN_PROGRESS, 2=DONE")
   .option("--sort <n>", "new sort order")
   .option("--labels <labels>", "new comma-separated labels")
+  .option("--operated-by <signature>", "operator signature, e.g. claude-code, openclaw (max 100 characters)")
   .option("-j, --json", "output raw JSON")
   .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
   .action(async (shortId, taskId, opts) => {
@@ -946,6 +949,7 @@ livedocCmd
       status: opts.status,
       sort: opts.sort,
       labels: opts.labels,
+      operatedBy: opts.operatedBy,
       json: opts.json,
       timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
     });
@@ -993,12 +997,14 @@ livedocCmd
   .command("add-task-comment <short_id> <task_id>")
   .description("Add a comment to a task")
   .requiredOption("--content <text>", "comment content")
+  .option("--operated-by <signature>", "operator signature, e.g. claude-code, openclaw (max 100 characters)")
   .option("-j, --json", "output raw JSON")
   .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
   .action(async (shortId, taskId, opts) => {
     const timeoutMs = parseInt(opts.timeout, 10) * 1000;
     const code = await livedoc.createTaskComment(shortId, taskId, {
       content: opts.content,
+      operatedBy: opts.operatedBy,
       json: opts.json,
       timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
     });
