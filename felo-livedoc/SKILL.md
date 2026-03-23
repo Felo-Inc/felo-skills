@@ -191,6 +191,7 @@ node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs tasks SHORT_ID --labe
 ```bash
 node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs create-task SHORT_ID --title "Write docs" --status 0 --sort 0
 node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs create-task SHORT_ID --title "Write docs" --status 0 --sort 0 --description "API docs" --labels "docs"
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs create-task SHORT_ID --title "Write docs" --operated-by "claude-code"
 ```
 
 Task status values: `0`=TODO, `1`=IN_PROGRESS, `2`=DONE
@@ -199,6 +200,7 @@ Task status values: `0`=TODO, `1`=IN_PROGRESS, `2`=DONE
 ```bash
 node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs update-task SHORT_ID TASK_ID --status 1
 node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs update-task SHORT_ID TASK_ID --title "New title" --labels "docs,done"
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs update-task SHORT_ID TASK_ID --status 2 --operated-by "claude-code"
 ```
 
 **Delete a task:**
@@ -215,6 +217,7 @@ node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs task-records SHORT_ID
 **Add a comment to a task:**
 ```bash
 node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs add-task-comment SHORT_ID TASK_ID --content "This is a comment."
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs add-task-comment SHORT_ID TASK_ID --content "This is a comment." --operated-by "claude-code"
 ```
 ### Options
 

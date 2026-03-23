@@ -208,6 +208,7 @@ function usage() {
     '  --sort <n>            Task sort order (non-negative integer)',
     '  --labels <labels>     Comma-separated labels (tasks)',
     '  --record-type <type>  Record type filter: comment, edit, status_change',
+    '  --operated-by <sig>   Operator signature, e.g. claude-code, openclaw (max 100 chars)',
     '  -j, --json            Output raw JSON',
     '  -t, --timeout <ms>    Timeout in ms (default: 60000)',
     '  --help                Show this help',
@@ -219,7 +220,7 @@ function parseArgs(argv) {
     keyword: '', page: '', size: '', type: '', content: '', title: '',
     urls: '', file: '', convert: false, query: '', resourceIds: '', maxResources: '',
     resourceId: '', pageNumber: '', maxChunk: '', expiresIn: '', output: '',
-    status: '', sort: '', labels: '', recordType: '',
+    status: '', sort: '', labels: '', recordType: '', operatedBy: '',
     json: false, timeoutMs: DEFAULT_TIMEOUT_MS, help: false,
   };
   const positional = [];
@@ -251,6 +252,7 @@ function parseArgs(argv) {
     else if (a === '--sort') out.sort = argv[++i] || '';
     else if (a === '--labels') out.labels = argv[++i] || '';
     else if (a === '--record-type') out.recordType = argv[++i] || '';
+    else if (a === '--operated-by') out.operatedBy = argv[++i] || '';
     else if (a === '-t' || a === '--timeout') {
       const n = parseInt(argv[++i] || '', 10);
       if (Number.isFinite(n) && n > 0) out.timeoutMs = n;
@@ -615,6 +617,7 @@ async function main() {
         const body = { title: args.title, status, sort };
         if (args.description) body.description = args.description;
         body.labels = args.labels ? args.labels.split(',').map(l => l.trim()).filter(Boolean) : [];
+        if (args.operatedBy) body.operated_by = args.operatedBy;
         const payload = await apiRequest('POST', `/livedocs/${shortId}/tasks`, body, apiKey, apiBase, timeoutMs);
         if (json) { console.log(JSON.stringify(payload, null, 2)); }
         else { process.stdout.write('Task created!\n\n'); process.stdout.write(formatTask(payload?.data)); }
@@ -631,6 +634,7 @@ async function main() {
         if (args.status !== '') body.status = parseInt(args.status, 10);
         if (args.sort !== '') body.sort = parseInt(args.sort, 10);
         if (args.labels !== undefined) body.labels = args.labels.split(',').map(l => l.trim()).filter(Boolean);
+        if (args.operatedBy) body.operated_by = args.operatedBy;
         const payload = await apiRequest('PATCH', `/livedocs/${shortId}/tasks/${resourceId}`, body, apiKey, apiBase, timeoutMs);
         if (json) { console.log(JSON.stringify(payload, null, 2)); }
         else { process.stdout.write('Task updated!\n\n'); process.stdout.write(formatTask(payload?.data)); }
@@ -674,7 +678,9 @@ async function main() {
         if (!resourceId) { console.error('ERROR: task_id is required'); break; }
         if (!args.content) { console.error('ERROR: --content is required'); break; }
         spinnerId = startSpinner('Adding comment');
-        const payload = await apiRequest('POST', `/livedocs/${shortId}/tasks/${resourceId}/comments`, { content: args.content }, apiKey, apiBase, timeoutMs);
+        const body = { content: args.content };
+        if (args.operatedBy) body.operated_by = args.operatedBy;
+        const payload = await apiRequest('POST', `/livedocs/${shortId}/tasks/${resourceId}/comments`, body, apiKey, apiBase, timeoutMs);
         if (json) { console.log(JSON.stringify(payload, null, 2)); }
         else { process.stdout.write('Comment added.\n'); process.stdout.write(formatTaskRecord(payload?.data)); }
         code = 0;
