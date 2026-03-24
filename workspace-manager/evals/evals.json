@@ -1,0 +1,237 @@
+{
+  "skill_name": "workspace-manager",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "帮我加载丰田汽车工作区",
+      "expected_output": "Agent 在注册表里找不到「丰田汽车」，远程搜索也无结果，友好提示「没有找到该工作区，要帮你创建一个吗？」，等待用户确认，不自动创建。",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "帮我加载三菱银行工作区（注册表里已有 short_id: abc123）",
+      "expected_output": "Agent 找到工作区，设为活跃工作区，调用 resources 列出内容，展示最近工作日志和制品列表，告知用户当前工作区是「三菱银行」。",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "好了，今天到这里吧",
+      "expected_output": "Agent 识别到会话结束信号，自动总结本次对话做了什么，生成 3-5 条简短 bullet points，存入当天的工作日志文档（标题格式 YYYY-MM-DD 工作记录）。如果当天文档已存在则合并更新。",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "把这份竞争对手分析报告存到工作区",
+      "expected_output": "Agent 把报告内容以文档形式上传到活跃工作区的 LiveDoc，标题合理（如「竞争对手分析报告」），完成后确认「已存入 XX 工作区：竞争对手分析报告」。",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "把这个 URL 存到工作区：https://example.com/report",
+      "expected_output": "Agent 调用 add-urls 把 URL 上传到活跃工作区，完成后确认已存入。",
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "工作区里上次关于三菱银行的融资情况是怎么说的？",
+      "expected_output": "Agent 调用 retrieve 对活跃工作区做语义检索，把相关内容整合成一段直接回答，不是直接 dump 原始结果。",
+      "files": []
+    },
+    {
+      "id": 7,
+      "scenario": "A1",
+      "prompt": "帮我加载三菱银行工作区",
+      "setup": "~/.claude/workspaces.json 中已有 {\"三菱银行\": \"Xyc5anLuTfFeTZWMJtXTcs\"}，该 LiveDoc 有 README 和若干资源，tasks --status 0 拉取 TODO，--status 1 拉取 IN_PROGRESS",
+      "expected_output": "Agent 读取 workspaces.json 找到 ID，调用 get-readme 展示概览，调用 tasks --status 0 和 --status 1 拉取待办，直接展示内容，不向用户提问",
+      "expected_calls": [
+        "get-readme Xyc5anLuTfFeTZWMJtXTcs",
+        "tasks Xyc5anLuTfFeTZWMJtXTcs --status 0",
+        "tasks Xyc5anLuTfFeTZWMJtXTcs --status 1"
+      ],
+      "should_ask_user": false,
+      "files": []
+    },
+    {
+      "id": 8,
+      "scenario": "A2",
+      "prompt": "帮我加载软银工作区",
+      "setup": "~/.claude/workspaces.json 中没有软银相关条目",
+      "expected_output": "Agent 找不到软银工作区，友好提示找不到该工作区，询问是否创建，等待用户确认，不自动创建工作区",
+      "expected_calls": [],
+      "should_not_call": ["create-livedoc"],
+      "should_ask_user": true,
+      "files": []
+    },
+    {
+      "id": 9,
+      "scenario": "A3",
+      "prompt": "帮我加载 OPC 工作区",
+      "setup": "~/.claude/workspaces.json 中有 {\"OPC\": \"HPhigYAeHJTBWb9GpH7SSQ\"}，但该 LiveDoc 没有 README（get-readme 返回空）",
+      "expected_output": "Agent 调用 get-readme 返回空后，fallback 调用 resources 列出工作区内容，不报错，不卡住，正常展示资源列表，告知用户当前工作区是 OPC",
+      "expected_calls": [
+        "get-readme HPhigYAeHJTBWb9GpH7SSQ",
+        "resources HPhigYAeHJTBWb9GpH7SSQ"
+      ],
+      "should_ask_user": false,
+      "files": []
+    },
+    {
+      "id": 10,
+      "scenario": "B1",
+      "prompt": "帮我搜一下软银最新的 AI 投资动态",
+      "setup": "三菱银行工作区已加载（ACTIVE_WORKSPACE 已设置为 {\"name\": \"三菱银行\", \"short_id\": \"Xyc5anLuTfFeTZWMJtXTcs\"}）",
+      "expected_output": "Agent 搜索前自动调用 create-task（status=1），搜索完成后自动调用 update-task（status=2），全程不向用户说「我创建了一个任务」等 task 操作说明",
+      "expected_calls": [
+        "create-task Xyc5anLuTfFeTZWMJtXTcs --title \"搜索软银最新AI投资动态\" --status 1 --sort 0",
+        "update-task Xyc5anLuTfFeTZWMJtXTcs <task_id> --status 2"
+      ],
+      "should_ask_user": false,
+      "narration_forbidden": "不得在回复中出现「我创建了一个任务」「已记录任务」等 task 操作说明",
+      "files": []
+    },
+    {
+      "id": 11,
+      "scenario": "B2",
+      "prompt": "半泽淳一是哪个大学毕业的？",
+      "setup": "三菱银行工作区已加载（ACTIVE_WORKSPACE short_id = Xyc5anLuTfFeTZWMJtXTcs），工作区内有「半泽淳一人物画像」资源",
+      "expected_output": "Agent 直接从工作区资源回答（应包含毕业院校名称），不创建 task（这是简单问答，不是实质性工作）",
+      "expected_calls": [
+        "resources Xyc5anLuTfFeTZWMJtXTcs",
+        "content Xyc5anLuTfFeTZWMJtXTcs <resource_id>"
+      ],
+      "should_not_call": ["create-task"],
+      "should_ask_user": false,
+      "files": []
+    },
+    {
+      "id": 12,
+      "scenario": "B3",
+      "prompt": "你刚才搜索的时候忘记创建任务了",
+      "setup": "Agent 刚完成一次搜索（如 B1 场景）但未创建 task，用户指出。三菱银行工作区已加载（ACTIVE_WORKSPACE short_id = Xyc5anLuTfFeTZWMJtXTcs）",
+      "expected_output": "Agent 立即补创建 task，status=2（DONE），不辩解，不解释",
+      "expected_calls": [
+        "create-task Xyc5anLuTfFeTZWMJtXTcs --title \"<刚才的任务描述>\" --status 2 --sort 0"
+      ],
+      "should_ask_user": false,
+      "files": []
+    },
+    {
+      "id": 13,
+      "scenario": "C1",
+      "prompt": "帮我写一份 MUFG 竞争对手分析摘要",
+      "setup": "三菱银行工作区已加载（ACTIVE_WORKSPACE short_id = Xyc5anLuTfFeTZWMJtXTcs）",
+      "expected_output": "Agent 生成内容后询问是否保存到三菱银行工作区，用户确认后调用 add-doc 保存，完成后确认「已存入三菱银行工作区：MUFG 竞争对手分析摘要」",
+      "expected_calls": [
+        "add-doc Xyc5anLuTfFeTZWMJtXTcs --title \"MUFG 竞争对手分析摘要\" --content \"<generated_content>\""
+      ],
+      "should_ask_user": true,
+      "ask_timing": "生成内容之后，调用 add-doc 之前",
+      "files": []
+    },
+    {
+      "id": 14,
+      "scenario": "C2",
+      "prompt": "帮我搜集一些关于 MUFG 的背景资料",
+      "setup": "三菱银行工作区已加载（ACTIVE_WORKSPACE short_id = Xyc5anLuTfFeTZWMJtXTcs），用户正在进行研究，尚未要求生成最终文档",
+      "expected_output": "Agent 执行搜索并展示结果，不询问是否保存（这是中间过程，不是最终制品）",
+      "expected_calls": [],
+      "should_not_call": ["add-doc", "add-urls"],
+      "should_ask_user": false,
+      "note": "C1/C2/C3 测试 Agent 对「何时主动保存」的判断，C2 是中间过程，不应触发 add-doc/add-urls",
+      "files": []
+    },
+    {
+      "id": 15,
+      "scenario": "C3",
+      "prompt": "把这个链接存到工作区：https://www.mufg.jp/english/profile/strategy/index.html",
+      "setup": "三菱银行工作区已加载（ACTIVE_WORKSPACE short_id = Xyc5anLuTfFeTZWMJtXTcs）",
+      "expected_output": "Agent 直接调用 add-urls，不需要额外确认（用户已明确说要存），完成后确认已存入",
+      "expected_calls": [
+        "add-urls Xyc5anLuTfFeTZWMJtXTcs --urls \"https://example.com/mufg-report\""
+      ],
+      "should_ask_user": false,
+      "files": []
+    },
+    {
+      "id": 16,
+      "scenario": "D1",
+      "prompt": "帮我深度调研 MUFG 的数字化战略",
+      "setup": "三菱银行工作区已加载（ACTIVE_WORKSPACE short_id = Xyc5anLuTfFeTZWMJtXTcs）。README 更新是完成调研后的预期副作用，不是用户显式要求的。",
+      "expected_output": "Agent 主动用 read→merge→write 模式更新 README（先 get-readme，在内存中合并新洞察，再 update-readme 写回完整内容），告知用户「已记录到工作区 README」，不问用户是否要更新",
+      "expected_calls": [
+        "get-readme Xyc5anLuTfFeTZWMJtXTcs",
+        "update-readme Xyc5anLuTfFeTZWMJtXTcs --content \"<merged_full_content>\""
+      ],
+      "should_not_call": ["append-readme"],
+      "should_ask_user": false,
+      "files": []
+    },
+    {
+      "id": 17,
+      "scenario": "D2",
+      "prompt": "更新一下工作区的 README",
+      "setup": "三菱银行工作区已加载（ACTIVE_WORKSPACE short_id = Xyc5anLuTfFeTZWMJtXTcs），README 已有内容",
+      "expected_output": "Agent 先调用 get-readme 读取现有内容，在内存中合并新内容，再调用 update-readme 写回完整内容（read→merge→write 模式，不是盲目追加）",
+      "expected_calls": [
+        "get-readme Xyc5anLuTfFeTZWMJtXTcs",
+        "update-readme Xyc5anLuTfFeTZWMJtXTcs --content \"<merged_full_content>\""
+      ],
+      "should_not_call": ["append-readme"],
+      "should_ask_user": false,
+      "files": []
+    },
+    {
+      "id": 18,
+      "scenario": "E1",
+      "prompt": "工作区里关于半泽淳一的资料是什么？",
+      "setup": "三菱银行工作区已加载（ACTIVE_WORKSPACE short_id = Xyc5anLuTfFeTZWMJtXTcs），resources 列表中有「半泽淳一人物画像」资源",
+      "expected_output": "Agent 先调用 resources 拿列表，找到「半泽淳一人物画像」资源，调用 content 读取全文，不调用 retrieve",
+      "expected_calls": [
+        "resources Xyc5anLuTfFeTZWMJtXTcs",
+        "content Xyc5anLuTfFeTZWMJtXTcs <resource_id>"
+      ],
+      "should_not_call": ["retrieve"],
+      "should_ask_user": false,
+      "files": []
+    },
+    {
+      "id": 19,
+      "scenario": "E2",
+      "prompt": "工作区里有没有提到过稳定币？",
+      "setup": "三菱银行工作区已加载（ACTIVE_WORKSPACE short_id = Xyc5anLuTfFeTZWMJtXTcs），resources 列表中没有标题包含「稳定币」的资源",
+      "expected_output": "Agent 先调用 resources，发现标题里看不出哪个包含「稳定币」，合理 fallback 到 retrieve 做语义检索",
+      "expected_calls": [
+        "resources Xyc5anLuTfFeTZWMJtXTcs",
+        "retrieve Xyc5anLuTfFeTZWMJtXTcs --query \"稳定币\""
+      ],
+      "should_ask_user": false,
+      "files": []
+    },
+    {
+      "id": 20,
+      "scenario": "F1",
+      "prompt": "刷新一下工作区",
+      "setup": "三菱银行工作区已加载（ACTIVE_WORKSPACE short_id = Xyc5anLuTfFeTZWMJtXTcs）",
+      "expected_output": "Agent 重新调用 get-readme + resources + tasks（status 0 和 1），告知用户有什么变化（新增了几个资源、README 有更新等），如果没变化说「工作区内容无变化」",
+      "expected_calls": [
+        "get-readme Xyc5anLuTfFeTZWMJtXTcs",
+        "resources Xyc5anLuTfFeTZWMJtXTcs",
+        "tasks Xyc5anLuTfFeTZWMJtXTcs --status 0",
+        "tasks Xyc5anLuTfFeTZWMJtXTcs --status 1"
+      ],
+      "should_ask_user": false,
+      "files": []
+    },
+    {
+      "id": 21,
+      "scenario": "G1",
+      "prompt": "美国最近有什么演唱会？",
+      "setup": "三菱银行工作区已加载（ACTIVE_WORKSPACE short_id = Xyc5anLuTfFeTZWMJtXTcs）",
+      "expected_output": "Agent 直接回答问题，不创建 task（与工作区无关的闲聊/随机问题不应触发 task sync）",
+      "expected_calls": [],
+      "should_not_call": ["create-task"],
+      "should_ask_user": false,
+      "files": []
+    }
+  ]
+}
