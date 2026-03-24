@@ -240,37 +240,6 @@ We welcome contributions — report bugs, improve docs, or add new skills. Run t
 
 ---
 
-## 发布到 npm（维护者）
-
-本仓库通过 GitHub Actions 自动发布到 npm，**不要手动在 CI 里改版本号或重复发布相同版本**。
-
-- **发布一个新版本**
-  1. 确保代码已推到 `main`（或你用来发布的分支）
-  2. 选择一个**尚未在 npm 上使用过的新版本号**（语义化版本号 `MAJOR.MINOR.PATCH`）
-  3. 在本地打 tag 并推送，例如：
-
-     ```bash
-     git tag v0.2.24
-     git push origin v0.2.24
-     ```
-
-  4. GitHub Actions 会在 `push tag v*` 时自动运行：
-     - 从 tag 名中取出版本号（`v0.2.24` → `0.2.24`）
-     - 将 `package.json` 中的 `"version"` 同步为该版本号
-     - 运行测试
-     - 执行 `npm publish --provenance --access public`
-
-- **版本号约定（建议）**
-  - **PATCH（补丁号）**：向下兼容的小修小补（bugfix、文档更新等），例如 `0.2.23` → `0.2.24`
-  - **MINOR（次版本号）**：向下兼容的新功能，例如新增子命令或新的 skill，`0.2.0` → `0.3.0`
-  - **MAJOR（主版本号）**：有破坏性改动时使用，例如 CLI 行为或配置不兼容旧版本，`0.x.x` → `1.0.0`
-
-- **注意事项**
-  - npm 不允许覆盖已发布的版本，**不要重复推送同一个版本号的 tag**（例如已经发布了 `0.2.23`，再次尝试发布会收到 403 错误）
-  - 如果某个已发布版本存在严重问题，可考虑通过 `npm deprecate` 标记为不推荐使用，而不是尝试覆盖它
-
----
-
 ## License
 
 MIT — see [LICENSE](./felo-search/LICENSE) for details.
