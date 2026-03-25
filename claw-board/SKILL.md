@@ -59,7 +59,7 @@ node ~/.claude/skills/felo-livedoc/scripts/run_livedoc.mjs
 **流程：**
 
 1. 发送登录链接：
-   > "请点击链接登录 / 注册 Felo 账号：https://dev.felo.ai/settings/api-keys
+   > "请点击链接登录 / 注册 Felo 账号：https://felo.ai/settings/api-keys
    > 完成后把 Key 粘贴给我，我会自动完成配置。"
 2. 用户粘贴 Key → 写入配置：
    ```bash
