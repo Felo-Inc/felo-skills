@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <strong>Ask anything. Get current answers. Generate slides from a prompt.</strong>
+  <strong>Ask anything. Get current answers. Generate slides and mindmaps from a prompt.</strong>
 </p>
 
 <p align="center">
@@ -15,7 +15,7 @@
   <a href="./felo-search/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="MIT License"></a>
 </p>
 
-**Felo AI CLI** — Real-time search, PPT generation, web fetch, YouTube subtitles, and X (Twitter) search from the terminal. Also works as Claude Code skills. Supports Chinese, English, Japanese, and Korean.
+**Felo AI CLI** — Real-time search, PPT generation, mindmap creation, web fetch, YouTube subtitles, and X (Twitter) search from the terminal. Also works as Claude Code skills. Supports Chinese, English, Japanese, and Korean.
 
 <p align="center">
   <a href="https://felo.ai">Felo AI</a> · <a href="https://openapi.felo.ai/docs/">Docs</a> · <a href="https://openapi.felo.ai/docs/api-reference/v2/chat.html">API Reference</a> · <a href="./docs/EXAMPLES.md">Examples</a> · <a href="./docs/FAQ.md">FAQ</a> · <a href="https://clawhub.ai/u/wangzhiming1999">ClawHub</a> · <a href="https://discord.gg/9W8NubHA">Discord</a> · <a href="https://x.com/felo_ai">X (Twitter)</a>
@@ -50,6 +50,7 @@ $env:FELO_API_KEY="..."             # Windows (PowerShell)
 | ---------------------------------------- | ----------------------------------------------------- |
 | `felo search "<query>"`                  | Search for current info (weather, news, prices, etc.) |
 | `felo slides "<prompt>"`                 | Generate PPT; returns link when done                  |
+| `felo mindmap "<query>"`                 | Generate mindmap; returns link immediately            |
 | `felo web-fetch --url <url>`             | Fetch webpage content (markdown/text/html)            |
 | `felo youtube-subtitling -v <url-or-id>` | Fetch YouTube video subtitles                         |
 | `felo x "<query>"`                       | Search X (Twitter) tweets, users, and replies         |
@@ -74,6 +75,15 @@ felo search "MacBook Air M3 price" --json
 ```bash
 felo slides "Felo product intro, 3 slides"
 felo slides "Q4 2024 business review, 10 pages" --poll-timeout 300
+```
+
+**Mindmap**
+
+```bash
+felo mindmap "AI trends in 2024"
+felo mindmap "Project timeline" --layout TIMELINE
+felo mindmap "Problem analysis" --layout FISHBONE --json
+felo mindmap-layouts                    # List available layouts
 ```
 
 **Web Fetch** — [full options →](./felo-web-fetch/README.md)
@@ -133,12 +143,13 @@ felo apple-buy-advisor "Is it worth upgrading to iPad Air 13?"
 
 ## Skills Overview
 
-7 skills across search, content generation, web scraping, social media, knowledge base, and shopping advice:
+8 skills across search, content generation, web scraping, social media, knowledge base, and shopping advice:
 
 | Skill                       | Description                                                   | Docs                            |
 | --------------------------- | ------------------------------------------------------------- | ------------------------------- |
 | **felo-search**             | Real-time web search with AI answers. Triggers automatically. | [→](./felo-search/)             |
 | **felo-slides**             | Generate PPT from a prompt                                    | [→](./felo-slides/)             |
+| **felo-mindmap**            | Generate mindmaps with various layouts                        | [→](./felo-mindmap/)            |
 | **felo-web-fetch**          | Fetch and extract webpage content                             | [→](./felo-web-fetch/)          |
 | **felo-youtube-subtitling** | Fetch YouTube video subtitles                                 | [→](./felo-youtube-subtitling/) |
 | **felo-x-search**           | Search X (Twitter) tweets, users, replies                     | [→](./felo-x-search/SKILL.md)   |
@@ -158,6 +169,7 @@ felo apple-buy-advisor "Is it worth upgrading to iPad Air 13?"
 # Install individual skills
 /plugin install felo-search@felo-ai
 /plugin install felo-slides@felo-ai
+/plugin install felo-mindmap@felo-ai
 /plugin install felo-web-fetch@felo-ai
 /plugin install felo-youtube-subtitling@felo-ai
 /plugin install felo-x-search@felo-ai
@@ -172,6 +184,7 @@ felo apple-buy-advisor "Is it worth upgrading to iPad Air 13?"
 ```bash
 clawhub install felo-search
 clawhub install felo-slides
+clawhub install felo-mindmap
 clawhub install felo-web-fetch
 clawhub install felo-youtube-subtitling
 clawhub install felo-x-search
