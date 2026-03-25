@@ -13,7 +13,7 @@ The Agent's external brain for projects. Once active, the Agent continuously syn
 |---------|-------------|
 | Workspace | One project = one LiveDoc |
 | Active Workspace | Session-level state; all operations auto-sync here |
-| README | The project's living knowledge map; Agent maintains proactively |
+| README | The Agent's memory of the project; Agent maintains proactively |
 | Artifacts | Key outputs; Agent asks before saving |
 | Tasks | Tracking records for substantive work; Agent maintains silently |
 | Registry | `~/.claude/workspaces.json`, maps project names to LiveDoc IDs |
@@ -91,7 +91,7 @@ User pastes GitHub install link → execute installation → after completion, a
 ### 1. Load Workspace
 
 1. Read `~/.claude/workspaces.json`, fuzzy-match project name. If not found locally, try `$SCRIPT list --keyword`.
-2. **Found:** Set as active → `$SCRIPT get-readme SHORT_ID` → present README as workspace briefing → append link `https://felo.ai/livedoc/SHORT_ID`. If README is empty or missing, fall back to `$SCRIPT resources SHORT_ID` to show the resource list.
+2. **Found:** Set as active → `$SCRIPT get-readme SHORT_ID` → present README as workspace briefing → append link `https://felo.ai/livedoc/SHORT_ID?from=claw`. If README is empty or missing, fall back to `$SCRIPT resources SHORT_ID` to show the resource list.
 3. **Not found:** "No workspace found for '[X]'. Want me to create one?"
 
 ### 2. Create Workspace
@@ -102,11 +102,31 @@ $SCRIPT create --name "Project Name" --description "workspace"
 
 Extract `short_id` → initialize README (see "README Structure Template" below) → update registry → set as active → reply:
 
-> "✅ Workspace '[X]' created. 📎 https://felo.ai/livedoc/SHORT_ID"
+> "✅ Workspace '[X]' created. 📎 https://felo.ai/livedoc/SHORT_ID?from=claw"
 
-### 3. Task Sync (Silent Execution)
+### 3. Task Sync (Mandatory)
 
-When the workspace is active, **every user request involving actual work must be tracked as a task**. This is mandatory — the workspace only works as an external brain if it reflects what actually happened.
+**Iron rule: When the workspace is active, if the user's request requires the Agent to invoke tools to produce new content (search, generate, analyze, etc.), the very first step is always `create-task` — before doing anything else.**
+
+Decision flow:
+1. User sends a message
+2. Does this message require the Agent to invoke tools to produce new content? (search, generate, collect, analyze, write)
+   - Yes → **immediately `create-task`** → execute → **`update-task` to mark complete**
+   - No → execute directly, no task needed
+
+**Requires task creation (invoking tools to produce new content):**
+- "Collect client info on Mr. Zhang" → requires search + generation
+- "Add 10 horror TikTok videos" → requires search + adding content
+- "Write a competitive analysis report" → requires generation
+- "Search for recent gold price trends" → requires search
+
+**Does NOT require task creation (workspace operations):**
+- "Load Mr. Zhang's workspace" → workspace operation
+- "What's in my workspace?" → viewing workspace
+- "Refresh the workspace" / "Create a new workspace" → workspace management
+- "Save that report" → saving artifacts
+- "Update the README" / "Rename the workspace" → workspace maintenance
+- Chitchat, clarifying questions
 
 **On load:** Pull pending and in-progress tasks:
 ```bash
@@ -114,23 +134,27 @@ $SCRIPT tasks SHORT_ID --status 0
 $SCRIPT tasks SHORT_ID --status 1
 ```
 
-**Before starting substantive work:**
+**Step one — Create task (before doing anything else):**
 ```bash
-$SCRIPT create-task SHORT_ID --title "Description" --status 1 --sort 0 [--operated-by "Agent Name"]
+$SCRIPT create-task SHORT_ID --title "Task description" --status 1 --sort 0 [--operated-by "Agent Name"]
 ```
 Save the returned `task_id` in working memory.
+
+`--title` should be a one-line summary of what the user wants done, e.g.:
+- User says "Collect info on Mr. Zhang" → `--title "Collect client info on Mr. Zhang"`
+- User says "Add 10 horror videos" → `--title "Add 10 horror TikTok trending videos"`
 
 `--operated-by` rules:
 - **Only pass it if the Agent has been given a name** in this session (e.g. an OpenClaw agent with an assigned name)
 - **Omit it if no explicit name** (e.g. a plain Claude Code session)
 
-**After completion:**
+**Last step — Mark complete (immediately after execution):**
 ```bash
 $SCRIPT update-task SHORT_ID TASK_ID --status 2 [--operated-by "Agent Name"]
 ```
 (`--operated-by` rule same as above — pass it when the Agent has a name.)
 
-Substantive work = web search, research, news lookup, document generation, data analysis, writing reports, creating slides, answering research questions. Chitchat does not count. Execute silently — do not narrate the task sync to the user. If you forgot to create a task before starting, create it retroactively and mark it DONE immediately. Never skip it.
+Execute silently — do not narrate the task sync to the user. If you forgot to create a task before starting, create it retroactively and mark it DONE immediately. Never skip it.
 
 ### 4. Save Artifacts (Ask First)
 
@@ -145,49 +169,52 @@ Significant artifacts = research reports, competitive analyses, meeting summarie
 | File | `$SCRIPT upload SHORT_ID --file ./path --convert` |
 
 After saving, reply:
-> "💾 Saved '[Title]' 📎 https://felo.ai/livedoc/SHORT_ID"
+> "💾 Saved '[Title]' 📎 https://felo.ai/livedoc/SHORT_ID?from=claw"
 
 ### 5. README Maintenance
 
-Agent maintains proactively — no need to ask the user.
+The README is the Agent's memory of the project — not a work log. Agent maintains proactively, no need to ask the user.
 
 **README Structure Template:**
 ```markdown
 # [Project Name]
 
-## Overview
-[What this project is about, stakeholders, objectives]
+## What This Project Is
+[Project background, objectives, stakeholders]
 
-## Key Insights & Lessons
-- [date] [insight]
+## User Preferences & Work Patterns
+[How the user likes to work, what dimensions they care about, specific requirements]
 
-## Important Decisions
-- [date] [decision]: [rationale]
-
-## Current Status
+## Current Progress
 [Where things stand now — updated each session]
 Last updated: YYYY-MM-DD
 ```
 
-**When to update README:**
-- After completing significant work — append a new insight or decision
-- When project status changes meaningfully
-- When something important is learned that future sessions should know
+**When to update README — core question: Did this operation bring any new understanding?**
+
+Update (new understanding):
+- When the project is first created — record "what this project is about"
+- When the user expresses preferences or work patterns — record "how the user wants to work" (e.g. collection dimensions, focus areas, format requirements)
+- When the project's nature or direction changes
+
+Do NOT update (repeated execution):
+- Same-pattern repeated operations (e.g. after collecting info on Mr. Zhang, collecting info on Mr. Li using the same pattern — no update needed)
+- The mere fact of executing an action (generating a document is not worth recording by itself)
 
 **Update method:** Read → merge in memory into the correct section → write back in full. Never blindly append to the end.
 
 1. `$SCRIPT get-readme SHORT_ID` to read current content
 2. Locate the target section in memory and insert:
-   - New insight → end of `## Key Insights & Lessons` section
-   - New decision → end of `## Important Decisions` section
-   - Status change → replace `## Current Status` section content
+   - Project background → `## What This Project Is`
+   - User preferences → `## User Preferences & Work Patterns`
+   - Progress changes → replace `## Current Progress` section content
 3. Update `Last updated: YYYY-MM-DD` to today's date
 4. `$SCRIPT update-readme SHORT_ID --content "..."` to write back
 
 **Initialization** (README is empty or missing): Skip step 1, write the full skeleton directly with `update-readme`.
 
 After updating, inform the user:
-> "📝 README updated. 📎 https://felo.ai/livedoc/SHORT_ID"
+> "📝 README updated. 📎 https://felo.ai/livedoc/SHORT_ID?from=claw"
 
 ### 6. Query Workspace
 
