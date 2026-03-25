@@ -4,6 +4,7 @@ import { createRequire } from "module";
 import { Command } from "commander";
 import { search } from "./search.js";
 import { slides, listPptThemes } from "./slides.js";
+import { mindmap, listMindmapLayouts } from "./mindmap.js";
 import { superAgent, listLiveDocs, listLiveDocResources } from "./superAgent.js";
 import { appleBuyAdvisor } from "./appleBuyAdvisor.js";
 import { webFetch } from "./webFetch.js";
@@ -131,6 +132,36 @@ program
       json: opts.json,
       timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
     });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+program
+  .command("mindmap")
+  .description("Generate a mindmap from a prompt (synchronous API)")
+  .argument("<query>", "mindmap topic or question")
+  .option("-l, --layout <type>", "layout type (default: MIND_MAP)")
+  .option("--livedoc-short-id <id>", "add to existing LiveDoc")
+  .option("-j, --json", "output raw JSON with resource_id and livedoc_short_id")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (query, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await mindmap(query, {
+      layout: opts.layout,
+      livedocShortId: opts.livedocShortId,
+      json: opts.json,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+program
+  .command("mindmap-layouts")
+  .description("List available mindmap layout types")
+  .option("-j, --json", "output raw JSON")
+  .action(async (opts) => {
+    const code = await listMindmapLayouts({ json: opts.json });
     process.exitCode = code;
     flushStdioThenExit(code);
   });
