@@ -1,9 +1,9 @@
 ---
-name: workspace-manager
-description: "Use when users need to manage persistent project workspaces backed by Felo LiveDoc — creating, loading, switching workspaces, saving artifacts, querying history, or managing tasks. Triggers on workspace-related intent combined with project/client names, or on 401 UNAUTHORIZED errors from Felo API."
+name: claw-deck
+description: "Use when users need to manage ClawDeck project workspaces backed by Felo LiveDoc — creating, loading, switching workspaces, saving artifacts, querying history, or managing tasks. Triggers on workspace-related intent combined with project/client names, or on 401 UNAUTHORIZED errors from Felo API."
 ---
 
-# Workspace Manager
+# ClawDeck — Workspace Manager
 
 The Agent's external brain for projects. Once active, the Agent continuously syncs tasks, artifacts, and knowledge to the corresponding LiveDoc, so anyone (including future sessions or colleagues) can load the workspace and immediately get full context.
 
