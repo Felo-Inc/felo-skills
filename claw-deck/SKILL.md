@@ -33,7 +33,7 @@ The Agent's external brain for projects. Once active, the Agent continuously syn
 In all commands below, `$SCRIPT` refers to:
 
 ```
-node ~/.claude/skills/felo-livedoc/scripts/run_livedoc.mjs
+node felo-livedoc/scripts/run_livedoc.mjs
 ```
 
 ## When NOT to Use
