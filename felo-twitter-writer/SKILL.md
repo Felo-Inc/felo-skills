@@ -78,13 +78,27 @@ Follow Constraint #4 above.
 
 #### Step 3: Call SuperAgent with tweet content
 
-Construct a query that includes the fetched tweets and asks for style analysis. Pass `--skill-id twitter-writer` since this is a new conversation.
+Determine conversation mode first:
+- If **no** `thread_short_id` exists in this session → new conversation (pass `--skill-id twitter-writer`)
+- If `thread_short_id` **already exists** in this session → follow-up (pass `--thread-id`)
+
+**New conversation (first call in session):**
 
 ```bash
 node felo-superAgent/scripts/run_superagent.mjs \
-  --query "ENRICHED_QUERY_WITH_TWEET_CONTENT" \
+  --query "/twitter-writer ENRICHED_QUERY_WITH_TWEET_CONTENT" \
   --live-doc-id "LIVE_DOC_ID" \
   --skill-id twitter-writer \
+  --accept-language LANG
+```
+
+**Follow-up (thread_short_id already exists):**
+
+```bash
+node felo-superAgent/scripts/run_superagent.mjs \
+  --query "/twitter-writer ENRICHED_QUERY_WITH_TWEET_CONTENT" \
+  --thread-id "THREAD_SHORT_ID" \
+  --live-doc-id "LIVE_DOC_ID" \
   --accept-language LANG
 ```
 
@@ -128,27 +142,27 @@ Follow Constraint #4. If Mode 1 was already run, reuse the same `live_doc_id`.
 
 | Condition | Mode | What to pass |
 |-----------|------|--------------|
-| First call in session, or switching to twitter-writer skill | New conversation | `--live-doc-id` + `--skill-id twitter-writer` |
-| Continuing from Mode 1 or a previous Mode 2 call | Follow-up | `--thread-id` + `--live-doc-id` |
-| User says "new topic" / "start over" | New conversation | `--live-doc-id` + `--skill-id twitter-writer` |
+| No `thread_short_id` in this session (truly first call) | New conversation | `--live-doc-id` + `--skill-id twitter-writer` |
+| `thread_short_id` already exists in this session (all subsequent inputs, including after Mode 1) | Follow-up | `--thread-id` + `--live-doc-id` |
+| User says "new topic" / "start over" (clear `thread_short_id`) | New conversation | `--live-doc-id` + `--skill-id twitter-writer` |
 
 #### Step 4: Call SuperAgent
 
-**New conversation:**
+**New conversation (no `thread_short_id` in session):**
 
 ```bash
 node felo-superAgent/scripts/run_superagent.mjs \
-  --query "ENRICHED_QUERY" \
+  --query "/twitter-writer ENRICHED_QUERY" \
   --live-doc-id "LIVE_DOC_ID" \
   --skill-id twitter-writer \
   --accept-language LANG
 ```
 
-**Follow-up (iterating on previous output):**
+**Follow-up (`thread_short_id` already exists in session):**
 
 ```bash
 node felo-superAgent/scripts/run_superagent.mjs \
-  --query "USER_FOLLOW_UP" \
+  --query "/twitter-writer USER_FOLLOW_UP" \
   --thread-id "THREAD_SHORT_ID" \
   --live-doc-id "LIVE_DOC_ID" \
   --accept-language LANG
@@ -217,10 +231,10 @@ node felo-x-search/scripts/run_x_search.mjs --id "paulg" --user
 
 **Step 2:** Get `live_doc_id` (list or create)
 
-**Step 3:** Call SuperAgent:
+**Step 3:** Call SuperAgent (first call in session — no `thread_short_id` yet):
 ```bash
 node felo-superAgent/scripts/run_superagent.mjs \
-  --query "@paulg のツイートを分析し、文体のスタイルDNAドキュメントを作成してください。トーン、文章構造、冒頭フック、締めのアクション、頻出ワード、ハッシュタグ戦略、絵文字の使い方などを含めてください。\n\nアカウント概要：[BIO]\n\nツイート：\n[TWEETS]" \
+  --query "/twitter-writer @paulg のツイートを分析し、文体のスタイルDNAドキュメントを作成してください。トーン、文章構造、冒頭フック、締めのアクション、頻出ワード、ハッシュタグ戦略、絵文字の使い方などを含めてください。\n\nアカウント概要：[BIO]\n\nツイート：\n[TWEETS]" \
   --live-doc-id "LIVE_DOC_ID" \
   --skill-id twitter-writer \
   --accept-language ja
@@ -240,10 +254,10 @@ User: "@paulg のスタイルでスタートアップについてのツイート
 
 **Step 2:** Reuse `live_doc_id` from Mode 1
 
-**Step 3:** Follow-up call (continuing the same thread):
+**Step 3:** Follow-up call (continuing the same thread — `thread_short_id` from Example A):
 ```bash
 node felo-superAgent/scripts/run_superagent.mjs \
-  --query "上記で抽出した @paulg のスタイルDNAをもとに、「スタートアップ」をテーマにしたツイートを3パターン作成してください。それぞれ異なるトーンや切り口で、280文字以内に収めてください。" \
+  --query "/twitter-writer 上記で抽出した @paulg のスタイルDNAをもとに、「スタートアップ」をテーマにしたツイートを3パターン作成してください。それぞれ異なるトーンや切り口で、280文字以内に収めてください。" \
   --thread-id "THREAD_SHORT_ID" \
   --live-doc-id "LIVE_DOC_ID" \
   --accept-language ja
@@ -261,10 +275,10 @@ User: "Write a Twitter thread about why most startups fail"
 
 **Step 2:** Get `live_doc_id`
 
-**Step 3:** New conversation with `twitter-writer`:
+**Step 3:** New conversation with `twitter-writer` (first call in session — no `thread_short_id` yet):
 ```bash
 node felo-superAgent/scripts/run_superagent.mjs \
-  --query "Write a Twitter thread (6–8 tweets) about why most startups fail. Start with a strong hook tweet that grabs attention. Each tweet should stand alone but flow naturally into the next." \
+  --query "/twitter-writer Write a Twitter thread (6–8 tweets) about why most startups fail. Start with a strong hook tweet that grabs attention. Each tweet should stand alone but flow naturally into the next." \
   --live-doc-id "LIVE_DOC_ID" \
   --skill-id twitter-writer \
   --accept-language en
@@ -282,10 +296,10 @@ User: "2番目のツイートをもっとユーモラスにして、絵文字も
 
 **Step 2:** This is a follow-up — pass `--thread-id` with the saved `thread_short_id`.
 
-**Step 3:** Follow-up call:
+**Step 3:** Follow-up call (`thread_short_id` already exists in session):
 ```bash
 node felo-superAgent/scripts/run_superagent.mjs \
-  --query "上記で生成した2番目のツイートを修正してください。トーンをよりユーモラスで軽快にし、適切な絵文字を追加してください。内容の意図は変えないでください。" \
+  --query "/twitter-writer 上記で生成した2番目のツイートを修正してください。トーンをよりユーモラスで軽快にし、適切な絵文字を追加してください。内容の意図は変えないでください。" \
   --thread-id "THREAD_SHORT_ID" \
   --live-doc-id "LIVE_DOC_ID" \
   --accept-language ja
