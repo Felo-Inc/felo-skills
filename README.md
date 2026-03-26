@@ -127,23 +127,48 @@ felo apple-buy-advisor "Is it worth upgrading to iPad Air 13?"
 /apple-buy-advisor Is it worth upgrading to iPad Air 13?
 ```
 
+**Twitter Writer** — [full options →](./felo-twitter-writer/SKILL.md)
+
+```bash
+# Use as Claude Code skill
+/felo-twitter-writer Analyze @paulg's tweet style and extract a style DNA
+/felo-twitter-writer Write 3 tweets about AI trends in @paulg's style
+/felo-twitter-writer Write a Twitter thread about why most startups fail
+```
+
+**SuperAgent** — [full options →](./felo-superAgent/README.md)
+
+```bash
+# Use as Claude Code skill
+/felo-superagent What is the latest news about AI?
+/felo-superagent Tell me more --thread-id <thread_short_id>
+```
+
+```bash
+# Run script directly
+node felo-superAgent/scripts/run_superagent.mjs --query "What is quantum computing?"
+node felo-superAgent/scripts/run_superagent.mjs --query "Tell me more" --thread-id <thread_short_id>
+```
+
 **[See 40+ more examples →](./docs/EXAMPLES.md)**
 
 ---
 
 ## Skills Overview
 
-7 skills across search, content generation, web scraping, social media, knowledge base, and shopping advice:
+9 skills across search, content generation, web scraping, social media, knowledge base, shopping advice, Twitter writing, and AI conversation:
 
-| Skill                       | Description                                                   | Docs                            |
-| --------------------------- | ------------------------------------------------------------- | ------------------------------- |
-| **felo-search**             | Real-time web search with AI answers. Triggers automatically. | [→](./felo-search/)             |
-| **felo-slides**             | Generate PPT from a prompt                                    | [→](./felo-slides/)             |
-| **felo-web-fetch**          | Fetch and extract webpage content                             | [→](./felo-web-fetch/)          |
-| **felo-youtube-subtitling** | Fetch YouTube video subtitles                                 | [→](./felo-youtube-subtitling/) |
-| **felo-x-search**           | Search X (Twitter) tweets, users, replies                     | [→](./felo-x-search/SKILL.md)   |
-| **felo-livedoc**            | Manage knowledge bases and semantic retrieval                 | [→](./felo-livedoc/)            |
-| **apple-buy-advisor**       | Research and compare Apple products before you buy            | [→](./apple-buy-advisor/)       |
+| Skill                       | Description                                                   | Docs                                      |
+| --------------------------- | ------------------------------------------------------------- | ----------------------------------------- |
+| **felo-search**             | Real-time web search with AI answers. Triggers automatically. | [→](./felo-search/)                       |
+| **felo-slides**             | Generate PPT from a prompt                                    | [→](./felo-slides/)                       |
+| **felo-web-fetch**          | Fetch and extract webpage content                             | [→](./felo-web-fetch/)                    |
+| **felo-youtube-subtitling** | Fetch YouTube video subtitles                                 | [→](./felo-youtube-subtitling/)           |
+| **felo-x-search**           | Search X (Twitter) tweets, users, replies                     | [→](./felo-x-search/SKILL.md)             |
+| **felo-livedoc**            | Manage knowledge bases and semantic retrieval                 | [→](./felo-livedoc/)                      |
+| **apple-buy-advisor**       | Research and compare Apple products before you buy            | [→](./apple-buy-advisor/)                 |
+| **felo-twitter-writer**     | Analyze tweet style DNA and compose tweets, threads, X posts  | [→](./felo-twitter-writer/SKILL.md)       |
+| **felo-superAgent**         | AI conversation with real-time streaming, continuous threads  | [→](./felo-superAgent/README.md)          |
 
 ---
 
@@ -163,6 +188,8 @@ felo apple-buy-advisor "Is it worth upgrading to iPad Air 13?"
 /plugin install felo-x-search@felo-ai
 /plugin install felo-livedoc@felo-ai
 /plugin install apple-buy-advisor@felo-ai
+/plugin install felo-twitter-writer@felo-ai
+/plugin install felo-superAgent@felo-ai
 ```
 
 ### ClawHub
@@ -177,6 +204,8 @@ clawhub install felo-youtube-subtitling
 clawhub install felo-x-search
 clawhub install felo-livedoc
 clawhub install apple-buy-advisor
+clawhub install felo-twitter-writer
+clawhub install felo-superAgent
 ```
 
 ### Gemini CLI
