@@ -1,6 +1,6 @@
 {
   "name": "felo-ai",
-  "version": "0.2.33",
+  "version": "0.2.43",
   "description": "Felo AI CLI - real-time search, PPT generation, SuperAgent conversation, LiveDoc management, web fetch, YouTube subtitles, LiveDoc knowledge base, and X (Twitter) search from the terminal",
   "type": "module",
   "main": "src/cli.js",
