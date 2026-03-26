@@ -32,7 +32,8 @@
     "url": "git+https://github.com/Felo-Inc/felo-skills.git"
   },
   "dependencies": {
-    "commander": "^12.0.0"
+    "commander": "^12.0.0",
+    "felo-ai": "^0.2.43"
   },
   "scripts": {
     "test": "node --test tests/",
