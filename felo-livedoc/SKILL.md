@@ -119,6 +119,11 @@ node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs update-resource SHORT
 node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs update-resource SHORT_ID RESOURCE_ID --snippet "New summary" --thumbnail "https://example.com/thumb.png"
 ```
 
+**Update resource content (ai_doc type only — also auto-updates snippet from first 2000 bytes):**
+```bash
+node ~/.agents/skills/felo-livedoc/scripts/run_livedoc.mjs update-resource-content SHORT_ID RESOURCE_ID --content "New content here"
+```
+
 ### Semantic Retrieval
 
 **Route relevant resources by query:**
@@ -240,6 +245,7 @@ The API returns JSON with this structure:
 - `short_id` — unique identifier (use this for all operations)
 - `name` — LiveDoc name
 - `description` — LiveDoc description
+- `is_shared` — `true` if this LiveDoc was shared with you (not owned by you)
 - `created_at` / `modified_at` — timestamps
 
 **Resource object:**

@@ -95,6 +95,7 @@ function formatLiveDoc(doc) {
   out += `- ID: \`${doc.short_id}\`\n`;
   if (doc.description) out += `- Description: ${doc.description}\n`;
   if (doc.icon) out += `- Icon: ${doc.icon}\n`;
+  if (doc.is_shared != null) out += `- Shared: ${doc.is_shared}\n`;
   if (doc.created_at) out += `- Created: ${doc.created_at}\n`;
   if (doc.modified_at) out += `- Modified: ${doc.modified_at}\n`;
   out += '\n';
@@ -167,6 +168,7 @@ function usage() {
     '  upload <short_id>     Upload file (--file required, --convert optional)',
     '  remove-resource <short_id> <resource_id>  Delete a resource',
     '  update-resource <short_id> <resource_id>  Update resource title/snippet/thumbnail',
+    '  update-resource-content <short_id> <resource_id>  Update ai_doc content (--content required)',
     '  retrieve <short_id>   Semantic search (--query required, --resource-ids optional)',
     '  route <short_id>      Route relevant resources by query (--query required)',
     '  download <short_id> <resource_id>  Download source file to disk',
@@ -429,6 +431,16 @@ async function main() {
         const payload = await apiRequest('PUT', `/livedocs/${shortId}/resources/${resourceId}`, body, apiKey, apiBase, timeoutMs);
         if (json) { console.log(JSON.stringify(payload, null, 2)); }
         else { process.stdout.write('Resource updated!\n\n'); process.stdout.write(formatResource(payload?.data)); }
+        code = 0;
+        break;
+      }
+      case 'update-resource-content': {
+        if (!shortId || !resourceId) { console.error('ERROR: short_id and resource_id are required'); break; }
+        if (!args.content) { console.error('ERROR: --content is required'); break; }
+        spinnerId = startSpinner('Updating resource content');
+        const payload = await apiRequest('PUT', `/livedocs/${shortId}/resources/${resourceId}/content`, { content: args.content }, apiKey, apiBase, timeoutMs);
+        if (json) { console.log(JSON.stringify(payload, null, 2)); }
+        else { process.stdout.write('Resource content updated.\n'); }
         code = 0;
         break;
       }

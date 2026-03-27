@@ -15,6 +15,7 @@ function usage() {
       '  --query <text>        PPT prompt (required unless --task-id is given)',
       '  --task-id <id>        Resume polling an existing task (skip creation)',
       '  --theme <id>          PPT theme ID (from ppt-themes)',
+      '  --livedoc-id <id>     Reuse an existing LiveDoc instead of auto-creating one',
       '  --interval <seconds>  Poll interval, default 10',
       '  --max-wait <seconds>  Max wait time, default 1800',
       '  --timeout <seconds>   Request timeout, default 60',
@@ -30,6 +31,7 @@ function parseArgs(argv) {
     query: '',
     taskId: '',
     theme: '',
+    livedocId: '',
     intervalSec: DEFAULT_INTERVAL_SEC,
     maxWaitSec: DEFAULT_MAX_WAIT_SEC,
     timeoutSec: DEFAULT_TIMEOUT_SEC,
@@ -53,6 +55,9 @@ function parseArgs(argv) {
       i += 1;
     } else if (a === '--theme') {
       out.theme = argv[i + 1] ?? '';
+      i += 1;
+    } else if (a === '--livedoc-id') {
+      out.livedocId = argv[i + 1] ?? '';
       i += 1;
     } else if (a === '--interval') {
       out.intervalSec = Number.parseInt(argv[i + 1] ?? '', 10);
@@ -138,10 +143,13 @@ function extractTaskUrls(historicalData, createData) {
   };
 }
 
-async function createTask(apiKey, apiBase, query, timeoutMs, theme) {
+async function createTask(apiKey, apiBase, query, timeoutMs, theme, livedocId) {
   const reqBody = { query };
   if (theme) {
     reqBody.ppt_config = { ai_theme_id: theme };
+  }
+  if (livedocId) {
+    reqBody.livedoc_short_id = livedocId;
   }
   const payload = await fetchJson(
     `${apiBase}/v2/ppts`,
@@ -211,7 +219,7 @@ async function main() {
     }
   } else {
     // Create a new task
-    createData = await createTask(apiKey, apiBase, args.query, timeoutMs, args.theme);
+    createData = await createTask(apiKey, apiBase, args.query, timeoutMs, args.theme, args.livedocId || undefined);
     taskId = createData.task_id;
     if (args.verbose) {
       console.error(`Task ID: ${taskId}`);
