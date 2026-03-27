@@ -89,6 +89,7 @@ program
   )
   .option("--theme <id>", "PPT theme ID (from ppt-themes command)")
   .option("--task-id <id>", "resume polling an existing task (skip creation)")
+  .option("--livedoc-id <id>", "reuse an existing LiveDoc short_id instead of auto-creating a new one")
   .action(async (query, opts) => {
     if (!query && !opts.taskId) {
       console.error("Error: provide a <query> or --task-id to resume an existing task");
@@ -105,6 +106,7 @@ program
       pollTimeoutMs: Number.isNaN(pollTimeoutMs) ? 1_200_000 : pollTimeoutMs,
       pptConfig,
       taskId: opts.taskId,
+      livedocShortId: opts.livedocId || undefined,
     });
     process.exitCode = code;
     flushStdioThenExit(code);
@@ -768,6 +770,23 @@ livedocCmd
     const code = await livedoc.downloadResource(shortId, resourceId, {
       output: opts.output,
       expiresIn: opts.expiresIn,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+livedocCmd
+  .command("update-resource-content <short_id> <resource_id>")
+  .description("Update the content of an ai_doc resource (also auto-updates snippet)")
+  .requiredOption("--content <text>", "new content for the resource")
+  .option("-j, --json", "output raw JSON")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (shortId, resourceId, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await livedoc.updateResourceContent(shortId, resourceId, {
+      content: opts.content,
+      json: opts.json,
       timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
     });
     process.exitCode = code;

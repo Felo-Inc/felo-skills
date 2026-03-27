@@ -90,6 +90,7 @@ Script behavior:
 
 - Creates task via `POST https://openapi.felo.ai/v2/ppts`
 - Supports optional `--theme <id>` to apply a PPT theme (sends `ppt_config.ai_theme_id`)
+- Supports optional `--livedoc-id <id>` to reuse an existing LiveDoc instead of auto-creating a new one
 - Supports optional `--task-id <id>` to resume polling an existing task (skips creation)
 - Polls via `GET https://openapi.felo.ai/v2/tasks/{task_id}/historical`
 - Treats `COMPLETED`/`SUCCESS` as success terminal (case-insensitive)

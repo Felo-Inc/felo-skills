@@ -53,12 +53,16 @@ function normalizeTaskStatus(status) {
  * @param {number} timeoutMs
  * @param {string} apiBase
  * @param {{ ai_theme_id?: string }} [pptConfig]
+ * @param {string} [livedocShortId]
  */
-async function createPptTask(apiKey, query, timeoutMs, apiBase, pptConfig) {
+async function createPptTask(apiKey, query, timeoutMs, apiBase, pptConfig, livedocShortId) {
   const url = `${apiBase}/v2/ppts`;
   const body = { query: query.trim() };
   if (pptConfig && Object.keys(pptConfig).length > 0) {
     body.ppt_config = pptConfig;
+  }
+  if (livedocShortId) {
+    body.livedoc_short_id = livedocShortId;
   }
   const res = await fetchWithTimeoutAndRetry(
     url,
@@ -176,7 +180,8 @@ export async function slides(query, options = {}) {
         query,
         requestTimeoutMs,
         apiBase,
-        options.pptConfig
+        options.pptConfig,
+        options.livedocShortId
       );
       taskId = createResult.task_id;
 
