@@ -11,20 +11,27 @@ These rules are mandatory. Violating any of them will produce incorrect behavior
 
 1. **This skill uses SuperAgent directly.** All generation is handled by `felo-superAgent/scripts/run_superagent.mjs` with `--skill-id twitter-writer`. Do NOT attempt to generate tweet content yourself.
 
-2. **NEVER use `--json` flag** when calling SuperAgent. The script MUST run in default streaming mode. State IDs are extracted from the `[state]` line in stderr.
+2. **ALWAYS use `--json` flag** when calling SuperAgent. In Claude Code's Bash tool, stdout is always captured — it never streams directly to the user. JSON mode returns the full answer in a structured response. After the script finishes, read `data.answer` from the JSON output and print it verbatim as your response text.
 
-3. **NEVER summarize or re-output SuperAgent's stdout.** The answer is already streamed directly to the user. Only add supplementary info (LiveDoc URL) if needed.
+3. **ALWAYS output `data.answer` verbatim.** After the script finishes, print `data.answer` exactly as-is as your response text. Do NOT summarize, paraphrase, or add commentary around it.
 
 4. **`--live-doc-id` is REQUIRED** for every SuperAgent call. Follow the livedoc reuse rules from `felo-superAgent/SKILL.md`:
    - Reuse any `live_doc_id` already available in this session
-   - If none: run `node felo-livedoc/scripts/run_livedoc.mjs list --json`, use `items[0].short_id`
+   - If none: run `node felo-livedoc/scripts/run_livedoc.mjs list --json`, use `data.items[0].short_id`
    - If list is empty: run `node felo-livedoc/scripts/run_livedoc.mjs create --name "Twitter Writer" --json`, use `data.short_id`
 
-5. **Always persist state.** After every SuperAgent call, extract `thread_short_id` and `live_doc_short_id` from the stderr `[state]` line. Use them in subsequent calls.
+5. **Always persist state.** After every SuperAgent call, extract `thread_short_id` and `live_doc_short_id` from the JSON response fields `data.thread_short_id` and `data.live_doc_short_id`. Use them in subsequent calls.
 
 6. **Output language follows the user's input language.** Default is `en`. Detect the user's language and pass the matching `--accept-language` value: `ja` for Japanese, `en` for English, `ko` for Korean, `zh` for Chinese. If unsure, use `en`.
 
 7. **Do NOT pass `--timeout` to the SuperAgent script.** The script manages its own connection lifecycle.
+
+8. **Brand style selection for Mode 2 new conversations only.** When starting a new conversation for content creation (Mode 2, no `thread_short_id`), you MUST attempt to fetch the TWITTER style library and offer the user a style choice BEFORE calling SuperAgent. The style is passed via `--ext '{"brand_style_requirement":"..."}'`. Full procedure in the Style Selection section below.
+
+   - Style category is always `TWITTER` (hardcoded — this skill only writes tweets).
+   - `--ext` is only valid for new conversations. Never pass it in follow-up mode (`--thread-id`).
+   - If the style library returns no entries, skip silently and proceed without `--ext`.
+   - Mode 1 (style DNA extraction) does NOT use this step.
 
 ## When to Use
 
@@ -82,6 +89,8 @@ Determine conversation mode first:
 - If **no** `thread_short_id` exists in this session → new conversation (pass `--skill-id twitter-writer`)
 - If `thread_short_id` **already exists** in this session → follow-up (pass `--thread-id`)
 
+Replace `LANG` with the user's language: `en` (English), `zh` (Chinese), `ja` (Japanese), `ko` (Korean). See Constraint #6.
+
 **New conversation (first call in session):**
 
 ```bash
@@ -89,7 +98,8 @@ node felo-superAgent/scripts/run_superagent.mjs \
   --query "/twitter-writer ENRICHED_QUERY_WITH_TWEET_CONTENT" \
   --live-doc-id "LIVE_DOC_ID" \
   --skill-id twitter-writer \
-  --accept-language LANG
+  --accept-language LANG \
+  --json
 ```
 
 **Follow-up (thread_short_id already exists):**
@@ -99,7 +109,8 @@ node felo-superAgent/scripts/run_superagent.mjs \
   --query "/twitter-writer ENRICHED_QUERY_WITH_TWEET_CONTENT" \
   --thread-id "THREAD_SHORT_ID" \
   --live-doc-id "LIVE_DOC_ID" \
-  --accept-language LANG
+  --accept-language LANG \
+  --json
 ```
 
 **Query construction example:**
@@ -117,7 +128,7 @@ Keep the query under 2000 characters. If tweet content is too long, include the 
 
 #### Step 4: Save state
 
-Extract `thread_short_id` and `live_doc_short_id` from stderr `[state]` line. Save for follow-up calls.
+Extract `thread_short_id` and `live_doc_short_id` from the JSON response fields `data.thread_short_id` and `data.live_doc_short_id`. Save for follow-up calls.
 
 ---
 
@@ -132,7 +143,69 @@ Extract `thread_short_id` and `live_doc_short_id` from stderr `[state]` line. Sa
 - If Mode 1 was just run in this session → style DNA is already in the LiveDoc canvas, use follow-up mode
 - If user provides a style DNA directly → include it in the query
 - If user provides an account name → run Mode 1 first, then continue with Mode 2
-- If no style DNA → proceed with general tweet writing (SuperAgent will use its default twitter-writer behavior)
+- If no style DNA → proceed to style library selection (Step 1.5)
+
+#### Step 1.5: Brand Style Selection (new conversations only)
+
+**Only run this step when:**
+- This is a **new conversation** (no `thread_short_id` in session), AND
+- Mode 1 was NOT just run (i.e., there is no existing thread carrying style DNA context)
+
+**Skip this step entirely when:**
+- `thread_short_id` already exists (follow-up) — `--ext` has no effect in follow-up mode
+- Mode 1 was just run in this session — style context is already in the thread
+
+**1.5a. Check if user already specified a style:**
+
+If the user mentioned a style by name (e.g., "use my Bold Voice style") or pasted a style block, note it and skip to step 1.5d.
+
+**1.5b. Fetch the TWITTER style library:**
+
+```bash
+node felo-superAgent/scripts/run_style_library.mjs --category TWITTER --accept-language en
+```
+
+Replace `en` with the user's language: `zh` for Chinese, `ja` for Japanese, `ko` for Korean. This controls the language of `Style labels` in the output.
+
+Always pass `--accept-language` matching the user's language (same value used for SuperAgent).
+
+**1.5c. Handle the result:**
+
+**If the list is empty:** Skip silently. Proceed to Step 2 without `--ext`.
+
+**If styles are available:** Present them to the user grouped by type, showing names only. Always include a "no preference" option. Wait for the user's reply before proceeding.
+
+Example presentation (adapt language to match user's language):
+```
+Here are the available Twitter writing styles — choosing one will make the output more accurate:
+
+[Your styles]
+1. My Bold Voice
+2. darioamodei
+
+[Recommended styles]
+3. Casual & Witty
+
+0. No preference — use default style
+```
+
+**1.5d. Build `--ext` from the chosen style:**
+
+Take the full text block for the chosen style exactly as output by `run_style_library.mjs`. The block for a TWITTER style looks like:
+```
+Style name: darioamodei
+Style labels: Thoughtful long-form essays
+Style DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA
+...（full content, may be very long）
+```
+
+Serialize it into a JSON string with `\n` for newlines. Pass the value **completely and verbatim — do NOT truncate `Style DNA`**:
+
+```bash
+--ext '{"brand_style_requirement":"Style name: darioamodei\nStyle labels: Thoughtful long-form essays\nStyle DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA\n\n## 风格速写\nDario writes like a serious intellectual...（full content）"}'
+```
+
+If the user chose "no preference" (option 0), do NOT pass `--ext`.
 
 #### Step 2: Obtain live_doc_id
 
@@ -142,20 +215,35 @@ Follow Constraint #4. If Mode 1 was already run, reuse the same `live_doc_id`.
 
 | Condition | Mode | What to pass |
 |-----------|------|--------------|
-| No `thread_short_id` in this session (truly first call) | New conversation | `--live-doc-id` + `--skill-id twitter-writer` |
-| `thread_short_id` already exists in this session (all subsequent inputs, including after Mode 1) | Follow-up | `--thread-id` + `--live-doc-id` |
-| User says "new topic" / "start over" (clear `thread_short_id`) | New conversation | `--live-doc-id` + `--skill-id twitter-writer` |
+| No `thread_short_id` in this session (truly first call) | New conversation | `--live-doc-id` + `--skill-id twitter-writer` + `--ext` (if style chosen) |
+| `thread_short_id` already exists in this session (all subsequent inputs, including after Mode 1) | Follow-up | `--thread-id` + `--live-doc-id` (NO `--ext`) |
+| User says "new topic" / "start over" (clear `thread_short_id`) | New conversation | `--live-doc-id` + `--skill-id twitter-writer` + `--ext` (repeat Step 1.5) |
 
 #### Step 4: Call SuperAgent
 
-**New conversation (no `thread_short_id` in session):**
+Replace `LANG` with the user's language: `en`, `zh`, `ja`, `ko`. See Constraint #6.
+
+**New conversation without style (no `thread_short_id`, user chose no preference or list was empty):**
 
 ```bash
 node felo-superAgent/scripts/run_superagent.mjs \
   --query "/twitter-writer ENRICHED_QUERY" \
   --live-doc-id "LIVE_DOC_ID" \
   --skill-id twitter-writer \
-  --accept-language LANG
+  --accept-language LANG \
+  --json
+```
+
+**New conversation with brand style:**
+
+```bash
+node felo-superAgent/scripts/run_superagent.mjs \
+  --query "/twitter-writer ENRICHED_QUERY" \
+  --live-doc-id "LIVE_DOC_ID" \
+  --skill-id twitter-writer \
+  --ext '{"brand_style_requirement":"Style name: darioamodei\nStyle labels: Thoughtful long-form essays\nStyle DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA\n\n## 风格速写\nDario writes like a serious intellectual...（full content, do NOT truncate）"}' \
+  --accept-language LANG \
+  --json
 ```
 
 **Follow-up (`thread_short_id` already exists in session):**
@@ -165,7 +253,8 @@ node felo-superAgent/scripts/run_superagent.mjs \
   --query "/twitter-writer USER_FOLLOW_UP" \
   --thread-id "THREAD_SHORT_ID" \
   --live-doc-id "LIVE_DOC_ID" \
-  --accept-language LANG
+  --accept-language LANG \
+  --json
 ```
 
 **Query construction guidelines:**
@@ -186,7 +275,7 @@ node felo-superAgent/scripts/run_superagent.mjs \
 
 #### Step 5: Save state
 
-Extract `thread_short_id` and `live_doc_short_id` from stderr `[state]` line.
+Extract `thread_short_id` and `live_doc_short_id` from the JSON response fields `data.thread_short_id` and `data.live_doc_short_id`.
 
 ---
 
@@ -197,17 +286,18 @@ User input
   │
   ├── Contains account name + "analyze / style / DNA / how does X write"
   │   OR: アカウント名 + "分析 / スタイル / DNA / どう書いている"
-  │     → Mode 1 (Style DNA Extraction)
+  │     → Mode 1 (Style DNA Extraction) — skip style library step
   │
   ├── Contains account name + "write / create / imitate / in the style of"
   │   OR: アカウント名 + "書いて / 作って / 風に / 真似て"
-  │     → Mode 1 first → then Mode 2 (Creation)
+  │     → Mode 1 first → then Mode 2 (follow-up, skip style library step)
   │
   ├── Contains topic + "write / draft / tweet / thread / X post"
   │   OR: トピック + "書いて / ツイート / スレッド / Xの投稿"
   │     → Mode 2 directly
-  │         └── If no style DNA available: ask user if they want to provide
-  │             a reference account, or proceed with general twitter-writer style
+  │         └── New conversation?
+  │               YES → Step 1.5: fetch TWITTER styles, present to user, wait for choice
+  │               NO  → follow-up, skip style library step
   │
   └── Ambiguous (e.g., "help me with tweets" / "ツイートを手伝って")
         → Ask user: do they want to analyze an account's style, or create content?
@@ -231,81 +321,186 @@ node felo-x-search/scripts/run_x_search.mjs --id "paulg" --user
 
 **Step 2:** Get `live_doc_id` (list or create)
 
-**Step 3:** Call SuperAgent (first call in session — no `thread_short_id` yet):
+**Step 3:** Call SuperAgent (Mode 1 — no style library step):
 ```bash
 node felo-superAgent/scripts/run_superagent.mjs \
   --query "/twitter-writer @paulg のツイートを分析し、文体のスタイルDNAドキュメントを作成してください。トーン、文章構造、冒頭フック、締めのアクション、頻出ワード、ハッシュタグ戦略、絵文字の使い方などを含めてください。\n\nアカウント概要：[BIO]\n\nツイート：\n[TWEETS]" \
   --live-doc-id "LIVE_DOC_ID" \
   --skill-id twitter-writer \
-  --accept-language ja
+  --accept-language ja \
+  --json
 ```
 
-**Step 4:** Save `thread_short_id` and `live_doc_short_id` from stderr `[state]`.
+**Step 4:** Save `thread_short_id` and `live_doc_short_id` from JSON response fields `data.thread_short_id` and `data.live_doc_short_id`.
 
 ---
 
-### Example B: Create tweets with a reference style
+### Example B: Create tweets with a reference style (Mode 1 → Mode 2)
 
 ```
 User: "@paulg のスタイルでスタートアップについてのツイートを3つ書いて"
 ```
 
-**Step 1:** Run Mode 1 to extract style DNA (same as Example A)
+**Step 1:** Run Mode 1 to extract style DNA (same as Example A). Style library step is skipped because Mode 1 already establishes style context in the thread.
 
-**Step 2:** Reuse `live_doc_id` from Mode 1
+**Step 2:** Reuse `live_doc_id` from Mode 1.
 
-**Step 3:** Follow-up call (continuing the same thread — `thread_short_id` from Example A):
+**Step 3:** Follow-up call (continuing the same thread — `thread_short_id` from Mode 1, no `--ext`):
 ```bash
 node felo-superAgent/scripts/run_superagent.mjs \
   --query "/twitter-writer 上記で抽出した @paulg のスタイルDNAをもとに、「スタートアップ」をテーマにしたツイートを3パターン作成してください。それぞれ異なるトーンや切り口で、280文字以内に収めてください。" \
   --thread-id "THREAD_SHORT_ID" \
   --live-doc-id "LIVE_DOC_ID" \
-  --accept-language ja
+  --accept-language ja \
+  --json
 ```
 
 ---
 
-### Example C: Write a thread directly
+### Example C: Write a thread directly (Mode 2, new conversation, with style selection)
 
 ```
 User: "Write a Twitter thread about why most startups fail"
 ```
 
-**Step 1:** No style DNA needed, proceed directly
+**Step 1.5:** New conversation, no existing thread → fetch TWITTER styles:
+```bash
+node felo-superAgent/scripts/run_style_library.mjs --category TWITTER --accept-language en
+```
 
-**Step 2:** Get `live_doc_id`
+Output:
+```
+Style name: My Bold Voice
+Style labels: bold, provocative
+Style DNA: # My Bold Voice Style DNA
+...（full content）
 
-**Step 3:** New conversation with `twitter-writer` (first call in session — no `thread_short_id` yet):
+Style name: darioamodei
+Style labels: Thoughtful long-form essays
+Style DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA
+...（full content）
+```
+
+Present to user:
+```
+Here are the available Twitter writing styles — choosing one will make the output more accurate:
+
+[Your styles]
+1. My Bold Voice
+
+[Recommended styles]
+2. darioamodei
+
+0. No preference — use default style
+```
+
+User replies: `1`
+
+**Step 2:** Get `live_doc_id`.
+
+**Step 3:** New conversation with chosen style (pass full block verbatim, do NOT truncate Style DNA):
 ```bash
 node felo-superAgent/scripts/run_superagent.mjs \
   --query "/twitter-writer Write a Twitter thread (6–8 tweets) about why most startups fail. Start with a strong hook tweet that grabs attention. Each tweet should stand alone but flow naturally into the next." \
   --live-doc-id "LIVE_DOC_ID" \
   --skill-id twitter-writer \
-  --accept-language en
+  --ext '{"brand_style_requirement":"Style name: My Bold Voice\nStyle labels: bold, provocative\nStyle DNA: # My Bold Voice Style DNA\n...（full content）"}' \
+  --accept-language en \
+  --json
 ```
+
+**Step 4:** Save `thread_short_id` and `live_doc_short_id` from JSON response fields `data.thread_short_id` and `data.live_doc_short_id`.
 
 ---
 
-### Example D: Iterate on generated content
+### Example D: Iterate on generated content (follow-up, no style step)
 
 ```
 User: "2番目のツイートをもっとユーモラスにして、絵文字も追加して"
 ```
 
-**Step 1:** Already have `thread_short_id` and `live_doc_id` from the previous call (e.g., Example B or C). No new LiveDoc lookup needed.
+Already have `thread_short_id` and `live_doc_id` from the previous call. This is a follow-up — do NOT fetch styles again, do NOT pass `--ext`.
 
-**Step 2:** This is a follow-up — pass `--thread-id` with the saved `thread_short_id`.
-
-**Step 3:** Follow-up call (`thread_short_id` already exists in session):
 ```bash
 node felo-superAgent/scripts/run_superagent.mjs \
   --query "/twitter-writer 上記で生成した2番目のツイートを修正してください。トーンをよりユーモラスで軽快にし、適切な絵文字を追加してください。内容の意図は変えないでください。" \
   --thread-id "THREAD_SHORT_ID" \
   --live-doc-id "LIVE_DOC_ID" \
-  --accept-language ja
+  --accept-language ja \
+  --json
 ```
 
-**Step 4:** Save updated `thread_short_id` and `live_doc_short_id` from stderr `[state]`.
+**Save** updated `thread_short_id` and `live_doc_short_id` from JSON response fields `data.thread_short_id` and `data.live_doc_short_id`.
+
+---
+
+### Example E: User specifies style by name
+
+```
+User: "Write a tweet about AI trends using my 'Bold Voice' style"
+```
+
+**Step 1.5a:** User already named the style → fetch list to get the full block:
+```bash
+node felo-superAgent/scripts/run_style_library.mjs --category TWITTER --accept-language en
+```
+Find the entry with `Style name: My Bold Voice`, extract its full block verbatim. No need to ask the user again.
+
+**Step 3:** New conversation with that style:
+```bash
+node felo-superAgent/scripts/run_superagent.mjs \
+  --query "/twitter-writer Write a tweet about AI trends" \
+  --live-doc-id "LIVE_DOC_ID" \
+  --skill-id twitter-writer \
+  --ext '{"brand_style_requirement":"Style name: My Bold Voice\nStyle labels: bold, provocative\nStyle DNA: # My Bold Voice Style DNA\n...（full content, do NOT truncate）"}' \
+  --accept-language en \
+  --json
+```
+
+---
+
+### Example F: Style library is empty
+
+```
+User: "Write a tweet about the new product launch"
+```
+
+**Step 1.5b:** Fetch styles:
+```bash
+node felo-superAgent/scripts/run_style_library.mjs --category TWITTER --accept-language en
+```
+
+Output: `(No styles found)`
+
+**Skip silently.** Proceed directly without `--ext`:
+```bash
+node felo-superAgent/scripts/run_superagent.mjs \
+  --query "/twitter-writer Write a tweet about the new product launch. Provide 3 versions with different tones." \
+  --live-doc-id "LIVE_DOC_ID" \
+  --skill-id twitter-writer \
+  --accept-language en \
+  --json
+```
+
+---
+
+### Example G: User chooses no preference
+
+```
+User: "帮我写一条关于新产品发布的推文"
+```
+
+**Step 1.5:** Fetch styles, present list. User replies: `0` (no preference).
+
+Proceed without `--ext`:
+```bash
+node felo-superAgent/scripts/run_superagent.mjs \
+  --query "/twitter-writer 帮我写3条关于新产品发布的推文，每条风格略有不同。" \
+  --live-doc-id "LIVE_DOC_ID" \
+  --skill-id twitter-writer \
+  --accept-language zh \
+  --json
+```
 
 ---
 
@@ -316,13 +511,14 @@ node felo-superAgent/scripts/run_superagent.mjs \
 | Account not found or no tweets returned | Inform user, suggest trying a different username or providing tweet samples manually |
 | `FELO_API_KEY` not set | Stop and show setup instructions (same as `felo-superAgent` SKILL.md) |
 | SuperAgent call fails | Check `live_doc_id` validity; retry once with the same parameters |
-| User asks for Mode 2 with no style DNA and no account | Ask: "Would you like to provide a reference Twitter account to base the style on, or should I write in a general engaging style?" |
+| Style library fetch fails | Log warning to stderr, skip silently, proceed without `--ext` |
+| User asks for Mode 2 with no style DNA and no account | Proceed to Step 1.5 (style library selection) |
 | User explicitly requests a new canvas | Create a new LiveDoc: `node felo-livedoc/scripts/run_livedoc.mjs create --name "Twitter Writer" --json` |
 | Tweet content too long for query (>2000 chars) | Trim to the 10–15 most representative tweets; prioritize high-engagement ones |
 
 ## References
 
-- [felo-superAgent SKILL.md](../felo-superAgent/SKILL.md) — SuperAgent calling conventions and constraints
+- [felo-superAgent SKILL.md](../felo-superAgent/SKILL.md) — SuperAgent calling conventions, `--ext` format, and style library script
 - [felo-x-search SKILL.md](../felo-x-search/SKILL.md) — X/Twitter search commands
 - [felo-livedoc SKILL.md](../felo-livedoc/SKILL.md) — LiveDoc management commands
 - [Felo Open Platform](https://openapi.felo.ai/docs/)
