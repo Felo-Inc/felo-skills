@@ -1,6 +1,6 @@
 ---
 name: product-research-advisor
-description: Research a product by collecting current specs and reviews from the web. Use when the user asks about a product model, wants product parameters/specifications, wants user reviews and professional reviews, asks whether a product is good or worth buying, asks for a product summary, or compares products such as "X 怎么样", "X 参数", "X 评测", "X 值得买吗", or "X vs Y".
+description: Research a single product by collecting current specs and reviews from multiple sources. Use when the user asks about product specifications, reviews, or buying advice for ONE product, such as "how is X", "X specs", "X review", "is X worth buying", "X 怎么样", "X 参数", "X 评测", "X 值得买吗".
 allowed-tools: Bash(node:*) Bash(bash:*) Bash(curl:*) Fetch(*) Write(*)
 metadata:
   requires:
@@ -12,318 +12,248 @@ metadata:
 
 # Product Research Advisor
 
-Research a product with fresh web data and produce a structured report covering:
+Research a single product using real-time web data and generate a comprehensive report covering:
 
-- current specs / parameters
-- user feedback
-- professional reviews
-- a concise overall conclusion
+- Technical specifications and parameters
+- User reviews and real-world feedback
+- Professional reviews and expert opinions
+- Overall recommendation and conclusion
 
-**Language:** Detect the user's language and reply fully in that language.
+**Language Support:** Detect the user's input language and respond entirely in that language. Support English, Chinese, and other major languages.
+
+**Scope:** This skill handles ONE product at a time. For product comparisons (X vs Y), the user should run the skill separately for each product.
 
 ## Trigger Examples
 
-Use this skill when the user asks things like:
+Activate this skill when users ask about a single product:
 
-- "小米 14 Ultra 怎么样"
-- "Dyson V12 参数和评价"
-- "Sony WH-1000XM5 值得买吗"
+- "How is the iPhone 16 Pro?"
+- "Dyson V12 specs and reviews"
+- "Sony WH-1000XM5 worth buying?"
+- "Xiaomi 14 Ultra 怎么样"
 - "ROG Ally X review summary"
-- "GoPro Hero 13 vs Insta360 Ace Pro"
+- "MacBook Air M3 评测"
+- "Nintendo Switch OLED 值得买吗"
 
 ## Core Rules
 
-### 1. Fresh sources only
+### 1. Fresh Data Only
 
-- Do not rely on memory for specs, pricing, or current review conclusions.
-- Always search first, then fetch and summarize.
+- Never rely on memory for specifications, pricing, or review conclusions.
+- Always search first, then fetch and synthesize.
 
-### 2. URL fetching rule
+### 2. URL Fetching Rule
 
-> **CRITICAL:** Any webpage URL found through search must be fetched with `felo-web-fetch`.
+> **CRITICAL:** Every webpage URL discovered through search MUST be fetched using `felo-web-fetch`.
 
 - Never summarize a page from URL/title alone.
-- Never use built-in web fetch, curl, or remembered page content as a substitute.
+- Never use built-in web fetch, curl, or remembered content as substitute.
 
-### 3. Source separation rule
+### 3. Source Classification
 
 Keep sources separated by type:
 
-- **User feedback:** X posts, Reddit posts/comments, and clearly first-hand YouTube user experience
-- **Professional reviews:** review sites, labs, editorial media, and professional reviewer YouTube channels
-- **Official specs:** brand/manufacturer/product pages, official spec pages, or official store pages
+| Type | Sources |
+|------|---------|
+| **Official Specs** | Manufacturer pages, official spec sheets, official stores |
+| **Professional Reviews** | Tech media, review sites, editorial publications, professional YouTubers |
+| **User Feedback** | X/Twitter posts, Reddit threads, first-hand user YouTube videos |
 
-If a source is ambiguous, classify it by who is speaking:
+Classification guide:
+- Individual owner / first-hand user → User feedback
+- Media outlet / lab / reviewer / editorial team → Professional review
 
-- individual owner / first-hand user -> user feedback
-- media outlet / lab / reviewer / editorial team -> professional review
+### 4. No Guessing on Specs
 
-### 4. Do not invent missing specs
-
-If a spec cannot be confirmed from a fetched source, write `未确认` or `not confirmed` instead of guessing.
+If a specification cannot be confirmed from fetched sources, write "not confirmed" (or equivalent in user's language) instead of guessing.
 
 ## Execution Flow
 
-> **Completion rule:** Do not stop after collecting links. The task is complete only after you synthesize the product report.
+> **Completion Rule:** Do not stop after collecting links. The task completes only after synthesizing the full product report.
 
-### Step 0. Identify the exact product
+### Step 0: Identify the Product
 
-Normalize the product name from the user's request.
+Normalize the product name from the user's request:
 
-- Prefer the exact model name shown consistently across search results.
-- If the request obviously compares two products, collect data for both.
-- If search results reveal multiple materially different variants and the user's wording is too ambiguous, ask one concise clarification. Otherwise, proceed with the most likely exact model and state the assumption.
+- Use the exact model name shown consistently in search results
+- If multiple variants exist and the query is ambiguous, ask for clarification
 
-### Step 1. Use `felo-search` to find product pages, then fetch the URLs
+### Step 1: Search for Official Specs and Professional Reviews
 
-Use the `felo-search` skill to search for:
+Use `felo-search` to find:
 
-- **1 official source** for specs
+- **1 official source** for specifications
 - **2-4 professional review sources**
 
 Recommended queries:
-
 - `"[product]" official specs`
 - `"[product]" specifications OR specs`
 - `"[product]" review`
-- `"[product]" test OR benchmark OR hands-on`
+- `"[product]" test OR benchmark`
 
-After getting candidate URLs:
+After getting URLs:
 
-1. Choose the most authoritative pages.
-2. Fetch every selected URL with `felo-web-fetch`.
+1. Select the most authoritative pages
+2. Fetch each URL with `felo-web-fetch`
 3. Extract:
-   - official specs / parameters
-   - release positioning
-   - professional review conclusions
-   - measured pros/cons if available
+   - Official specifications
+   - Release positioning
+   - Professional review conclusions
+   - Measured pros/cons
 
-> **Required behavior:** Step 1 discovery must use `felo-search`. Do not replace it with generic search wording or direct page fetches without searching first.
-
-**Source preference for specs:**
-
+**Source priority for specs:**
 1. Official manufacturer page
 2. Official spec sheet / support page
 3. Official store page
-4. Trusted spec database or reputable review site, only if official specs are unavailable
+4. Trusted spec database (fallback only)
 
-### Step 2. Search YouTube reviews and fetch subtitles
+### Step 2: YouTube Reviews
 
-Use web search to find YouTube reviews:
+Search for video reviews:
 
 - `site:youtube.com "[product]" review`
-- `site:youtube.com "[product]" 评测 OR 测评`
+- `site:youtube.com "[product]" 评测`
 - `site:youtube.com "[product]" hands-on`
 
 Then:
 
-1. Select 2-3 relevant videos with substantive review value.
-2. Use `felo-youtube-subtitling` on each YouTube URL.
-3. Extract the main verdicts, praise, complaints, and any measurable findings.
-4. Classify each video as:
-   - professional / creator review
-   - first-hand user experience
+1. Select 2-3 relevant videos with substantive content
+2. Use `felo-youtube-subtitling` on each URL
+3. Extract main verdicts, praise, complaints, findings
+4. Classify as: professional review OR user experience
 
-Prefer videos that are:
+Prefer videos that are recent, about the exact model, and detailed.
 
-- recent
-- clearly about the exact model
-- detailed rather than short promo clips
-
-### Step 3. Search user feedback from X and Reddit
+### Step 3: User Feedback from X and Reddit
 
 Run both searches:
 
-- `felo-x-search`: `"[product]" review OR experience OR issue OR worth it`
-- web search: `site:reddit.com "[product]" review OR experience OR problem`
+- `felo-x-search`: `"[product]" review OR experience OR issue`
+- Web search: `site:reddit.com "[product]" review OR experience`
 
-For Reddit URLs found in search:
+For Reddit URLs:
+1. Fetch threads with `felo-web-fetch`
+2. Extract recurring opinions
 
-1. Fetch the thread pages with `felo-web-fetch`.
-2. Extract recurring opinions from posts and comments.
+For X/Twitter:
+1. Collect first-hand opinions (not marketing)
+2. Prioritize posts about usage, reliability, defects, value
 
-For X:
+### Step 4: Synthesize Report
 
-1. Collect first-hand opinions, not marketing copy.
-2. Prioritize posts describing usage experience, reliability, defects, comfort, battery, quality, value, or comparisons.
+Produce an integrated report with:
 
-### Step 4. Synthesize the product report
-
-Produce one integrated report with four parts:
-
-1. **Product overview**
-2. **Specs / parameters**
-3. **User feedback**
-4. **Professional reviews**
-5. **Overall conclusion**
+1. Product overview
+2. Technical specifications
+3. User feedback summary
+4. Professional review summary
+5. Overall conclusion
 
 ## What to Extract
 
-### A. Specs / parameters
+### Specifications
 
-Extract the most decision-relevant specs for the product category. Examples:
+Extract decision-relevant specs by category:
 
-- phone: chip, memory, storage, display, battery, camera, weight, price
-- laptop: CPU, GPU, RAM, storage, display, ports, battery, weight, price
-- headphones: driver/ANC, codec, battery, weight, price
-- home appliance: power, capacity, battery/runtime, dimensions, weight, price
+| Product Type | Key Specs |
+|--------------|-----------|
+| Smartphone | Chip, RAM, storage, display, battery, camera, weight, price |
+| Laptop | CPU, GPU, RAM, storage, display, ports, battery, weight, price |
+| Headphones | Driver/ANC, codec, battery, weight, comfort, price |
+| Appliance | Power, capacity, runtime, dimensions, weight, price |
+| Camera | Sensor, resolution, stabilization, battery, weight, price |
 
-Do not force irrelevant fields. Use only the fields that matter for that category.
+Only include relevant fields for the product category.
 
-### B. User feedback
+### User Feedback
 
-Build this section from:
-
-- X
-- Reddit
-- first-hand YouTube experience, when applicable
-
-Summarize:
-
-- common praise
-- common complaints
-- recurring tradeoffs
-- durability / reliability signals
-- value-for-money comments
-
-Use frequency language:
-
-- `很多用户提到 / many users report`
-- `一些用户提到 / some users report`
-- `少量用户提到 / a few users mention`
-
-### C. Professional reviews
-
-Build this section from:
-
-- professional review sites fetched in Step 1
-- professional reviewer YouTube channels from Step 2
+Sources: X, Reddit, user YouTube videos
 
 Summarize:
+- Common praise (with frequency: many/some/a few users)
+- Common complaints
+- Recurring tradeoffs
+- Durability/reliability signals
+- Value-for-money comments
 
-- each source's main verdict
-- where reviewers agree
-- where reviewers disagree
-- measured or tested findings vs subjective impressions
+### Professional Reviews
+
+Sources: Review sites, professional YouTubers
+
+Summarize:
+- Each source's main verdict
+- Points of agreement
+- Points of disagreement
+- Measured findings vs subjective impressions
 
 ## Output Template
 
-Use this structure for a single product:
-
 ```markdown
-## [Product Name] 产品调研报告
+## [Product Name] Research Report / [产品名称] 调研报告
 
-### 产品定位
-[1-2 句话说明这款产品属于什么类型、面向谁、在同类产品中的位置]
+### Overview / 产品定位
+[1-2 sentences: product type, target audience, market position]
 
-### 关键参数
-| 参数 | 信息 | 来源 |
-|------|------|------|
-| 芯片 / 处理器 | ... | 官方页面 |
-| 内存 / RAM | ... | 官方页面 |
-| 存储 / 容量 | ... | 官方页面 |
-| 屏幕 / 核心硬件 | ... | 官方页面 |
-| 电池 / 续航 | ... | 官方页面 |
-| 重量 / 尺寸 | ... | 官方页面 |
-| 价格 | ... | 官方页面 |
+### Key Specifications / 关键参数
+| Spec / 参数 | Details / 信息 | Source / 来源 |
+|-------------|----------------|---------------|
+| Processor / 处理器 | ... | Official / 官方 |
+| Memory / 内存 | ... | Official / 官方 |
+| Storage / 存储 | ... | Official / 官方 |
+| Display / 屏幕 | ... | Official / 官方 |
+| Battery / 电池 | ... | Official / 官方 |
+| Weight / 重量 | ... | Official / 官方 |
+| Price / 价格 | ... | Official / 官方 |
 
-### 用户评价
-**常见好评：**
+### User Feedback / 用户评价
+
+**Praise / 常见好评:**
 - ...
 
-**常见差评：**
+**Complaints / 常见差评:**
 - ...
 
-**用户共识：**
-[1-2 句话总结用户真实口碑]
+**Consensus / 用户共识:**
+[Summary of user sentiment]
 
-### 专业机构 / 专业评测总结
-- **[媒体/频道名]：** ...
-- **[媒体/频道名]：** ...
-- **[媒体/频道名]：** ...
+### Professional Reviews / 专业评测
+- **[Source Name]:** ...
+- **[Source Name]:** ...
+- **[Source Name]:** ...
 
-**专业评测共识：**
-[1-2 句话总结专业观点]
+**Expert Consensus / 专业共识:**
+[Summary of professional opinion]
 
-### 综合结论
-**适合谁：** ...
-**不适合谁：** ...
-**一句话结论：** ...
+### Conclusion / 综合结论
+
+**Best For / 适合人群:** ...
+**Not For / 不适合人群:** ...
+**Verdict / 一句话结论:** ...
 ```
 
-For comparison queries, use:
+## Quality Guidelines
 
-```markdown
-## [Product A] vs [Product B]
-
-### 关键参数对比
-| 参数 | [Product A] | [Product B] | 结论 |
-|------|-------------|-------------|------|
-| ... | ... | ... | ... |
-
-### 用户评价对比
-**[Product A] 用户更常提到：**
-- ...
-
-**[Product B] 用户更常提到：**
-- ...
-
-### 专业评测对比
-- **[来源]：** ...
-
-### 最终建议
-**选 [Product A] 如果：** ...
-**选 [Product B] 如果：** ...
-**结论：** ...
-```
-
-## Quality Bar
-
-- Cite the source type in each section when making claims.
-- Prefer recurring patterns over isolated opinions.
-- Keep user and professional views separate before synthesizing.
-- Mention uncertainty when data is sparse or conflicting.
-- Avoid affiliate-style fluff and obvious SEO filler.
-
-## Recommended Source Types
-
-**Official / specs:**
-
-- manufacturer product page
-- official specs page
-- official support page
-- official store page
-
-**Professional reviews:**
-
-- editorial review sites
-- reputable tech/media publications
-- professional reviewer YouTube channels
-
-**User feedback:**
-
-- X posts with first-hand experience
-- Reddit discussion threads and comments
-- user-experience YouTube videos
+- Cite source types when making claims
+- Prefer recurring patterns over isolated opinions
+- Keep user and professional views separate
+- Acknowledge uncertainty when data is sparse
+- Avoid affiliate-style language and SEO filler
 
 ## Edge Cases
 
-### Very new product
+### Very New Product
+- Expect fewer long-term reports
+- Rely on early hands-on reviews
+- State that long-term reliability is unclear
 
-- Expect fewer long-term user reports.
-- Lean more on early hands-on reviews and first-wave user feedback.
-- Explicitly say long-term reliability is still unclear.
+### Older Product
+- Look for durability, battery aging, maintenance discussions
+- Check for firmware updates and continued support
 
-### Older product
+### Conflicting Reviews
+- Present both sides
+- Explain potential causes (usage pattern, test method, region difference)
 
-- Look for durability, battery aging, maintenance, and replacement-value discussion.
-
-### Limited official specs
-
-- Use the best available authoritative source and label it clearly.
-- Do not silently merge guessed values from multiple low-quality sources.
-
-### Conflicting reviews
-
-- Surface both sides.
-- Explain whether the disagreement comes from usage pattern, test method, region/version difference, or small sample size.
+### Limited Specs Available
+- Use best available authoritative source
+- Label clearly when using non-official sources
