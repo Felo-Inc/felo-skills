@@ -159,13 +159,24 @@ Extract `thread_short_id` and `live_doc_short_id` from the JSON response fields 
 
 If the user mentioned a style by name (e.g., "use my Bold Voice style") or pasted a style block, note it and skip to step 1.5d.
 
-**1.5b. Fetch the TWITTER style library:**
+**1.5b. Fetch the TWITTER style library (names only):**
+
+IMPORTANT: The style library output is very large (each Style DNA can be thousands of characters). Always use `--json` and extract only names/labels to avoid Bash tool output truncation. Never call `run_style_library.mjs` without `--json` for listing purposes.
 
 ```bash
-node felo-superAgent/scripts/run_style_library.mjs --category TWITTER --accept-language en
+node felo-superAgent/scripts/run_style_library.mjs --category TWITTER --accept-language LANG --json | node -e "
+const d=require('fs').readFileSync('/dev/stdin','utf8');
+const j=JSON.parse(d);
+const list=j.list||[];
+const user=list.filter(s=>!s.recommended);
+const rec=list.filter(s=>s.recommended);
+if(user.length) { console.log('[Your styles]'); user.forEach((s,i)=>{ const labels=(s.content?.labels?.LANG||s.content?.labels?.en||[]).join(', '); console.log((i+1)+'. '+s.name+(labels?' — '+labels:'')); }); }
+if(rec.length) { console.log('[Recommended styles]'); rec.forEach((s,i)=>{ const labels=(s.content?.labels?.LANG||s.content?.labels?.en||[]).join(', '); console.log((user.length+i+1)+'. '+s.name+(labels?' — '+labels:'')); }); }
+if(!list.length) console.log('(No styles found)');
+"
 ```
 
-Replace `en` with the user's language: `zh` for Chinese, `ja` for Japanese, `ko` for Korean. This controls the language of `Style labels` in the output.
+Replace `LANG` with the user's language value (`zh`, `ja`, `ko`, `en`) in both `--accept-language` and inside the node script's `labels?.LANG` references.
 
 Always pass `--accept-language` matching the user's language (same value used for SuperAgent).
 
@@ -191,18 +202,35 @@ Here are the available Twitter writing styles — choosing one will make the out
 
 **1.5d. Build `--ext` from the chosen style:**
 
-Take the full text block for the chosen style exactly as output by `run_style_library.mjs`. The block for a TWITTER style looks like:
-```
-Style name: darioamodei
-Style labels: Thoughtful long-form essays
-Style DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA
-...（full content, may be very long）
-```
-
-Serialize it into a JSON string with `\n` for newlines. Pass the value **completely and verbatim — do NOT truncate `Style DNA`**:
+After the user selects a style, fetch the full Style DNA for that specific style using `--json` and extract it in Node.js. Do NOT re-read the full text output — it will be truncated by the Bash tool.
 
 ```bash
---ext '{"brand_style_requirement":"Style name: darioamodei\nStyle labels: Thoughtful long-form essays\nStyle DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA\n\n## 风格速写\nDario writes like a serious intellectual...（full content）"}'
+node felo-superAgent/scripts/run_style_library.mjs --category TWITTER --accept-language LANG --json | node -e "
+const d=require('fs').readFileSync('/dev/stdin','utf8');
+const j=JSON.parse(d);
+const s=(j.list||[]).find(s=>s.name==='CHOSEN_STYLE_NAME');
+if(!s){process.stderr.write('Style not found\n');process.exit(1);}
+const labels=(s.content?.labels?.LANG||s.content?.labels?.en||[]).join(', ');
+const dna=s.content?.styleDna||'';
+const block='Style name: '+s.name+'\nStyle labels: '+labels+'\nStyle DNA: '+dna;
+console.log(JSON.stringify({brand_style_requirement:block}));
+"
+```
+
+Replace `CHOSEN_STYLE_NAME` with the style name the user selected, and `LANG` with the language code.
+
+Pass the output JSON directly as the `--ext` value:
+
+```bash
+--ext "$(node felo-superAgent/scripts/run_style_library.mjs --category TWITTER --accept-language LANG --json | node -e "
+const d=require('fs').readFileSync('/dev/stdin','utf8');
+const j=JSON.parse(d);
+const s=(j.list||[]).find(s=>s.name==='CHOSEN_STYLE_NAME');
+const labels=(s.content?.labels?.LANG||s.content?.labels?.en||[]).join(', ');
+const dna=s.content?.styleDna||'';
+const block='Style name: '+s.name+'\nStyle labels: '+labels+'\nStyle DNA: '+dna;
+console.log(JSON.stringify({brand_style_requirement:block}));
+")"
 ```
 
 If the user chose "no preference" (option 0), do NOT pass `--ext`.
@@ -363,22 +391,18 @@ node felo-superAgent/scripts/run_superagent.mjs \
 User: "Write a Twitter thread about why most startups fail"
 ```
 
-**Step 1.5:** New conversation, no existing thread → fetch TWITTER styles:
+**Step 1.5:** New conversation, no existing thread → fetch TWITTER styles (names only):
 ```bash
-node felo-superAgent/scripts/run_style_library.mjs --category TWITTER --accept-language en
-```
-
-Output:
-```
-Style name: My Bold Voice
-Style labels: bold, provocative
-Style DNA: # My Bold Voice Style DNA
-...（full content）
-
-Style name: darioamodei
-Style labels: Thoughtful long-form essays
-Style DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA
-...（full content）
+node felo-superAgent/scripts/run_style_library.mjs --category TWITTER --accept-language en --json | node -e "
+const d=require('fs').readFileSync('/dev/stdin','utf8');
+const j=JSON.parse(d);
+const list=j.list||[];
+const user=list.filter(s=>!s.recommended);
+const rec=list.filter(s=>s.recommended);
+if(user.length){console.log('[Your styles]');user.forEach((s,i)=>{const labels=(s.content?.labels?.en||[]).join(', ');console.log((i+1)+'. '+s.name+(labels?' — '+labels:''));});}
+if(rec.length){console.log('[Recommended styles]');rec.forEach((s,i)=>{const labels=(s.content?.labels?.en||[]).join(', ');console.log((user.length+i+1)+'. '+s.name+(labels?' — '+labels:''));});}
+if(!list.length)console.log('(No styles found)');
+"
 ```
 
 Present to user:
@@ -398,13 +422,20 @@ User replies: `1`
 
 **Step 2:** Get `live_doc_id`.
 
-**Step 3:** New conversation with chosen style (pass full block verbatim, do NOT truncate Style DNA):
+**Step 3:** New conversation with chosen style — extract full Style DNA via `--json` and pass as `--ext`:
 ```bash
 node felo-superAgent/scripts/run_superagent.mjs \
   --query "/twitter-writer Write a Twitter thread (6–8 tweets) about why most startups fail. Start with a strong hook tweet that grabs attention. Each tweet should stand alone but flow naturally into the next." \
   --live-doc-id "LIVE_DOC_ID" \
   --skill-id twitter-writer \
-  --ext '{"brand_style_requirement":"Style name: My Bold Voice\nStyle labels: bold, provocative\nStyle DNA: # My Bold Voice Style DNA\n...（full content）"}' \
+  --ext "$(node felo-superAgent/scripts/run_style_library.mjs --category TWITTER --accept-language en --json | node -e "
+const d=require('fs').readFileSync('/dev/stdin','utf8');
+const j=JSON.parse(d);
+const s=(j.list||[]).find(s=>s.name==='My Bold Voice');
+const labels=(s.content?.labels?.en||[]).join(', ');
+const block='Style name: '+s.name+'\nStyle labels: '+labels+'\nStyle DNA: '+s.content.styleDna;
+console.log(JSON.stringify({brand_style_requirement:block}));
+")" \
   --accept-language en \
   --json
 ```
@@ -440,11 +471,7 @@ node felo-superAgent/scripts/run_superagent.mjs \
 User: "Write a tweet about AI trends using my 'Bold Voice' style"
 ```
 
-**Step 1.5a:** User already named the style → fetch list to get the full block:
-```bash
-node felo-superAgent/scripts/run_style_library.mjs --category TWITTER --accept-language en
-```
-Find the entry with `Style name: My Bold Voice`, extract its full block verbatim. No need to ask the user again.
+**Step 1.5a:** User already named the style → extract full Style DNA via `--json`. No need to ask the user again.
 
 **Step 3:** New conversation with that style:
 ```bash
@@ -452,7 +479,14 @@ node felo-superAgent/scripts/run_superagent.mjs \
   --query "/twitter-writer Write a tweet about AI trends" \
   --live-doc-id "LIVE_DOC_ID" \
   --skill-id twitter-writer \
-  --ext '{"brand_style_requirement":"Style name: My Bold Voice\nStyle labels: bold, provocative\nStyle DNA: # My Bold Voice Style DNA\n...（full content, do NOT truncate）"}' \
+  --ext "$(node felo-superAgent/scripts/run_style_library.mjs --category TWITTER --accept-language en --json | node -e "
+const d=require('fs').readFileSync('/dev/stdin','utf8');
+const j=JSON.parse(d);
+const s=(j.list||[]).find(s=>s.name==='My Bold Voice');
+const labels=(s.content?.labels?.en||[]).join(', ');
+const block='Style name: '+s.name+'\nStyle labels: '+labels+'\nStyle DNA: '+s.content.styleDna;
+console.log(JSON.stringify({brand_style_requirement:block}));
+")" \
   --accept-language en \
   --json
 ```
@@ -465,9 +499,14 @@ node felo-superAgent/scripts/run_superagent.mjs \
 User: "Write a tweet about the new product launch"
 ```
 
-**Step 1.5b:** Fetch styles:
+**Step 1.5b:** Fetch styles (names only):
 ```bash
-node felo-superAgent/scripts/run_style_library.mjs --category TWITTER --accept-language en
+node felo-superAgent/scripts/run_style_library.mjs --category TWITTER --accept-language en --json | node -e "
+const d=require('fs').readFileSync('/dev/stdin','utf8');
+const j=JSON.parse(d);
+if(!(j.list||[]).length)console.log('(No styles found)');
+else console.log((j.list||[]).map(s=>s.name).join('\n'));
+"
 ```
 
 Output: `(No styles found)`
