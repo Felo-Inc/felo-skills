@@ -55,6 +55,7 @@ $env:FELO_API_KEY="..."             # Windows (PowerShell)
 | `felo x "<query>"`                       | Search X (Twitter) tweets, users, and replies         |
 | `felo livedoc <subcommand>`              | Manage LiveDocs (knowledge bases) and resources       |
 | `felo apple-buy-advisor "<query>"`       | Research and compare Apple products before you buy    |
+| `felo product-research-advisor "<query>"`| Research a product with specs and review summaries    |
 | `felo config <set\|get\|list\|path>`     | Manage API key and config                             |
 
 ---
@@ -127,13 +128,29 @@ felo apple-buy-advisor "Is it worth upgrading to iPad Air 13?"
 /apple-buy-advisor Is it worth upgrading to iPad Air 13?
 ```
 
+**Product Research Advisor** — [full options →](./product-research-advisor/SKILL.md)
+
+```bash
+# Use as Felo CLI command
+felo product-research-advisor "Sony WH-1000XM5 参数和评价"
+felo product-research-advisor "Is ROG Ally X worth buying?"
+felo product-research-advisor "GoPro Hero 13 vs Insta360 Ace Pro"
+```
+
+```bash
+# Use as Claude Code skill
+/product-research-advisor Sony WH-1000XM5 参数和评价
+/product-research-advisor Is ROG Ally X worth buying?
+/product-research-advisor GoPro Hero 13 vs Insta360 Ace Pro
+```
+
 **[See 40+ more examples →](./docs/EXAMPLES.md)**
 
 ---
 
 ## Skills Overview
 
-7 skills across search, content generation, web scraping, social media, knowledge base, and shopping advice:
+8 skills across search, content generation, web scraping, social media, knowledge base, and shopping advice:
 
 | Skill                       | Description                                                   | Docs                            |
 | --------------------------- | ------------------------------------------------------------- | ------------------------------- |
@@ -144,6 +161,7 @@ felo apple-buy-advisor "Is it worth upgrading to iPad Air 13?"
 | **felo-x-search**           | Search X (Twitter) tweets, users, replies                     | [→](./felo-x-search/SKILL.md)   |
 | **felo-livedoc**            | Manage knowledge bases and semantic retrieval                 | [→](./felo-livedoc/)            |
 | **apple-buy-advisor**       | Research and compare Apple products before you buy            | [→](./apple-buy-advisor/)       |
+| **product-research-advisor**| Research a product with specs, user feedback, and pro reviews | [→](./product-research-advisor/)|
 
 ---
 
@@ -163,6 +181,7 @@ felo apple-buy-advisor "Is it worth upgrading to iPad Air 13?"
 /plugin install felo-x-search@felo-ai
 /plugin install felo-livedoc@felo-ai
 /plugin install apple-buy-advisor@felo-ai
+/plugin install product-research-advisor@felo-ai
 ```
 
 ### ClawHub
@@ -177,6 +196,7 @@ clawhub install felo-youtube-subtitling
 clawhub install felo-x-search
 clawhub install felo-livedoc
 clawhub install apple-buy-advisor
+clawhub install product-research-advisor
 ```
 
 ### Gemini CLI
@@ -189,6 +209,7 @@ cd felo-skills
 cp -r felo-search ~/.gemini/skills/
 cp -r felo-slides ~/.gemini/skills/
 cp -r apple-buy-advisor ~/.gemini/skills/
+cp -r product-research-advisor ~/.gemini/skills/
 ```
 
 ### OpenAI Codex
@@ -198,6 +219,7 @@ git clone https://github.com/Felo-Inc/felo-skills.git
 # Copy any skill folder to ~/.codex/skills/
 cp -r felo-search ~/.codex/skills/
 cp -r apple-buy-advisor ~/.codex/skills/
+cp -r product-research-advisor ~/.codex/skills/
 ```
 
 ### OpenClaw
@@ -216,6 +238,7 @@ git clone https://github.com/Felo-Inc/felo-skills.git
 # Codex:       ~/.codex/skills/
 cp -r felo-search ~/.claude/skills/
 cp -r apple-buy-advisor ~/.claude/skills/
+cp -r product-research-advisor ~/.claude/skills/
 ```
 
 ---

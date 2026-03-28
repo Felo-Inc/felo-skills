@@ -6,6 +6,7 @@ import { search } from "./search.js";
 import { slides, listPptThemes } from "./slides.js";
 import { superAgent, listLiveDocs, listLiveDocResources } from "./superAgent.js";
 import { appleBuyAdvisor } from "./appleBuyAdvisor.js";
+import { productResearchAdvisor } from "./productResearchAdvisor.js";
 import { webFetch } from "./webFetch.js";
 import { youtubeSubtitling } from "./youtubeSubtitling.js";
 import { contentToSlides } from "./contentToSlides.js";
@@ -190,6 +191,30 @@ program
   .action(async (query, opts) => {
     const timeoutMs = parseInt(opts.timeout, 10) * 1000;
     const code = await appleBuyAdvisor(query, {
+      json: opts.json,
+      verbose: opts.verbose,
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+      liveDocId: opts.liveDocId || undefined,
+      threadId: opts.threadId || undefined,
+      acceptLanguage: opts.acceptLanguage || undefined,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
+  });
+
+program
+  .command("product-research-advisor")
+  .description("Research a product with current specs, user feedback, and professional reviews")
+  .argument("<query>", "Product research, review, or comparison question")
+  .option("-j, --json", "output JSON with answer, thread_short_id, live_doc_short_id")
+  .option("-v, --verbose", "log stream key, thread ID, LiveDoc ID to stderr")
+  .option("-t, --timeout <seconds>", "request/stream timeout in seconds", "60")
+  .option("--live-doc-id <id>", "reuse existing LiveDoc short_id for continuous conversation")
+  .option("--thread-id <id>", "existing thread/conversation ID for follow-up questions")
+  .option("--accept-language <lang>", "language preference (e.g. zh, en)")
+  .action(async (query, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await productResearchAdvisor(query, {
       json: opts.json,
       verbose: opts.verbose,
       timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
