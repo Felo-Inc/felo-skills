@@ -4,7 +4,7 @@ import { createRequire } from "module";
 import { Command } from "commander";
 import { search } from "./search.js";
 import { slides, listPptThemes } from "./slides.js";
-import { superAgent, listLiveDocs, listLiveDocResources } from "./superAgent.js";
+import { superAgent, listLiveDocs, listLiveDocResources, listStyleLibrary } from "./superAgent.js";
 import { appleBuyAdvisor } from "./appleBuyAdvisor.js";
 import { webFetch } from "./webFetch.js";
 import { youtubeSubtitling } from "./youtubeSubtitling.js";
@@ -1047,6 +1047,24 @@ program
   .action(() => {
     console.error("translate: not yet implemented. Use felo search for now.");
     flushStdioThenExit(1);
+  });
+
+program
+  .command("style-library")
+  .description("List style library entries for a given category (TWITTER, INSTAGRAM, LEMON8, NOTECOM, WEBSITE, IMAGE)")
+  .argument("<category>", "style category (e.g. TWITTER)")
+  .option("-j, --json", "output raw JSON")
+  .option("--accept-language <lang>", "language for labels/tags (e.g. en, zh-Hans, ja)", "en")
+  .option("-t, --timeout <seconds>", "request timeout in seconds", "60")
+  .action(async (category, opts) => {
+    const timeoutMs = parseInt(opts.timeout, 10) * 1000;
+    const code = await listStyleLibrary(category, {
+      json: opts.json,
+      acceptLanguage: opts.acceptLanguage || 'en',
+      timeoutMs: Number.isNaN(timeoutMs) ? 60000 : timeoutMs,
+    });
+    process.exitCode = code;
+    flushStdioThenExit(code);
   });
 
 program.parse();
