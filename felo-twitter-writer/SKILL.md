@@ -189,17 +189,17 @@ Always pass `--accept-language` matching the user's language (same value used fo
 
 Example presentation (adapt language to match user's language):
 ```
-以下是可用的推文写作风格，选一个会让输出更贴合你的需求：
+Here are the available Twitter writing styles — choosing one will make the output more accurate:
 
-[你的风格]
+[Your styles]
 1. My Bold Voice
 
-[推荐风格]
+[Recommended styles]
 2. elonmusk — Shitposting provocateur
 3. naval — Pithy aphorism master
-...（所有风格全部列出，不省略）
+...(list ALL styles, do not omit any)
 
-0. 无偏好，使用默认风格
+0. No preference — use default style
 ```
 
 **1.5d. Build `--ext` from the chosen style:**
@@ -271,7 +271,7 @@ node felo-superAgent/scripts/run_superagent.mjs \
   --query "/twitter-writer ENRICHED_QUERY" \
   --live-doc-id "LIVE_DOC_ID" \
   --skill-id twitter-writer \
-  --ext '{"brand_style_requirement":"Style name: darioamodei\nStyle labels: Thoughtful long-form essays\nStyle DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA\n\n## 风格速写\nDario writes like a serious intellectual...（full content, do NOT truncate）"}' \
+  --ext '{"brand_style_requirement":"Style name: darioamodei\nStyle labels: Thoughtful long-form essays\nStyle DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA\n\n## Style Overview\nDario writes like a serious intellectual...（full content, do NOT truncate）"}' \
   --accept-language LANG \
   --json
 ```
@@ -340,7 +340,7 @@ User input
 ### Example A: Analyze an account's style
 
 ```
-User: "@paulg のツイートスタイルを分析して"
+User: "Analyze @paulg's tweet style"
 ```
 
 **Step 1:** Fetch tweets:
@@ -354,10 +354,10 @@ node felo-x-search/scripts/run_x_search.mjs --id "paulg" --user
 **Step 3:** Call SuperAgent (Mode 1 — no style library step):
 ```bash
 node felo-superAgent/scripts/run_superagent.mjs \
-  --query "/twitter-writer @paulg のツイートを分析し、文体のスタイルDNAドキュメントを作成してください。トーン、文章構造、冒頭フック、締めのアクション、頻出ワード、ハッシュタグ戦略、絵文字の使い方などを含めてください。\n\nアカウント概要：[BIO]\n\nツイート：\n[TWEETS]" \
+  --query "/twitter-writer Please analyze the following tweets from @paulg and extract a writing style DNA document. Cover tone, sentence structure, opening hooks, closing CTAs, frequently used words, hashtag strategy, and emoji usage.\n\nAccount bio: [BIO]\n\nTweets:\n[TWEETS]" \
   --live-doc-id "LIVE_DOC_ID" \
   --skill-id twitter-writer \
-  --accept-language ja \
+  --accept-language en \
   --json
 ```
 
@@ -368,7 +368,7 @@ node felo-superAgent/scripts/run_superagent.mjs \
 ### Example B: Create tweets with a reference style (Mode 1 → Mode 2)
 
 ```
-User: "@paulg のスタイルでスタートアップについてのツイートを3つ書いて"
+User: "Write 3 tweets about startups in @paulg's style"
 ```
 
 **Step 1:** Run Mode 1 to extract style DNA (same as Example A). Style library step is skipped because Mode 1 already establishes style context in the thread.
@@ -378,10 +378,10 @@ User: "@paulg のスタイルでスタートアップについてのツイート
 **Step 3:** Follow-up call (continuing the same thread — `thread_short_id` from Mode 1, no `--ext`):
 ```bash
 node felo-superAgent/scripts/run_superagent.mjs \
-  --query "/twitter-writer 上記で抽出した @paulg のスタイルDNAをもとに、「スタートアップ」をテーマにしたツイートを3パターン作成してください。それぞれ異なるトーンや切り口で、280文字以内に収めてください。" \
+  --query "/twitter-writer Based on the @paulg style DNA extracted above, write 3 tweet variations about startups. Each should have a distinct tone and angle, within 280 characters." \
   --thread-id "THREAD_SHORT_ID" \
   --live-doc-id "LIVE_DOC_ID" \
-  --accept-language ja \
+  --accept-language en \
   --json
 ```
 
@@ -449,17 +449,17 @@ console.log(JSON.stringify({brand_style_requirement:block}));
 ### Example D: Iterate on generated content (follow-up, no style step)
 
 ```
-User: "2番目のツイートをもっとユーモラスにして、絵文字も追加して"
+User: "Make the 2nd tweet more humorous and add some emojis"
 ```
 
 Already have `thread_short_id` and `live_doc_id` from the previous call. This is a follow-up — do NOT fetch styles again, do NOT pass `--ext`.
 
 ```bash
 node felo-superAgent/scripts/run_superagent.mjs \
-  --query "/twitter-writer 上記で生成した2番目のツイートを修正してください。トーンをよりユーモラスで軽快にし、適切な絵文字を追加してください。内容の意図は変えないでください。" \
+  --query "/twitter-writer Please revise the 2nd tweet generated above. Make the tone more humorous and lighthearted, and add appropriate emojis. Keep the original intent intact." \
   --thread-id "THREAD_SHORT_ID" \
   --live-doc-id "LIVE_DOC_ID" \
-  --accept-language ja \
+  --accept-language en \
   --json
 ```
 
@@ -528,7 +528,7 @@ node felo-superAgent/scripts/run_superagent.mjs \
 ### Example G: User chooses no preference
 
 ```
-User: "帮我写一条关于新产品发布的推文"
+User: "Write a tweet about a new product launch"
 ```
 
 **Step 1.5:** Fetch styles, present list. User replies: `0` (no preference).
@@ -536,10 +536,10 @@ User: "帮我写一条关于新产品发布的推文"
 Proceed without `--ext`:
 ```bash
 node felo-superAgent/scripts/run_superagent.mjs \
-  --query "/twitter-writer 帮我写3条关于新产品发布的推文，每条风格略有不同。" \
+  --query "/twitter-writer Write 3 tweets about a new product launch, each with a slightly different tone." \
   --live-doc-id "LIVE_DOC_ID" \
   --skill-id twitter-writer \
-  --accept-language zh \
+  --accept-language en \
   --json
 ```
 

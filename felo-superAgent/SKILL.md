@@ -294,12 +294,12 @@ Example style block output:
 ```
 Style name: darioamodei
 Style labels: Thoughtful long-form essays
-Style DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA\n\n## 风格速写\nDario writes like a serious intellectual...
+Style DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA\n\n## Style Overview\nDario writes like a serious intellectual...
 ```
 
 Serialized as `--ext`:
 ```bash
---ext '{"brand_style_requirement":"Style name: darioamodei\nStyle labels: Thoughtful long-form essays\nStyle DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA\n\n## 风格速写\nDario writes like a serious intellectual..."}'
+--ext '{"brand_style_requirement":"Style name: darioamodei\nStyle labels: Thoughtful long-form essays\nStyle DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA\n\n## Style Overview\nDario writes like a serious intellectual..."}'
 ```
 
 **Important:** Pass the `brand_style_requirement` value completely and verbatim — do NOT truncate `Style DNA`. Partial style content will degrade output quality.
@@ -321,9 +321,9 @@ Construct and execute the command. **ALWAYS use `--json`** — in Claude Code's 
 - **Keep it concise:** The query has a 2000-character limit. Enrich the content but stay focused and avoid unnecessary padding.
 
 Examples:
-- User says "继续" → `--query "请继续上面关于量子计算的分析，进一步展开实际应用场景"`
-- User says "再来一张" → `--query "请再生成一张类似风格的无线耳机产品图，白色背景"`
-- User says "帮我改改" → `--query "请修改上面生成的推文，语气更轻松一些，加一些emoji"`
+- User says "continue" → `--query "Please continue the analysis above on quantum computing, expanding on real-world applications"`
+- User says "one more" → `--query "Please generate another product image in a similar style, white background"`
+- User says "fix it" → `--query "Please revise the tweet generated above, make the tone more casual and add some emojis"`
 
 **New conversation (first question, no skill):**
 ```bash
@@ -350,7 +350,7 @@ node felo-superAgent/scripts/run_superagent.mjs \
   --query "Write a tweet about the latest AI trends" \
   --live-doc-id "LIVE_DOC_ID" \
   --skill-id twitter-writer \
-  --ext '{"brand_style_requirement":"Style name: darioamodei\nStyle labels: Thoughtful long-form essays\nStyle DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA\n\n## 风格速写\nDario writes like a serious intellectual...（full content）"}' \
+  --ext '{"brand_style_requirement":"Style name: darioamodei\nStyle labels: Thoughtful long-form essays\nStyle DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA\n\n## Style Overview\nDario writes like a serious intellectual...（full content）"}' \
   --accept-language en \
   --json
 ```
@@ -570,7 +570,7 @@ node felo-superAgent/scripts/run_superagent.mjs \
   --query "Write a tweet about AI trends" \
   --live-doc-id "QPetunwpGnkKuZHStP7gwt" \
   --skill-id twitter-writer \
-  --ext '{"brand_style_requirement":"Style name: darioamodei\nStyle labels: Thoughtful long-form essays\nStyle DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA\n\n## 风格速写\nDario writes like a serious intellectual...（full content, do NOT truncate）"}' \
+  --ext '{"brand_style_requirement":"Style name: darioamodei\nStyle labels: Thoughtful long-form essays\nStyle DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA\n\n## Style Overview\nDario writes like a serious intellectual...（full content, do NOT truncate）"}' \
   --accept-language en \
   --json
 ```
