@@ -15,10 +15,11 @@ These rules are mandatory. Violating any of them will produce incorrect behavior
 
 3. **ALWAYS output `data.answer` verbatim.** After the script finishes, print `data.answer` exactly as-is as your response text. Do NOT summarize, paraphrase, or add commentary around it.
 
-4. **`--live-doc-id` is REQUIRED** for every SuperAgent call. Follow the livedoc reuse rules from `felo-superAgent/SKILL.md`:
-   - Reuse any `live_doc_id` already available in this session
-   - If none: run `node felo-livedoc/scripts/run_livedoc.mjs list --json`, use `data.items[0].short_id`
-   - If list is empty: run `node felo-livedoc/scripts/run_livedoc.mjs create --name "Twitter Writer" --json`, use `data.short_id`
+4. **`--live-doc-id` is REQUIRED** for every SuperAgent call. Follow these rules strictly:
+   - Reuse any `live_doc_id` already available in this session (from a prior SuperAgent or livedoc call)
+   - If none: run `node felo-livedoc/scripts/run_livedoc.mjs list --json`, then find the **first item where `is_shared === false`** in `data.items` (list is sorted by modification time descending, so this gives the most recently modified private LiveDoc). Use its `short_id`.
+   - If no `is_shared === false` item exists (or list is empty): run `node felo-livedoc/scripts/run_livedoc.mjs create --name "Twitter Writer" --json`, use `data.short_id`
+   - **NEVER use a LiveDoc where `is_shared === true`** — shared LiveDocs belong to other projects and will cause a 502 error.
 
 5. **Always persist state.** After every SuperAgent call, extract `thread_short_id` and `live_doc_short_id` from the JSON response fields `data.thread_short_id` and `data.live_doc_short_id`. Use them in subsequent calls.
 
@@ -184,7 +185,7 @@ Always pass `--accept-language` matching the user's language (same value used fo
 
 **If the list is empty:** Skip silently. Proceed to Step 2 without `--ext`.
 
-**If styles are available:** Present them to the user grouped by type, showing names only. Always include a "no preference" option. Wait for the user's reply before proceeding.
+**If styles are available:** Output the COMPLETE list as plain text — every style returned by the API, grouped by type, numbered sequentially. NEVER use `AskUserQuestion` tool (it limits to 4 options and will silently drop styles). NEVER pre-select or filter styles on behalf of the user. Always append a "no preference" option as the last item. Then wait for the user's plain-text reply before proceeding.
 
 Example presentation (adapt language to match user's language):
 ```
@@ -192,10 +193,11 @@ Here are the available Twitter writing styles — choosing one will make the out
 
 [Your styles]
 1. My Bold Voice
-2. darioamodei
 
 [Recommended styles]
-3. Casual & Witty
+2. elonmusk — Shitposting provocateur
+3. naval — Pithy aphorism master
+...(list ALL styles, do not omit any)
 
 0. No preference — use default style
 ```
@@ -269,7 +271,7 @@ node felo-superAgent/scripts/run_superagent.mjs \
   --query "/twitter-writer ENRICHED_QUERY" \
   --live-doc-id "LIVE_DOC_ID" \
   --skill-id twitter-writer \
-  --ext '{"brand_style_requirement":"Style name: darioamodei\nStyle labels: Thoughtful long-form essays\nStyle DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA\n\n## 风格速写\nDario writes like a serious intellectual...（full content, do NOT truncate）"}' \
+  --ext '{"brand_style_requirement":"Style name: darioamodei\nStyle labels: Thoughtful long-form essays\nStyle DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA\n\n## Style Overview\nDario writes like a serious intellectual...（full content, do NOT truncate）"}' \
   --accept-language LANG \
   --json
 ```
@@ -338,7 +340,7 @@ User input
 ### Example A: Analyze an account's style
 
 ```
-User: "@paulg のツイートスタイルを分析して"
+User: "Analyze @paulg's tweet style"
 ```
 
 **Step 1:** Fetch tweets:
@@ -352,10 +354,10 @@ node felo-x-search/scripts/run_x_search.mjs --id "paulg" --user
 **Step 3:** Call SuperAgent (Mode 1 — no style library step):
 ```bash
 node felo-superAgent/scripts/run_superagent.mjs \
-  --query "/twitter-writer @paulg のツイートを分析し、文体のスタイルDNAドキュメントを作成してください。トーン、文章構造、冒頭フック、締めのアクション、頻出ワード、ハッシュタグ戦略、絵文字の使い方などを含めてください。\n\nアカウント概要：[BIO]\n\nツイート：\n[TWEETS]" \
+  --query "/twitter-writer Please analyze the following tweets from @paulg and extract a writing style DNA document. Cover tone, sentence structure, opening hooks, closing CTAs, frequently used words, hashtag strategy, and emoji usage.\n\nAccount bio: [BIO]\n\nTweets:\n[TWEETS]" \
   --live-doc-id "LIVE_DOC_ID" \
   --skill-id twitter-writer \
-  --accept-language ja \
+  --accept-language en \
   --json
 ```
 
@@ -366,7 +368,7 @@ node felo-superAgent/scripts/run_superagent.mjs \
 ### Example B: Create tweets with a reference style (Mode 1 → Mode 2)
 
 ```
-User: "@paulg のスタイルでスタートアップについてのツイートを3つ書いて"
+User: "Write 3 tweets about startups in @paulg's style"
 ```
 
 **Step 1:** Run Mode 1 to extract style DNA (same as Example A). Style library step is skipped because Mode 1 already establishes style context in the thread.
@@ -376,10 +378,10 @@ User: "@paulg のスタイルでスタートアップについてのツイート
 **Step 3:** Follow-up call (continuing the same thread — `thread_short_id` from Mode 1, no `--ext`):
 ```bash
 node felo-superAgent/scripts/run_superagent.mjs \
-  --query "/twitter-writer 上記で抽出した @paulg のスタイルDNAをもとに、「スタートアップ」をテーマにしたツイートを3パターン作成してください。それぞれ異なるトーンや切り口で、280文字以内に収めてください。" \
+  --query "/twitter-writer Based on the @paulg style DNA extracted above, write 3 tweet variations about startups. Each should have a distinct tone and angle, within 280 characters." \
   --thread-id "THREAD_SHORT_ID" \
   --live-doc-id "LIVE_DOC_ID" \
-  --accept-language ja \
+  --accept-language en \
   --json
 ```
 
@@ -447,17 +449,17 @@ console.log(JSON.stringify({brand_style_requirement:block}));
 ### Example D: Iterate on generated content (follow-up, no style step)
 
 ```
-User: "2番目のツイートをもっとユーモラスにして、絵文字も追加して"
+User: "Make the 2nd tweet more humorous and add some emojis"
 ```
 
 Already have `thread_short_id` and `live_doc_id` from the previous call. This is a follow-up — do NOT fetch styles again, do NOT pass `--ext`.
 
 ```bash
 node felo-superAgent/scripts/run_superagent.mjs \
-  --query "/twitter-writer 上記で生成した2番目のツイートを修正してください。トーンをよりユーモラスで軽快にし、適切な絵文字を追加してください。内容の意図は変えないでください。" \
+  --query "/twitter-writer Please revise the 2nd tweet generated above. Make the tone more humorous and lighthearted, and add appropriate emojis. Keep the original intent intact." \
   --thread-id "THREAD_SHORT_ID" \
   --live-doc-id "LIVE_DOC_ID" \
-  --accept-language ja \
+  --accept-language en \
   --json
 ```
 
@@ -526,7 +528,7 @@ node felo-superAgent/scripts/run_superagent.mjs \
 ### Example G: User chooses no preference
 
 ```
-User: "帮我写一条关于新产品发布的推文"
+User: "Write a tweet about a new product launch"
 ```
 
 **Step 1.5:** Fetch styles, present list. User replies: `0` (no preference).
@@ -534,10 +536,10 @@ User: "帮我写一条关于新产品发布的推文"
 Proceed without `--ext`:
 ```bash
 node felo-superAgent/scripts/run_superagent.mjs \
-  --query "/twitter-writer 帮我写3条关于新产品发布的推文，每条风格略有不同。" \
+  --query "/twitter-writer Write 3 tweets about a new product launch, each with a slightly different tone." \
   --live-doc-id "LIVE_DOC_ID" \
   --skill-id twitter-writer \
-  --accept-language zh \
+  --accept-language en \
   --json
 ```
 
