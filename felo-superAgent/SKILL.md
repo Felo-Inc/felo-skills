@@ -1,6 +1,6 @@
 ---
 name: felo-superAgent
-description: "Felo SuperAgent API: AI conversation with real-time SSE streaming on a persistent LiveDoc canvas. Use when users want SuperAgent chat, continuous conversation, tweet writing, logo/branding design, or e-commerce product images. Explicit commands: /felo-superagent."
+description: "Felo SuperAgent API: AI conversation with real-time SSE streaming on a persistent LiveDoc canvas. Use when users want SuperAgent chat, continuous conversation, logo/branding design, or e-commerce product images. Do NOT use for tweet/X post writing — use felo-twitter-writer instead. Explicit commands: /felo-superagent."
 ---
 
 # Felo SuperAgent Skill
@@ -57,7 +57,6 @@ Trigger this skill when users want:
 
 - **SuperAgent conversation:** AI conversation with Felo SuperAgent, with real-time streaming output
 - **Continuous conversation:** Multi-turn Q&A on a persistent LiveDoc canvas
-- **Tweet writing:** Compose or post tweets (auto-selects `twitter-writer` skill)
 - **Logo & branding:** Create logos or brand designs (auto-selects `logo-and-branding` skill)
 - **E-commerce images:** Generate product images (auto-selects `ecommerce-product-image` skill)
 - **Tool-augmented answers:** Responses that may include image generation, document creation, PPT generation, or Twitter/X search
@@ -65,15 +64,16 @@ Trigger this skill when users want:
 
 **Trigger words:**
 
-- English: superagent, super agent, stream chat, streaming conversation, livedoc conversation, continuous chat, follow-up question, write a tweet, post a tweet, create a logo, brand design, product image, e-commerce image
-- Simplified Chinese (pinyin): chao ji zhu shou, liu shi dui hua, lian xu dui hua, zhui wen, fa tui wen, xie tui wen, she ji logo, pin pai she ji, dian shang tu pian
-- Traditional Chinese (pinyin): chao ji zhu shou, liu shi dui hua, lian xu dui hua, zhui wen, fa tui wen, xie tui wen, she ji logo, pin pai she ji, dian shang tu pian
-- Japanese (romaji): suupaa eejento, sutoriimingu kaiwa, keizoku kaiwa, tsuiito wo kaku, rogo sakusei, shouhin gazou
+- English: superagent, super agent, stream chat, streaming conversation, livedoc conversation, continuous chat, follow-up question, create a logo, brand design, product image, e-commerce image
+- Simplified Chinese (pinyin): chao ji zhu shou, liu shi dui hua, lian xu dui hua, zhui wen, she ji logo, pin pai she ji, dian shang tu pian
+- Traditional Chinese (pinyin): chao ji zhu shou, liu shi dui hua, lian xu dui hua, zhui wen, she ji logo, pin pai she ji, dian shang tu pian
+- Japanese (romaji): suupaa eejento, sutoriimingu kaiwa, keizoku kaiwa, rogo sakusei, shouhin gazou
 
 **Explicit commands:** `/felo-superagent`, "use felo superagent", "felo superagent"
 
 **Do NOT use for:**
 
+- Tweet/X post writing of any kind (use `felo-twitter-writer` instead)
 - Simple one-off Q&A or real-time information queries (prefer `felo-search`)
 - Web page content fetching only (use `felo-web-fetch`)
 - PPT/slide generation only (use `felo-slides`)
@@ -147,7 +147,7 @@ Skip to Step 3. Reuse the same ID. Sources include: a previous SuperAgent call's
 node felo-livedoc/scripts/run_livedoc.mjs list --json
 ```
 
-Parse the JSON output. The response contains `data.items` — an array of LiveDoc objects sorted by modification time. Pick the first item's `short_id` as your `live_doc_id`.
+Parse the JSON output. The response contains `data.items` — an array of LiveDoc objects sorted by modification time descending. Find the **first item where `is_shared === false`** and use its `short_id` as your `live_doc_id`. **NEVER pick an item where `is_shared === true`** — shared LiveDocs belong to other projects and will cause a 502 error.
 
 Example response:
 ```json
@@ -156,16 +156,17 @@ Example response:
   "data": {
     "total": 3,
     "items": [
-      { "short_id": "QPetunwpGnkKuZHStP7gwt", "name": "My Workspace", "modified_at": "..." },
+      { "short_id": "abc123", "name": "Shared Project", "is_shared": true, "modified_at": "..." },
+      { "short_id": "QPetunwpGnkKuZHStP7gwt", "name": "My Workspace", "is_shared": false, "modified_at": "..." },
       ...
     ]
   }
 }
 ```
 
-Use: `live_doc_id = data.items[0].short_id`
+Use: `live_doc_id = data.items.find(i => !i.is_shared)?.short_id`
 
-**2c. If the list is empty (no LiveDocs exist) — create one:**
+**2c. If no `is_shared === false` item exists (or list is empty) — create one:**
 
 ```bash
 node felo-livedoc/scripts/run_livedoc.mjs create --name "SuperAgent Workspace" --json

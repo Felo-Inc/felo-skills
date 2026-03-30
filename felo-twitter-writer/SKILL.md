@@ -15,10 +15,11 @@ These rules are mandatory. Violating any of them will produce incorrect behavior
 
 3. **ALWAYS output `data.answer` verbatim.** After the script finishes, print `data.answer` exactly as-is as your response text. Do NOT summarize, paraphrase, or add commentary around it.
 
-4. **`--live-doc-id` is REQUIRED** for every SuperAgent call. Follow the livedoc reuse rules from `felo-superAgent/SKILL.md`:
-   - Reuse any `live_doc_id` already available in this session
-   - If none: run `node felo-livedoc/scripts/run_livedoc.mjs list --json`, use `data.items[0].short_id`
-   - If list is empty: run `node felo-livedoc/scripts/run_livedoc.mjs create --name "Twitter Writer" --json`, use `data.short_id`
+4. **`--live-doc-id` is REQUIRED** for every SuperAgent call. Follow these rules strictly:
+   - Reuse any `live_doc_id` already available in this session (from a prior SuperAgent or livedoc call)
+   - If none: run `node felo-livedoc/scripts/run_livedoc.mjs list --json`, then find the **first item where `is_shared === false`** in `data.items` (list is sorted by modification time descending, so this gives the most recently modified private LiveDoc). Use its `short_id`.
+   - If no `is_shared === false` item exists (or list is empty): run `node felo-livedoc/scripts/run_livedoc.mjs create --name "Twitter Writer" --json`, use `data.short_id`
+   - **NEVER use a LiveDoc where `is_shared === true`** — shared LiveDocs belong to other projects and will cause a 502 error.
 
 5. **Always persist state.** After every SuperAgent call, extract `thread_short_id` and `live_doc_short_id` from the JSON response fields `data.thread_short_id` and `data.live_doc_short_id`. Use them in subsequent calls.
 
@@ -184,20 +185,21 @@ Always pass `--accept-language` matching the user's language (same value used fo
 
 **If the list is empty:** Skip silently. Proceed to Step 2 without `--ext`.
 
-**If styles are available:** Present them to the user grouped by type, showing names only. Always include a "no preference" option. Wait for the user's reply before proceeding.
+**If styles are available:** Output the COMPLETE list as plain text — every style returned by the API, grouped by type, numbered sequentially. NEVER use `AskUserQuestion` tool (it limits to 4 options and will silently drop styles). NEVER pre-select or filter styles on behalf of the user. Always append a "no preference" option as the last item. Then wait for the user's plain-text reply before proceeding.
 
 Example presentation (adapt language to match user's language):
 ```
-Here are the available Twitter writing styles — choosing one will make the output more accurate:
+以下是可用的推文写作风格，选一个会让输出更贴合你的需求：
 
-[Your styles]
+[你的风格]
 1. My Bold Voice
-2. darioamodei
 
-[Recommended styles]
-3. Casual & Witty
+[推荐风格]
+2. elonmusk — Shitposting provocateur
+3. naval — Pithy aphorism master
+...（所有风格全部列出，不省略）
 
-0. No preference — use default style
+0. 无偏好，使用默认风格
 ```
 
 **1.5d. Build `--ext` from the chosen style:**
