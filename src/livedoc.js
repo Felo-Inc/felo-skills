@@ -91,6 +91,7 @@ function formatLiveDoc(doc) {
   out += `- ID: \`${doc.short_id}\`\n`;
   if (doc.description) out += `- Description: ${doc.description}\n`;
   if (doc.icon) out += `- Icon: ${doc.icon}\n`;
+  if (doc.is_shared != null) out += `- Shared: ${doc.is_shared}\n`;
   if (doc.created_at) out += `- Created: ${doc.created_at}\n`;
   if (doc.modified_at) out += `- Modified: ${doc.modified_at}\n`;
   out += '\n';
@@ -819,6 +820,28 @@ export async function createTaskComment(shortId, taskId, opts = {}) {
     return 0;
   } catch (err) {
     process.stderr.write(`Failed to add comment: ${err?.message || err}\n`);
+    return 1;
+  } finally { stopSpinner(spinnerId); }
+}
+
+export async function updateResourceContent(shortId, resourceId, opts = {}) {
+  const apiKey = await getApiKey();
+  if (!apiKey) { console.error(NO_KEY_MESSAGE.trim()); return 1; }
+  if (!shortId) { process.stderr.write('ERROR: short_id is required.\n'); return 1; }
+  if (!resourceId) { process.stderr.write('ERROR: resource_id is required.\n'); return 1; }
+  if (!opts.content) { process.stderr.write('ERROR: --content is required.\n'); return 1; }
+
+  const apiBase = await getApiBase();
+  const timeoutMs = opts.timeoutMs || DEFAULT_TIMEOUT_MS;
+  const spinnerId = startSpinner('Updating resource content');
+
+  try {
+    const payload = await apiRequest('PUT', `/livedocs/${shortId}/resources/${resourceId}/content`, { content: opts.content }, apiKey, apiBase, timeoutMs);
+    if (opts.json) { console.log(JSON.stringify(payload, null, 2)); return 0; }
+    process.stdout.write('Resource content updated.\n');
+    return 0;
+  } catch (err) {
+    process.stderr.write(`Failed to update resource content: ${err?.message || err}\n`);
     return 1;
   } finally { stopSpinner(spinnerId); }
 }

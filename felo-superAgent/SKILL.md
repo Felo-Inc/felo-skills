@@ -1,6 +1,6 @@
 ---
 name: felo-superAgent
-description: "Felo SuperAgent API: AI conversation with real-time SSE streaming on a persistent LiveDoc canvas. Use when users want SuperAgent chat, continuous conversation, tweet writing, logo/branding design, or e-commerce product images. Explicit commands: /felo-superagent."
+description: "Felo SuperAgent API: AI conversation with real-time SSE streaming on a persistent LiveDoc canvas. Use when users want SuperAgent chat, continuous conversation, logo/branding design, or e-commerce product images. Do NOT use for tweet/X post writing — use felo-twitter-writer instead. Explicit commands: /felo-superagent."
 ---
 
 # Felo SuperAgent Skill
@@ -9,9 +9,9 @@ description: "Felo SuperAgent API: AI conversation with real-time SSE streaming 
 
 These rules are mandatory. Violating any of them will produce incorrect behavior.
 
-1. **NEVER use `--json` flag.** The script MUST run in default (streaming) mode so that SuperAgent's answer is printed directly to stdout in real time. The `--json` flag suppresses all streaming output and is forbidden. State IDs are extracted from the `[state]` line in stderr instead.
+1. **ALWAYS use `--json` flag.** The script MUST run in JSON mode (`--json`). In Claude Code's Bash tool, stdout is always captured — it never streams directly to the user. JSON mode returns the full answer in a structured response that Claude can then output as text. State IDs are extracted from the JSON response fields `thread_short_id` and `live_doc_short_id`.
 
-2. **NEVER summarize, rewrite, or re-output the script's stdout.** The script already streams the full answer and tool results directly to the user. After the script finishes, do NOT repeat, paraphrase, or summarize the answer. Only output supplementary information (LiveDoc URL, session state notes) if needed.
+2. **ALWAYS output the answer directly as text.** After the script finishes, read `data.answer` from the JSON output and print it verbatim as your response text. Do NOT summarize, paraphrase, or add commentary around it. Output it exactly as-is so the user sees the full content.
 
 3. **`--live-doc-id` is REQUIRED when creating a conversation.** Never call `run_superagent.mjs` without `--live-doc-id`. If you do not have one yet, obtain it first (see Step 2 below).
 
@@ -38,7 +38,18 @@ These rules are mandatory. Violating any of them will produce incorrect behavior
    - If none of the above match, do NOT pass `--skill-id` (general conversation mode)
    - `--skill-id` is only effective when creating a new conversation. It is ignored in follow-up mode (`--thread-id`).
 
-9. **Never create a new LiveDoc casually.** Reuse the existing one. The only exception is an explicit user request for a new canvas/workspace.
+9. **Brand style selection for skill-based new conversations.** When starting a NEW conversation that uses a skill ID (`twitter-writer`, `logo-and-branding`, `ecommerce-product-image`), you MUST fetch the style library and let the user choose a style BEFORE calling `run_superagent.mjs`. The chosen style is passed via `--ext '{"brand_style_requirement":"<style_string>"}'`. See Step 4.5 for the full procedure.
+
+   - The style string is the exact text block output by `run_style_library.mjs` for that entry. Fields vary by category:
+     - **TWITTER**: `Style name` + `Style labels` (language-aware) + `Style DNA` + `Cover file ID` (omitted if null)
+     - **IMAGE**: `Style name` + `Style labels` + `Style DNA` or `Cover file ID` depending on what is present
+   - Use the category that matches the skill: `TWITTER` for `twitter-writer`, `IMAGE` for `logo-and-branding` and `ecommerce-product-image`.
+   - Always pass `--accept-language` to `run_style_library.mjs` so labels are returned in the user's language.
+   - If the user has already specified a style (by name or by pasting the style block), skip the fetch and use their choice directly.
+   - If the style library returns no entries, proceed without `--ext`.
+   - `--ext` is only valid for new conversations. Never pass it in follow-up mode (`--thread-id`).
+
+10. **Never create a new LiveDoc casually.** Reuse the existing one. The only exception is an explicit user request for a new canvas/workspace.
 
 ## When to Use
 
@@ -46,7 +57,6 @@ Trigger this skill when users want:
 
 - **SuperAgent conversation:** AI conversation with Felo SuperAgent, with real-time streaming output
 - **Continuous conversation:** Multi-turn Q&A on a persistent LiveDoc canvas
-- **Tweet writing:** Compose or post tweets (auto-selects `twitter-writer` skill)
 - **Logo & branding:** Create logos or brand designs (auto-selects `logo-and-branding` skill)
 - **E-commerce images:** Generate product images (auto-selects `ecommerce-product-image` skill)
 - **Tool-augmented answers:** Responses that may include image generation, document creation, PPT generation, or Twitter/X search
@@ -54,15 +64,16 @@ Trigger this skill when users want:
 
 **Trigger words:**
 
-- English: superagent, super agent, stream chat, streaming conversation, livedoc conversation, continuous chat, follow-up question, write a tweet, post a tweet, create a logo, brand design, product image, e-commerce image
-- Simplified Chinese (pinyin): chao ji zhu shou, liu shi dui hua, lian xu dui hua, zhui wen, fa tui wen, xie tui wen, she ji logo, pin pai she ji, dian shang tu pian
-- Traditional Chinese (pinyin): chao ji zhu shou, liu shi dui hua, lian xu dui hua, zhui wen, fa tui wen, xie tui wen, she ji logo, pin pai she ji, dian shang tu pian
-- Japanese (romaji): suupaa eejento, sutoriimingu kaiwa, keizoku kaiwa, tsuiito wo kaku, rogo sakusei, shouhin gazou
+- English: superagent, super agent, stream chat, streaming conversation, livedoc conversation, continuous chat, follow-up question, create a logo, brand design, product image, e-commerce image
+- Simplified Chinese (pinyin): chao ji zhu shou, liu shi dui hua, lian xu dui hua, zhui wen, she ji logo, pin pai she ji, dian shang tu pian
+- Traditional Chinese (pinyin): chao ji zhu shou, liu shi dui hua, lian xu dui hua, zhui wen, she ji logo, pin pai she ji, dian shang tu pian
+- Japanese (romaji): suupaa eejento, sutoriimingu kaiwa, keizoku kaiwa, rogo sakusei, shouhin gazou
 
 **Explicit commands:** `/felo-superagent`, "use felo superagent", "felo superagent"
 
 **Do NOT use for:**
 
+- Tweet/X post writing of any kind (use `felo-twitter-writer` instead)
 - Simple one-off Q&A or real-time information queries (prefer `felo-search`)
 - Web page content fetching only (use `felo-web-fetch`)
 - PPT/slide generation only (use `felo-slides`)
@@ -81,11 +92,17 @@ Trigger this skill when users want:
 
 ### 2. Configure API Key
 
-Set the `FELO_API_KEY` environment variable:
+The scripts (`run_superagent.mjs`, `run_style_library.mjs`) read the API key **only from the `FELO_API_KEY` environment variable**. The `felo config set` CLI command writes to `~/.felo/config.json` which these scripts do NOT read — environment variable is the only supported method.
 
 **Linux/macOS:**
 ```bash
 export FELO_API_KEY="your-api-key-here"
+```
+
+For permanent configuration, add to your shell profile (`~/.bashrc` or `~/.zshrc`):
+```bash
+echo 'export FELO_API_KEY="your-api-key-here"' >> ~/.zshrc
+source ~/.zshrc
 ```
 
 **Windows (PowerShell):**
@@ -97,8 +114,6 @@ $env:FELO_API_KEY="your-api-key-here"
 ```cmd
 set FELO_API_KEY=your-api-key-here
 ```
-
-For permanent configuration, add it to your shell profile (~/.bashrc, ~/.zshrc) or system environment variables.
 
 ### 3. Dependency: felo-livedoc
 
@@ -132,7 +147,7 @@ Skip to Step 3. Reuse the same ID. Sources include: a previous SuperAgent call's
 node felo-livedoc/scripts/run_livedoc.mjs list --json
 ```
 
-Parse the JSON output. The response contains `data.items` — an array of LiveDoc objects sorted by modification time. Pick the first item's `short_id` as your `live_doc_id`.
+Parse the JSON output. The response contains `data.items` — an array of LiveDoc objects sorted by modification time descending. Find the **first item where `is_shared === false`** and use its `short_id` as your `live_doc_id`. **NEVER pick an item where `is_shared === true`** — shared LiveDocs belong to other projects and will cause a 502 error.
 
 Example response:
 ```json
@@ -141,16 +156,17 @@ Example response:
   "data": {
     "total": 3,
     "items": [
-      { "short_id": "QPetunwpGnkKuZHStP7gwt", "name": "My Workspace", "modified_at": "..." },
+      { "short_id": "abc123", "name": "Shared Project", "is_shared": true, "modified_at": "..." },
+      { "short_id": "QPetunwpGnkKuZHStP7gwt", "name": "My Workspace", "is_shared": false, "modified_at": "..." },
       ...
     ]
   }
 }
 ```
 
-Use: `live_doc_id = items[0].short_id`
+Use: `live_doc_id = data.items.find(i => !i.is_shared)?.short_id`
 
-**2c. If the list is empty (no LiveDocs exist) — create one:**
+**2c. If no `is_shared === false` item exists (or list is empty) — create one:**
 
 ```bash
 node felo-livedoc/scripts/run_livedoc.mjs create --name "SuperAgent Workspace" --json
@@ -204,9 +220,93 @@ If this is a new conversation (no `--thread-id`), analyze the user's intent:
 
 If this is a follow-up (`--thread-id` is set), skip this step entirely. `--skill-id` is ignored in follow-up mode.
 
+### Step 4.5: Fetch and Select Brand Style (New Skill Conversations Only)
+
+**When to run this step:** Only when this is a NEW conversation AND a skill ID was determined in Step 4 (`twitter-writer`, `logo-and-branding`, or `ecommerce-product-image`). Skip entirely for follow-up conversations or general (no skill) conversations.
+
+**Category mapping:**
+| Skill ID | Style category |
+|---|---|
+| `twitter-writer` | `TWITTER` |
+| `logo-and-branding` | `IMAGE` |
+| `ecommerce-product-image` | `IMAGE` |
+
+**4.5a. If the user has already specified a style** (by name, or by pasting a style block), use it directly — skip to 4.5d.
+
+**4.5b. Fetch the style list:**
+
+Use the category that matches the skill:
+
+| Skill ID | `--category` |
+|---|---|
+| `twitter-writer` | `TWITTER` |
+| `logo-and-branding` | `IMAGE` |
+| `ecommerce-product-image` | `IMAGE` |
+
+Pass `--accept-language` matching the user's language (same value used for SuperAgent).
+
+```bash
+# For twitter-writer
+node felo-superAgent/scripts/run_style_library.mjs --category TWITTER --accept-language en
+
+# For logo-and-branding or ecommerce-product-image
+node felo-superAgent/scripts/run_style_library.mjs --category IMAGE --accept-language en
+```
+
+The output lists styles in this format, one block per style separated by a blank line:
+
+```
+Style name: darioamodei
+Style labels: Thoughtful long-form essays
+Style DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA
+...（full content）
+
+Style name: Casual & Witty
+Style labels: humor, relatable
+Style DNA: ...（full content）
+Cover file ID: file_abc123
+```
+
+Notes:
+- `Style labels` is omitted if no labels exist for this entry.
+- `Style DNA` is the full text of `content.styleDna` (TWITTER type). Do NOT truncate it.
+- `Cover file ID` is omitted if the value is null/empty.
+
+User-created styles appear first, followed by recommended styles.
+
+**4.5c. Present the styles to the user and ask them to choose:**
+
+Show the list (style names only is sufficient) and ask which one to use. Wait for the user's selection before proceeding.
+
+Example prompt to user:
+> Here are the available Twitter writing styles. Which one would you like to use?
+> 1. Casual & Witty (your style)
+> 2. Professional Thought Leader (recommended)
+> 3. No style preference — use default
+
+If the user picks "no preference" or the list is empty, proceed to Step 5 without `--ext`.
+
+**4.5d. Build the `--ext` value:**
+
+Take the full text block for the chosen style (exactly as output by the script) and use it as the value of `brand_style_requirement`. The block may contain multiple lines — serialize them into a single JSON string with `\n` for newlines and `\"` for any double quotes inside field values:
+
+Example style block output:
+```
+Style name: darioamodei
+Style labels: Thoughtful long-form essays
+Style DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA\n\n## Style Overview\nDario writes like a serious intellectual...
+```
+
+Serialized as `--ext`:
+```bash
+--ext '{"brand_style_requirement":"Style name: darioamodei\nStyle labels: Thoughtful long-form essays\nStyle DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA\n\n## Style Overview\nDario writes like a serious intellectual..."}'
+```
+
+**Important:** Pass the `brand_style_requirement` value completely and verbatim — do NOT truncate `Style DNA`. Partial style content will degrade output quality.
+
 ### Step 5: Run the Script
 
-Construct and execute the command. **NEVER use `--json`** — the script must run in default streaming mode so the answer is printed directly to the user in real time.
+Construct and execute the command. **ALWAYS use `--json`** — in Claude Code's Bash tool, stdout is captured, not streamed to the user. JSON mode returns the full answer in a structured response.
 
 **IMPORTANT:** The SSE stream may take a long time (especially for image generation, research reports, etc.). You MUST set the Bash tool timeout to at least 600000ms (10 minutes) when executing the script to prevent premature termination.
 
@@ -221,25 +321,38 @@ Construct and execute the command. **NEVER use `--json`** — the script must ru
 - **Keep it concise:** The query has a 2000-character limit. Enrich the content but stay focused and avoid unnecessary padding.
 
 Examples:
-- User says "继续" → `--query "请继续上面关于量子计算的分析，进一步展开实际应用场景"`
-- User says "再来一张" → `--query "请再生成一张类似风格的无线耳机产品图，白色背景"`
-- User says "帮我改改" → `--query "请修改上面生成的推文，语气更轻松一些，加一些emoji"`
+- User says "continue" → `--query "Please continue the analysis above on quantum computing, expanding on real-world applications"`
+- User says "one more" → `--query "Please generate another product image in a similar style, white background"`
+- User says "fix it" → `--query "Please revise the tweet generated above, make the tone more casual and add some emojis"`
 
-**New conversation (first question):**
+**New conversation (first question, no skill):**
 ```bash
 node felo-superAgent/scripts/run_superagent.mjs \
   --query "USER_QUERY_HERE" \
   --live-doc-id "LIVE_DOC_ID" \
-  --accept-language en
+  --accept-language en \
+  --json
 ```
 
-**New conversation with skill ID (e.g., tweet writing):**
+**New conversation with skill ID, no style selected:**
 ```bash
 node felo-superAgent/scripts/run_superagent.mjs \
   --query "Write a tweet about the latest AI trends" \
   --live-doc-id "LIVE_DOC_ID" \
   --skill-id twitter-writer \
-  --accept-language en
+  --accept-language en \
+  --json
+```
+
+**New conversation with skill ID and brand style (from Step 4.5):**
+```bash
+node felo-superAgent/scripts/run_superagent.mjs \
+  --query "Write a tweet about the latest AI trends" \
+  --live-doc-id "LIVE_DOC_ID" \
+  --skill-id twitter-writer \
+  --ext '{"brand_style_requirement":"Style name: darioamodei\nStyle labels: Thoughtful long-form essays\nStyle DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA\n\n## Style Overview\nDario writes like a serious intellectual...（full content）"}' \
+  --accept-language en \
+  --json
 ```
 
 **Follow-up question (DEFAULT for 2nd+ messages):**
@@ -247,23 +360,31 @@ node felo-superAgent/scripts/run_superagent.mjs \
 node felo-superAgent/scripts/run_superagent.mjs \
   --query "USER_FOLLOW_UP_QUERY" \
   --thread-id "THREAD_SHORT_ID_FROM_PREVIOUS" \
-  --live-doc-id "LIVE_DOC_ID"
+  --live-doc-id "LIVE_DOC_ID" \
+  --json
 ```
 
-### Step 6: Extract State from stderr (Do NOT Re-output the Answer)
+### Step 6: Extract State and Output the Answer
 
-The script has already streamed the full answer and tool results directly to stdout. **Do NOT repeat, summarize, or rewrite any of that content.**
+After the script finishes, parse the JSON output:
 
-After the script finishes, look for the `[state]` line in stderr output:
-
+```json
+{
+  "status": "ok",
+  "data": {
+    "answer": "...",
+    "thread_short_id": "CmYpuGwBgCnrUdDx5ZtmxA",
+    "live_doc_short_id": "QPetunwpGnkKuZHStP7gwt",
+    "live_doc_url": "https://felo.ai/livedoc/QPetunwpGnkKuZHStP7gwt"
+  }
+}
 ```
-[state] thread_short_id=CmYpuGwBgCnrUdDx5ZtmxA live_doc_short_id=QPetunwpGnkKuZHStP7gwt live_doc_url=https://felo.ai/livedoc/QPetunwpGnkKuZHStP7gwt
-```
 
-1. **Extract and save** `thread_short_id` and `live_doc_id` (from the `live_doc_short_id` field in the `[state]` line) — you MUST use these in the next call.
-2. **Optionally show** the `live_doc_url` link to the user so they can view the LiveDoc canvas in a browser.
+1. **Output `data.answer` verbatim** as your response text — print it exactly as-is so the user sees the full content.
+2. **Extract and save** `data.thread_short_id` and `data.live_doc_short_id` — you MUST use these in the next call.
+3. **Optionally show** `data.live_doc_url` so the user can view the LiveDoc canvas in a browser.
 
-Do NOT show `thread_short_id` or `live_doc_id` to the user unless they ask for it. These are internal state for the skill to manage.
+Do NOT show `thread_short_id` or `live_doc_short_id` to the user unless they ask for it.
 
 ## Complete Workflow Examples
 
@@ -281,9 +402,10 @@ User: "What is quantum computing?"
 node felo-superAgent/scripts/run_superagent.mjs \
   --query "What is quantum computing?" \
   --live-doc-id "QPetunwpGnkKuZHStP7gwt" \
-  --accept-language en
+  --accept-language en \
+  --json
 ```
-**Step 6:** The answer is already streamed to the user. Extract from stderr `[state]` line: `thread_short_id = "CmYpuGwBgCnrUdDx5ZtmxA"`, `live_doc_id = "QPetunwpGnkKuZHStP7gwt"`. Do NOT repeat the answer.
+**Step 6:** Parse JSON output. Output `data.answer` verbatim as your response. Save `thread_short_id = "CmYpuGwBgCnrUdDx5ZtmxA"`, `live_doc_id = "QPetunwpGnkKuZHStP7gwt"` from `data`.
 
 ```
 User: "What are its practical applications?"
@@ -296,9 +418,10 @@ User: "What are its practical applications?"
 node felo-superAgent/scripts/run_superagent.mjs \
   --query "What are its practical applications?" \
   --thread-id "CmYpuGwBgCnrUdDx5ZtmxA" \
-  --live-doc-id "QPetunwpGnkKuZHStP7gwt"
+  --live-doc-id "QPetunwpGnkKuZHStP7gwt" \
+  --json
 ```
-**Step 6:** Answer already streamed. Extract updated `thread_short_id` from stderr `[state]` line (may be the same), keep `live_doc_id`.
+**Step 6:** Parse JSON output. Output `data.answer` verbatim. Save updated `thread_short_id` from `data` (may be the same), keep `live_doc_id`.
 
 ```
 User: "Tell me more about quantum error correction"
@@ -307,68 +430,113 @@ User: "Tell me more about quantum error correction"
 **Step 3:** Still follow-up (same topic) → use saved `thread_short_id`
 **Step 5:** Same pattern as above with new query
 
-### Example B: Tweet Writing
+### Example B: Tweet Writing with Style Selection
 
 ```
 User: "Help me write a tweet about AI trends"
 ```
 
 **Step 2a:** Already have `live_doc_id` → reuse
-**Step 3:** New conversation — `--skill-id twitter-writer` is required, which only takes effect in new conversations
+**Step 3:** New conversation
 **Step 4:** User intent matches "write a tweet" → `--skill-id twitter-writer`
+**Step 4.5:** Fetch TWITTER styles (pass `--accept-language` matching user's language):
+```bash
+node felo-superAgent/scripts/run_style_library.mjs --category TWITTER --accept-language en
+```
+Output:
+```
+Style name: My Bold Voice
+Style labels: bold, provocative
+Style DNA: # My Bold Voice Style DNA
+...（full content）
+
+Style name: darioamodei
+Style labels: Thoughtful long-form essays
+Style DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA
+...（full content）
+```
+Present to user: "Which writing style would you like? 1. My Bold Voice (yours) 2. darioamodei (recommended) 3. No preference"
+
+User selects: "1. My Bold Voice"
+
 **Step 5:**
 ```bash
 node felo-superAgent/scripts/run_superagent.mjs \
   --query "Help me write a tweet about AI trends" \
   --live-doc-id "QPetunwpGnkKuZHStP7gwt" \
   --skill-id twitter-writer \
-  --accept-language en
+  --ext '{"brand_style_requirement":"Style name: My Bold Voice\nStyle labels: bold, provocative\nStyle DNA: # My Bold Voice Style DNA\n...（full content）"}' \
+  --accept-language en \
+  --json
 ```
-**Step 6:** Answer already streamed. Extract new `thread_short_id` from stderr `[state]` line, keep same `live_doc_id`.
+**Step 6:** Parse JSON output. Output `data.answer` verbatim. Save new `thread_short_id` from `data`, keep same `live_doc_id`.
 
 ```
 User: "Make it more casual and add some emojis"
 ```
 
-**Step 3:** Follow-up → use saved `thread_short_id`
+**Step 3:** Follow-up → use saved `thread_short_id` (do NOT pass `--ext` again)
 **Step 5:**
 ```bash
 node felo-superAgent/scripts/run_superagent.mjs \
   --query "Make it more casual and add some emojis" \
   --thread-id "NEW_THREAD_FROM_TWEET" \
-  --live-doc-id "QPetunwpGnkKuZHStP7gwt"
+  --live-doc-id "QPetunwpGnkKuZHStP7gwt" \
+  --json
 ```
 
-### Example C: Logo Design
+### Example C: Logo Design with Style Selection
 
 ```
 User: "Design a logo for my coffee shop called Bean & Brew"
 ```
 
 **Step 4:** Detected "design a logo" → `--skill-id logo-and-branding`
+**Step 4.5:** Fetch IMAGE styles:
+```bash
+node felo-superAgent/scripts/run_style_library.mjs --category IMAGE --accept-language en
+```
+Output example:
+```
+Style name: Minimalist Modern
+Style labels: clean, monochrome
+Style DNA: ...（full content）
+Cover file ID: file_333
+```
+Present styles to user and wait for selection. Suppose user picks "Minimalist Modern":
+
 **Step 5:**
 ```bash
 node felo-superAgent/scripts/run_superagent.mjs \
   --query "Design a logo for my coffee shop called Bean & Brew" \
   --live-doc-id "QPetunwpGnkKuZHStP7gwt" \
   --skill-id logo-and-branding \
-  --accept-language en
+  --ext '{"brand_style_requirement":"Style name: Minimalist Modern\nStyle labels: clean, monochrome\nStyle DNA: ...（full content）\nCover file ID: file_333"}' \
+  --accept-language en \
+  --json
 ```
 
-### Example D: E-commerce Product Image
+### Example D: E-commerce Product Image with Style Selection
 
 ```
 User: "Generate a product image for a wireless headphone on white background"
 ```
 
 **Step 4:** Detected "product image" → `--skill-id ecommerce-product-image`
-**Step 5:**
+**Step 4.5:** Fetch IMAGE styles:
+```bash
+node felo-superAgent/scripts/run_style_library.mjs --category IMAGE --accept-language en
+```
+Present styles to user. Suppose user picks "No preference":
+
+**Step 5:** (no `--ext` since user chose no preference)
 ```bash
 node felo-superAgent/scripts/run_superagent.mjs \
   --query "Generate a product image for a wireless headphone on white background" \
   --live-doc-id "QPetunwpGnkKuZHStP7gwt" \
   --skill-id ecommerce-product-image \
-  --accept-language en
+  --accept-language en \
+  --json
 ```
 
 ### Example E: User Requests a New Canvas
@@ -383,6 +551,30 @@ node felo-livedoc/scripts/run_livedoc.mjs create --name "New Project" --json
 ```
 Extract new `live_doc_id`. Discard the old one. All subsequent calls use the new ID.
 
+### Example F: User Specifies Style Directly
+
+```
+User: "Write a tweet about AI trends using the 'darioamodei' style"
+```
+
+**Step 4:** `--skill-id twitter-writer`
+**Step 4.5a:** User already named the style → fetch the list to get the full block:
+```bash
+node felo-superAgent/scripts/run_style_library.mjs --category TWITTER --accept-language en
+```
+Find the entry with `Style name: darioamodei`, extract its full block verbatim. No need to ask the user again.
+
+**Step 5:**
+```bash
+node felo-superAgent/scripts/run_superagent.mjs \
+  --query "Write a tweet about AI trends" \
+  --live-doc-id "QPetunwpGnkKuZHStP7gwt" \
+  --skill-id twitter-writer \
+  --ext '{"brand_style_requirement":"Style name: darioamodei\nStyle labels: Thoughtful long-form essays\nStyle DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA\n\n## Style Overview\nDario writes like a serious intellectual...（full content, do NOT truncate）"}' \
+  --accept-language en \
+  --json
+```
+
 ## Available Script Options
 
 **Core parameters:**
@@ -391,12 +583,14 @@ Extract new `live_doc_id`. Discard the old one. All subsequent calls use the new
 - `--thread-id <id>` — Thread ID from previous response, for follow-up conversations
 
 **Skill parameters (new conversations only, ignored in follow-up):**
-- `--skill-id <id>` — Skill ID (see Constraint #8 for available skill IDs)
+- `--skill-id <id>` — Skill ID (see Constraint #9 for available skill IDs)
 - `--selected-resource-ids <ids>` — Comma-separated resource IDs to include
-- `--ext <json>` — Extra parameters as JSON object
+- `--ext <json>` — Extra parameters as JSON object. For skill-based conversations, pass brand style as:
+  `--ext '{"brand_style_requirement":"Style name: <name>\nStyle labels: <labels>\nStyle DNA: <full styleDna text>\nCover file ID: <id>"}'`
+  Fields present depend on category type. `Cover file ID` is omitted when null. Do NOT truncate `Style DNA`.
 
 **Output control:**
-- `--json` / `-j` — Output JSON format with full metadata (DO NOT use in this skill — it suppresses streaming output)
+- `--json` / `-j` — Output JSON format with full metadata (ALWAYS use this in Claude Code — stdout is captured by the Bash tool, not streamed to the user)
 - `--verbose` / `-v` — Log stream connection details to stderr (for debugging only, not needed for normal use)
 - `--accept-language <lang>` — Language preference (e.g., en, ja, ko)
 
@@ -505,8 +699,8 @@ To use this skill, you need to set up your Felo API Key:
 ## Important Notes
 
 - Execute this skill immediately using the Bash tool — do not just describe what you would do
-- **NEVER use `--json`** — it suppresses all streaming output. State IDs come from the `[state]` line in stderr
-- **NEVER summarize or re-output the answer** — the script already streams it directly to the user
+- **ALWAYS use `--json`** — in Claude Code's Bash tool, stdout is captured, not streamed. JSON mode returns the answer in a structured response that Claude outputs as text
+- **ALWAYS output `data.answer` verbatim** — print it exactly as-is as your response text so the user sees the full content
 - After create, the script connects to the stream **immediately** — the `stream_key` has a limited validity period
 - Use the bundled Node script to consume SSE; do not assume `jq` or other tools for parsing SSE
 - Same API key as other Felo skills (`FELO_API_KEY`)
@@ -524,7 +718,7 @@ User sends a message
         v
 Have live_doc_id from ANY source?
    NO  --> Step 2b: fetch list --> got items?
-              YES --> use items[0].short_id as live_doc_id
+              YES --> use data.items[0].short_id as live_doc_id
               NO  --> Step 2c: create new LiveDoc
    YES --> continue (reuse it, do NOT fetch list)
         |
@@ -532,15 +726,24 @@ Have live_doc_id from ANY source?
 Have thread_short_id from previous call?
    NO  --> This is a NEW conversation
               --> Step 4: determine skill-id by analyzing user intent
-              --> Step 5: run WITHOUT --thread-id
+              --> skill-id found (twitter-writer / logo-and-branding / ecommerce-product-image)?
+                    YES --> Step 4.5: fetch style library for matching category
+                              --> styles available?
+                                    YES --> present to user, wait for selection
+                                              --> user picked a style?
+                                                    YES --> build --ext '{"brand_style_requirement":"..."}'
+                                                    NO  --> no --ext
+                                    NO  --> no --ext
+                    NO  --> no --ext, no --skill-id
+              --> Step 5: run WITHOUT --thread-id (with --skill-id and --ext if determined above)
    YES --> Does user's intent require a skill-id not matching current thread?
-              YES --> NEW conversation (same live-doc-id, with --skill-id)
+              YES --> NEW conversation (same live-doc-id, with --skill-id, repeat Step 4.5)
               NO  --> Is user explicitly starting a new topic?
                         YES --> NEW conversation (same live-doc-id, no --thread-id)
-                        NO  --> FOLLOW-UP (pass --thread-id)
+                        NO  --> FOLLOW-UP (pass --thread-id, NO --ext)
         |
         v
-Run script (NO --json, Bash timeout >= 600000ms) --> answer streams directly to user
+Run script (WITH --json, Bash timeout >= 600000ms) --> parse JSON, output data.answer verbatim
         |
         v
 Extract thread_short_id + live_doc_id from stderr [state] line
@@ -548,6 +751,38 @@ Extract thread_short_id + live_doc_id from stderr [state] line
         v
 Do NOT repeat or summarize the answer (already shown)
 ```
+
+## Style Library Script (`run_style_library.mjs`)
+
+Fetch the style library list for a given category. Returns user styles first, then recommended styles.
+
+```bash
+node felo-superAgent/scripts/run_style_library.mjs --category TWITTER --accept-language en
+```
+
+**Options:**
+- `--category <category>` (REQUIRED) — One of: `TWITTER`, `INSTAGRAM`, `LEMON8`, `NOTECOM`, `WEBSITE`, `IMAGE`
+- `--accept-language <lang>` — Language for labels/tags (e.g. `en`, `zh-Hans`, `ja`). Default: `en`. Always pass this to match the user's language.
+- `--json` / `-j` — Output raw JSON
+- `--timeout <seconds>` — Request timeout (default 60)
+
+**Default text output format (one block per style, blank line between):**
+
+For TWITTER category:
+```
+Style name: darioamodei
+Style labels: Thoughtful long-form essays
+Style DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA
+...（full styleDna content）
+```
+
+Fields included per entry (fields with null/empty values are omitted):
+- `Style name` — always present (`name` field)
+- `Style labels` — from `content.labels` (TWITTER) or `content.tags` (other categories), in the requested language, comma-separated; omitted if not present
+- `Style DNA` — from `content.styleDna` (TWITTER type); omitted if not present
+- `Cover file ID` — from `coverFileId`; omitted if null/empty
+
+User-created styles appear before recommended styles.
 
 ## References
 

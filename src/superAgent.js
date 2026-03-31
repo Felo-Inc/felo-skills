@@ -789,3 +789,136 @@ export async function superAgent(query, options = {}) {
     return 1;
   }
 }
+
+/**
+ * Pick the best matching value from a multilingual map object.
+ * Falls back: exact match → base language (e.g. "zh" for "zh-Hans") → "en" → first available.
+ * Returns an array (may be empty).
+ * @param {Object} map - Multilingual map, e.g. { en: [...], "zh-Hans": [...] }
+ * @param {string} lang - Preferred language code.
+ */
+function pickLangValue(map, lang) {
+  if (!map || typeof map !== 'object') return [];
+  if (map[lang]) return map[lang];
+  const base = lang.split('-')[0];
+  if (base !== lang && map[base]) return map[base];
+  if (map['en']) return map['en'];
+  const first = Object.values(map)[0];
+  return Array.isArray(first) ? first : [];
+}
+
+/**
+ * Format a single style entry into the brand_style_requirement string.
+ *   Style name: <name>
+ *   Style labels: <label1, label2>   (from content.labels or content.tags, language-aware)
+ *   Style DNA: <styleDna>            (from content.styleDna, TWITTER type)
+ *   Cover file ID: <coverFileId>     (omitted if null/empty)
+ * @param {Object} s - Style entry from API.
+ * @param {string} lang - Language code for labels/tags.
+ */
+function formatStyleEntry(s, lang) {
+  const lines = [];
+
+  lines.push(`Style name: ${s.name ?? ''}`);
+
+  const content = s.content ?? {};
+
+  // Labels — multilingual map (content.labels for TWITTER, content.tags for others)
+  const labelsMap = content.labels ?? content.tags ?? null;
+  if (labelsMap) {
+    const labelArr = pickLangValue(labelsMap, lang);
+    if (labelArr.length > 0) {
+      lines.push(`Style labels: ${labelArr.join(', ')}`);
+    }
+  }
+
+  // Style DNA (TWITTER type)
+  if (typeof content.styleDna === 'string' && content.styleDna.trim()) {
+    lines.push(`Style DNA: ${content.styleDna.trim()}`);
+  }
+
+  // Cover file ID — omit if null/empty
+  const coverId = s.coverFileId ?? s.cover_file_id ?? null;
+  if (coverId) {
+    lines.push(`Cover file ID: ${coverId}`);
+  }
+
+  return lines.join('\n');
+}
+
+/**
+ * List style library entries for a given category.
+ * @param {string} category - Style category (e.g. TWITTER, INSTAGRAM, LEMON8, NOTECOM, WEBSITE, IMAGE).
+ * @param {Object} [options]
+ * @param {boolean} [options.json] - Output raw JSON.
+ * @param {string} [options.acceptLanguage] - Language code for labels/tags (e.g. en, zh-Hans, ja). Default: en.
+ * @param {number} [options.timeoutMs] - Request timeout in ms.
+ * @returns {Promise<number>} Exit code 0 or 1.
+ */
+export async function listStyleLibrary(category, options = {}) {
+  const apiKey = await getApiKey();
+  if (!apiKey) {
+    process.stderr.write(NO_KEY_MESSAGE.trim() + '\n');
+    return 1;
+  }
+
+  const apiBase = await getApiBase();
+  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const lang = options.acceptLanguage || 'en';
+
+  const params = new URLSearchParams();
+  params.set('category', category);
+
+  const url = `${apiBase}/v2/brand/style-library/list?${params.toString()}`;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      signal: controller.signal,
+    });
+
+    let data = {};
+    try {
+      data = await res.json();
+    } catch {
+      data = {};
+    }
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${getMessage(data)}`);
+    }
+    if (isApiError(data)) {
+      throw new Error(getMessage(data));
+    }
+
+    const list = data?.data?.list ?? [];
+
+    if (options.json) {
+      console.log(JSON.stringify(data?.data ?? {}, null, 2));
+    } else {
+      if (list.length === 0) {
+        console.log('(No styles found)');
+      } else {
+        const userStyles = list.filter((s) => !s.recommended);
+        const recommendedStyles = list.filter((s) => s.recommended);
+        const allFormatted = [...userStyles, ...recommendedStyles].map((s) => formatStyleEntry(s, lang));
+        console.log(allFormatted.join('\n\n'));
+      }
+    }
+
+    return 0;
+  } catch (err) {
+    const msg = err?.message || err;
+    process.stderr.write(`Error: ${msg}\n`);
+    return 1;
+  } finally {
+    clearTimeout(timer);
+  }
+}
