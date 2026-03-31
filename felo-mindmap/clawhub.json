@@ -1,0 +1,12 @@
+{
+  "name": "Felo Mindmap",
+  "tagline": "Generate mindmaps with Felo Mindmap API in Claude Code",
+  "description": "Felo Mindmap creates mindmaps from a prompt using the Felo Mindmap API. Supports multiple layout types (MIND_MAP, TIMELINE, FISHBONE, etc.) and LiveDoc integration. Use from Claude Code when users ask to create or generate mindmaps.",
+  "category": "productivity",
+  "tags": ["felo", "mindmap", "mind map", "thinking map", "api", "claude-code"],
+  "version": "1.0.0",
+  "license": "MIT",
+  "pricing": "free",
+  "support_url": "https://github.com/Felo-Inc/felo-skills/issues",
+  "homepage": "https://github.com/Felo-Inc/felo-skills"
+}
