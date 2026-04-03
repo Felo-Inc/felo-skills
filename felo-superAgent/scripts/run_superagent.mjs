@@ -528,7 +528,14 @@ async function main() {
 
   if (streamError) throw new Error(streamError);
 
-  const answer = chunks.join('').trim();
+  // Replace internal preview URLs in answer text with signed S3 URLs from tool results
+  let answer = chunks.join('').trim();
+  for (const r of toolResults) {
+    if (r.type === 'image' && r.file_id && r.image_url) {
+      const previewUrl = `https://api.felo.ai/search/files/${r.file_id}/preview`;
+      answer = answer.split(previewUrl).join(r.image_url);
+    }
+  }
 
   if (isJson) {
     const images = toolResults.filter((r) => r.type === 'image');
@@ -559,8 +566,15 @@ async function main() {
       )
     );
   } else {
-    if (answer) console.log('');
     if (!answer && toolResults.length === 0) console.log('(No content in stream)');
+    const images = toolResults.filter((r) => r.type === 'image');
+    if (images.length > 0 || liveDocUrl) {
+      console.log('\n---');
+      for (const r of images) {
+        console.log(`[${r.title || 'Image'}](${r.image_url})`);
+      }
+      if (liveDocUrl) console.log(`LiveDoc: ${liveDocUrl}`);
+    }
     process.stderr.write(`\n[state] thread_short_id=${thread_short_id || ''} live_doc_short_id=${live_doc_short_id || ''} live_doc_url=${liveDocUrl || ''}\n`);
   }
 }
