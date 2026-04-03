@@ -177,7 +177,7 @@ node felo-superAgent/scripts/run_superagent.mjs \
   --query "Write a tweet about AI trends" \
   --live-doc-id "LIVE_DOC_ID" \
   --skill-id twitter-writer \
-  --ext '{"brand_style_requirement":"Style name: darioamodei\nStyle labels: Thoughtful long-form essays\nStyle DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA\n\n## 风格速写\nDario writes like a serious intellectual...（full content）"}' \
+  --ext '{"brand_style_requirement":"Style name: darioamodei\nStyle labels: Thoughtful long-form essays\nStyle DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA\n\n## Style Overview\nDario writes like a serious intellectual...（full content）"}' \
   --accept-language en
 ```
 

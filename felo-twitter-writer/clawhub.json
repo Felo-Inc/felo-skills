@@ -1,0 +1,13 @@
+{
+  "name": "Felo Twitter Writer",
+  "tagline": "Analyze tweet style DNA and compose tweets, threads, X posts with brand style in Claude Code",
+  "description": "Felo Twitter Writer lets you analyze any Twitter/X account's writing style and extract a Style DNA document, then compose high-quality tweets, threads, or X long-form posts that match that style. Supports style library, multi-language, and continuous follow-up. Requires a Felo API key.",
+  "category": "writing",
+  "tags": ["felo", "twitter", "tweet", "writing", "style", "thread", "ghostwrite"],
+  "version": "1.0.0",
+  "license": "MIT",
+  "pricing": "free",
+  "support_url": "https://github.com/Felo-Inc/felo-skills/issues",
+  "homepage": "https://github.com/Felo-Inc/felo-skills",
+  "dependencies": ["felo-superAgent", "felo-livedoc"]
+}

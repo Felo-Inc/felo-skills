@@ -168,14 +168,14 @@ function extractToolResults(data) {
       if (!callResult) continue;
       if (Array.isArray(callResult)) {
         for (const item of callResult) {
-          if (item?.image_url) out.push({ type: 'image', title: item?.title || '', image_url: item.image_url });
+          if (item?.image_url) out.push({ type: 'image', title: item?.title || '', image_url: item.image_url, file_id: item?.file_id || null });
         }
       } else if (callResult?.images && Array.isArray(callResult.images)) {
         for (const img of callResult.images) {
-          if (img?.image_url) out.push({ type: 'image', title: img?.title || '', image_url: img.image_url });
+          if (img?.image_url) out.push({ type: 'image', title: img?.title || '', image_url: img.image_url, file_id: img?.file_id || null });
         }
       } else if (callResult?.image_url) {
-        out.push({ type: 'image', title: callResult?.title || '', image_url: callResult.image_url });
+        out.push({ type: 'image', title: callResult?.title || '', image_url: callResult.image_url, file_id: callResult?.file_id || null });
       }
     }
     if (t?.name === 'generate_discovery' && callResult?.status === 'success') {
@@ -477,7 +477,9 @@ async function main() {
 
   const onToolResult = (item) => {
     const LIVEDOC_TYPES = new Set(['document', 'ppt', 'html', 'discovery']);
-    const key = item?.image_url || (LIVEDOC_TYPES.has(item?.type) ? item.type : `${item?.type}:${item?.title}`);
+    const key = (item?.type === 'image' && item?.file_id)
+      ? `file:${item.file_id}`
+      : item?.image_url || (LIVEDOC_TYPES.has(item?.type) ? item.type : `${item?.type}:${item?.title}`);
     if (seenKeys.has(key)) return;
     seenKeys.add(key);
     toolResults.push(item);
@@ -543,7 +545,7 @@ async function main() {
             answer: answer || null,
             thread_short_id: thread_short_id ?? null,
             live_doc_short_id: live_doc_short_id ?? null,
-            image_urls: images.length > 0 ? images.map((r) => ({ url: r.image_url, title: r.title })) : undefined,
+            image_urls: images.length > 0 ? images.map((r) => ({ url: r.image_url, title: r.title, ...(r.file_id ? { file_id: r.file_id } : {}) })) : undefined,
             discoveries: discoveries.length > 0 ? discoveries.map((r) => ({ title: r.title })) : undefined,
             documents: documents.length > 0 ? documents.map((r) => ({ title: r.title })) : undefined,
             ppts: ppts.length > 0 ? ppts.map((r) => ({ title: r.title })) : undefined,

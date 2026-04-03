@@ -165,9 +165,9 @@ node felo-superAgent/scripts/run_superagent.mjs \
 
 ```bash
 # Use as Claude Code skill
-/felo-superagent What is the latest news about AI?
-/felo-superagent Write a tweet about quantum computing
-/felo-superagent Design a logo for my coffee shop
+/felo-superAgent What is the latest news about AI?
+/felo-superAgent Write a tweet about quantum computing
+/felo-superAgent Design a logo for my coffee shop
 ```
 
 ```bash
@@ -215,16 +215,17 @@ These two skills work together and share the style library. Here is how Claude u
 
 ```bash
 # Via ClawHub
-clawhub install felo-superAgent
+# felo-twitter-writer depends on felo-superAgent + felo-livedoc; felo-superAgent depends on felo-livedoc
 clawhub install felo-twitter-writer
-clawhub install felo-x-search
+clawhub install felo-superAgent
 clawhub install felo-livedoc
+clawhub install felo-x-search
 
 # Manual
-cp -r felo-superAgent ~/.claude/skills/
 cp -r felo-twitter-writer ~/.claude/skills/
-cp -r felo-x-search ~/.claude/skills/
+cp -r felo-superAgent ~/.claude/skills/
 cp -r felo-livedoc ~/.claude/skills/
+cp -r felo-x-search ~/.claude/skills/
 ```
 
 ### felo-twitter-writer
@@ -274,10 +275,10 @@ If the style library is empty, Claude skips the selection step silently.
 Trigger keywords: `superagent`, `super agent`, `stream chat`, `streaming conversation`, `write a tweet`, `create a logo`, `product image`
 
 ```
-/felo-superagent What is the latest news about AI?
-/felo-superagent Write a tweet about quantum computing
-/felo-superagent Design a logo for my coffee shop
-/felo-superagent Generate a product image for wireless headphones
+/felo-superAgent What is the latest news about AI?
+/felo-superAgent Write a tweet about quantum computing
+/felo-superAgent Design a logo for my coffee shop
+/felo-superAgent Generate a product image for wireless headphones
 ```
 
 **What Claude does automatically for skill-based conversations:**
@@ -313,8 +314,15 @@ clawhub install felo-youtube-subtitling
 clawhub install felo-x-search
 clawhub install felo-livedoc
 clawhub install apple-buy-advisor
+
+# felo-superAgent depends on felo-livedoc — install both:
 clawhub install felo-superAgent
-# felo-twitter-writer: no clawhub.json yet — use manual install below
+clawhub install felo-livedoc
+
+# felo-twitter-writer depends on felo-superAgent and felo-livedoc — install all three:
+clawhub install felo-twitter-writer
+clawhub install felo-superAgent
+clawhub install felo-livedoc
 ```
 
 ```bash
