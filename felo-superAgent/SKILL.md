@@ -1,6 +1,6 @@
 ---
 name: felo-superAgent
-description: "Felo SuperAgent API: AI conversation with real-time SSE streaming on a persistent LiveDoc canvas. Use when users want SuperAgent chat, continuous conversation, logo/branding design, or e-commerce product images. Do NOT use for tweet/X post writing — use felo-twitter-writer instead. Explicit commands: /felo-superagent."
+description: "Felo SuperAgent API: AI conversation with real-time SSE streaming on a persistent LiveDoc canvas. Use when users want SuperAgent chat, continuous conversation, logo/branding design, or e-commerce product images. Do NOT use for tweet/X post writing — use felo-twitter-writer instead. Explicit commands: /felo-superAgent."
 ---
 
 # Felo SuperAgent Skill
@@ -11,7 +11,7 @@ These rules are mandatory. Violating any of them will produce incorrect behavior
 
 1. **ALWAYS use `--json` flag.** The script MUST run in JSON mode (`--json`). In Claude Code's Bash tool, stdout is always captured — it never streams directly to the user. JSON mode returns the full answer in a structured response that Claude can then output as text. State IDs are extracted from the JSON response fields `thread_short_id` and `live_doc_short_id`.
 
-2. **ALWAYS output the answer directly as text.** After the script finishes, read `data.answer` from the JSON output and print it verbatim as your response text. Do NOT summarize, paraphrase, or add commentary around it. Output it exactly as-is so the user sees the full content.
+2. **ALWAYS output the answer directly as text.** After the script finishes, read `data.answer` from the JSON output and print it verbatim as your response text. Do NOT summarize, paraphrase, or add commentary around it. Output it exactly as-is so the user sees the full content. Then, if `data.image_urls` is non-empty, append image links immediately after, formatted as one line per image: `[title](url)`.
 
 3. **`--live-doc-id` is REQUIRED when creating a conversation.** Never call `run_superagent.mjs` without `--live-doc-id`. If you do not have one yet, obtain it first (see Step 2 below).
 
@@ -69,7 +69,7 @@ Trigger this skill when users want:
 - Traditional Chinese (pinyin): chao ji zhu shou, liu shi dui hua, lian xu dui hua, zhui wen, she ji logo, pin pai she ji, dian shang tu pian
 - Japanese (romaji): suupaa eejento, sutoriimingu kaiwa, keizoku kaiwa, rogo sakusei, shouhin gazou
 
-**Explicit commands:** `/felo-superagent`, "use felo superagent", "felo superagent"
+**Explicit commands:** `/felo-superAgent`, "use felo superagent", "felo superagent"
 
 **Do NOT use for:**
 
@@ -233,58 +233,55 @@ If this is a follow-up (`--thread-id` is set), skip this step entirely. `--skill
 
 **4.5a. If the user has already specified a style** (by name, or by pasting a style block), use it directly — skip to 4.5d.
 
-**4.5b. Fetch the style list:**
+**4.5b. Fetch the style list (names only):**
 
-Use the category that matches the skill:
-
-| Skill ID | `--category` |
-|---|---|
-| `twitter-writer` | `TWITTER` |
-| `logo-and-branding` | `IMAGE` |
-| `ecommerce-product-image` | `IMAGE` |
-
-Pass `--accept-language` matching the user's language (same value used for SuperAgent).
+IMPORTANT: Style DNA content is very large. Always use `--json` and extract only names/labels via Node.js to avoid Bash tool output truncation. Never call `run_style_library.mjs` without `--json` for listing purposes.
 
 ```bash
 # For twitter-writer
-node felo-superAgent/scripts/run_style_library.mjs --category TWITTER --accept-language en
+node felo-superAgent/scripts/run_style_library.mjs --category TWITTER --accept-language en --json | node -e "
+const d=require('fs').readFileSync('/dev/stdin','utf8');
+const j=JSON.parse(d);
+const list=j.list||[];
+const user=list.filter(s=>!s.recommended);
+const rec=list.filter(s=>s.recommended);
+if(user.length){console.log('[Your styles]');user.forEach((s,i)=>{const labels=(s.content?.labels?.en||[]).join(', ');console.log((i+1)+'. '+s.name+(labels?' — '+labels:''));});}
+if(rec.length){console.log('[Recommended styles]');rec.forEach((s,i)=>{const labels=(s.content?.labels?.en||[]).join(', ');console.log((user.length+i+1)+'. '+s.name+(labels?' — '+labels:''));});}
+if(!list.length)console.log('(No styles found)');
+"
 
 # For logo-and-branding or ecommerce-product-image
-node felo-superAgent/scripts/run_style_library.mjs --category IMAGE --accept-language en
+node felo-superAgent/scripts/run_style_library.mjs --category IMAGE --accept-language en --json | node -e "
+const d=require('fs').readFileSync('/dev/stdin','utf8');
+const j=JSON.parse(d);
+const list=j.list||[];
+if(list.length){list.forEach((s,i)=>{const labels=(s.content?.labels?.en||s.content?.tags?.en||[]).join(', ');console.log((i+1)+'. '+s.name+(labels?' — '+labels:''));});}
+else console.log('(No styles found)');
+"
 ```
 
-The output lists styles in this format, one block per style separated by a blank line:
-
-```
-Style name: darioamodei
-Style labels: Thoughtful long-form essays
-Style DNA: # Dario Amodei (@DarioAmodei) Tweet Writing Style DNA
-...（full content）
-
-Style name: Casual & Witty
-Style labels: humor, relatable
-Style DNA: ...（full content）
-Cover file ID: file_abc123
-```
-
-Notes:
-- `Style labels` is omitted if no labels exist for this entry.
-- `Style DNA` is the full text of `content.styleDna` (TWITTER type). Do NOT truncate it.
-- `Cover file ID` is omitted if the value is null/empty.
-
-User-created styles appear first, followed by recommended styles.
+Replace `en` with the matching `--accept-language` value for the user's language (`zh`, `ja`, `ko`, `en`). Also update the `.labels?.en` reference in the node script to match (e.g. `.labels?.zh` for Chinese).
 
 **4.5c. Present the styles to the user and ask them to choose:**
 
-Show the list (style names only is sufficient) and ask which one to use. Wait for the user's selection before proceeding.
+Output the COMPLETE list as plain text — every style returned, numbered sequentially. NEVER use the `AskUserQuestion` tool (it limits to 4 options and will silently drop styles). NEVER pre-select or filter styles on behalf of the user. Always append a "no preference" option last. Wait for the user's plain-text reply before proceeding.
 
-Example prompt to user:
-> Here are the available Twitter writing styles. Which one would you like to use?
-> 1. Casual & Witty (your style)
-> 2. Professional Thought Leader (recommended)
-> 3. No style preference — use default
+Example output:
+```
+Here are the available writing styles — choosing one will make the output more accurate:
 
-If the user picks "no preference" or the list is empty, proceed to Step 5 without `--ext`.
+[Your styles]
+1. My Bold Voice — bold, provocative
+
+[Recommended styles]
+2. darioamodei — Thoughtful long-form essays
+3. Casual & Witty — humor, relatable
+...(ALL styles listed, none omitted)
+
+0. No preference — use default style
+```
+
+If the user picks "no preference" (0) or the list is empty, proceed to Step 5 without `--ext`.
 
 **4.5d. Build the `--ext` value:**
 
@@ -375,7 +372,14 @@ After the script finishes, parse the JSON output:
     "answer": "...",
     "thread_short_id": "CmYpuGwBgCnrUdDx5ZtmxA",
     "live_doc_short_id": "QPetunwpGnkKuZHStP7gwt",
-    "live_doc_url": "https://felo.ai/livedoc/QPetunwpGnkKuZHStP7gwt"
+    "live_doc_url": "https://felo.ai/livedoc/QPetunwpGnkKuZHStP7gwt",
+    "image_urls": [
+      {
+        "url": "https://...",
+        "title": "Image title",
+        "file_id": "b9e5be11-7686-4aa8-ae6c-9876511a7b5c"
+      }
+    ]
   }
 }
 ```
@@ -383,6 +387,20 @@ After the script finishes, parse the JSON output:
 1. **Output `data.answer` verbatim** as your response text — print it exactly as-is so the user sees the full content.
 2. **Extract and save** `data.thread_short_id` and `data.live_doc_short_id` — you MUST use these in the next call.
 3. **Optionally show** `data.live_doc_url` so the user can view the LiveDoc canvas in a browser.
+4. **Image results (`data.image_urls`):** If this array is non-empty, append image links immediately after `data.answer`, formatted as **one line per image**:
+
+   ```
+   [title](url)
+   ```
+
+   Example output:
+   ```
+   [Giant panda eating bamboo](https://...)
+   [Giant panda dancing](https://...)
+   [Blue whale leaping out of the water](https://...)
+   ```
+
+   Each image has `url` (signed S3 URL, time-limited), `title`, and `file_id` (stable file identifier). Note: the same image may appear in both `tools_result_stream` and `tools_result` events with different signed URLs — deduplication is handled automatically by `file_id`. When referencing a previously generated image in a follow-up query, include its `file_id` in the `--query` so SuperAgent can locate the file (e.g., `"Please generate a variation of file_id=b9e5be11-..."`).
 
 Do NOT show `thread_short_id` or `live_doc_short_id` to the user unless they ask for it.
 
@@ -717,8 +735,8 @@ User sends a message
         |
         v
 Have live_doc_id from ANY source?
-   NO  --> Step 2b: fetch list --> got items?
-              YES --> use data.items[0].short_id as live_doc_id
+   NO  --> Step 2b: fetch list --> got is_shared=false item?
+              YES --> use data.items.find(i => !i.is_shared)?.short_id as live_doc_id
               NO  --> Step 2c: create new LiveDoc
    YES --> continue (reuse it, do NOT fetch list)
         |

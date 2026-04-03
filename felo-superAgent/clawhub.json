@@ -8,5 +8,6 @@
   "license": "MIT",
   "pricing": "free",
   "support_url": "https://github.com/Felo-Inc/felo-skills/issues",
-  "homepage": "https://github.com/Felo-Inc/felo-skills"
+  "homepage": "https://github.com/Felo-Inc/felo-skills",
+  "dependencies": ["felo-livedoc"]
 }
