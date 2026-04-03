@@ -486,7 +486,7 @@ async function main() {
 
     if (isJson) return;
     if (item.type === 'image') {
-      console.log(liveDocUrl ? `[${item.title || 'Image'}](${liveDocUrl})` : item.image_url);
+      console.log(`[${item.title || 'Image'}](${item.image_url})`);
     } else if (item.type === 'discovery') {
       console.log(liveDocUrl ? `[${item.title}](${liveDocUrl})` : item.title);
     } else if (item.type === 'document') {
