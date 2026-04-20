@@ -184,14 +184,14 @@ felo style-library TWITTER --accept-language en
 felo style-library IMAGE --accept-language zh-Hans
 ```
 
-**Doc Image Agent** — [full options →](./doc-image-agent/SKILL.md)
+**Doc Snapshot Agent** — [full options →](./doc-snapshot-agent/SKILL.md)
 
 ```bash
 # Use as Claude Code skill — Claude parses image markers, captures screenshots,
 # generates AI images, and produces an illustrated Markdown document
-/doc-image-agent Add images to my article cases/getting-started.md
-/doc-image-agent Recapture screenshot A3 in cases/product-overview.md
-/doc-image-agent Regenerate all images from scratch for cases/tutorial.md
+/doc-snapshot-agent Add images to my article cases/getting-started.md
+/doc-snapshot-agent Recapture screenshot A3 in cases/product-overview.md
+/doc-snapshot-agent Regenerate all images from scratch for cases/tutorial.md
 ```
 
 **[See 40+ more examples →](./docs/EXAMPLES.md)**
@@ -214,7 +214,7 @@ felo style-library IMAGE --accept-language zh-Hans
 | **felo-twitter-writer** | Analyze tweet style DNA; compose tweets, threads, X posts with brand style | [→](./felo-twitter-writer/README.md) |
 | **felo-superAgent** | AI conversation with real-time streaming, brand style support, continuous threads | [→](./felo-superAgent/README.md) |
 | **felo-mindmap**            | Generate mindmaps with various layouts                        | [→](./felo-mindmap/)            |
-| **doc-image-agent** | Automatically illustrate Markdown documents with screenshots and AI-generated images | [→](./doc-image-agent/) |
+| **doc-snapshot-agent** | Automatically illustrate Markdown documents with screenshots and AI-generated images | [→](./doc-snapshot-agent/) |
 
 ---
 
@@ -325,7 +325,7 @@ clawhub install felo-youtube-subtitling
 clawhub install felo-x-search
 clawhub install felo-livedoc
 clawhub install apple-buy-advisor
-clawhub install doc-image-agent
+clawhub install doc-snapshot-agent
 
 # felo-superAgent depends on felo-livedoc — install both:
 clawhub install felo-superAgent
@@ -350,7 +350,7 @@ cp -r felo-livedoc ~/.claude/skills/
 cp -r apple-buy-advisor ~/.claude/skills/
 cp -r felo-twitter-writer ~/.claude/skills/
 cp -r felo-superAgent ~/.claude/skills/
-cp -r doc-image-agent ~/.claude/skills/
+cp -r doc-snapshot-agent ~/.claude/skills/
 ```
 
 ### Gemini CLI
@@ -367,7 +367,7 @@ cp -r felo-livedoc ~/.gemini/skills/
 cp -r apple-buy-advisor ~/.gemini/skills/
 cp -r felo-twitter-writer ~/.gemini/skills/
 cp -r felo-superAgent ~/.gemini/skills/
-cp -r doc-image-agent ~/.gemini/skills/
+cp -r doc-snapshot-agent ~/.gemini/skills/
 ```
 
 ### OpenAI Codex
@@ -384,7 +384,7 @@ cp -r felo-livedoc ~/.codex/skills/
 cp -r apple-buy-advisor ~/.codex/skills/
 cp -r felo-twitter-writer ~/.codex/skills/
 cp -r felo-superAgent ~/.codex/skills/
-cp -r doc-image-agent ~/.codex/skills/
+cp -r doc-snapshot-agent ~/.codex/skills/
 ```
 
 ### OpenClaw

@@ -1,5 +1,5 @@
 ---
-name: doc-image-agent
+name: doc-snapshot-agent
 description: Automatically illustrate Markdown documents by turning image markers into screenshots or generated images, then writing an image-enriched Markdown output. Use this skill when a document needs screenshots, AI-generated visuals, image placement, or end-to-end document illustration automation.
 version: 1.0.0
 author: Felo Inc
@@ -10,9 +10,9 @@ metadata:
     homepage: https://github.com/Felo-Inc/felo-skills
 ---
 
-# Doc Image Agent
+# Doc Snapshot Agent
 
-`doc-image-agent` is a single entry-point skill for automatically adding images to Markdown documents.
+`doc-snapshot-agent` is a single entry-point skill for automatically adding images to Markdown documents.
 
 It supports:
 - browser screenshots for product pages, dashboards, docs sites, and web apps
@@ -49,7 +49,7 @@ Output:
 
 All input, output, and cache paths are relative to a single project root directory (`{project-root}`).
 
-At the very beginning of every run, **ask the user** which directory to use as the project root. If the user declines or says they have no preference, default to `/tmp/doc-image-agent`.
+At the very beginning of every run, **ask the user** which directory to use as the project root. If the user declines or says they have no preference, default to `/tmp/doc-snapshot-agent`.
 
 Once confirmed, **all subsequent paths** in this skill (cases/, output/, .cache/, etc.) resolve under `{project-root}/`.
 
@@ -194,14 +194,93 @@ For a given article id, inspect:
 
 ## Workflow
 
-### Step 0: Confirm the Project Root
+### Step 0: Verify Playwright MCP Server (MANDATORY)
 
-Before any other work, ask the user:
+**This check MUST run at the start of EVERY execution, not just the first time.**
+
+Before any other work, verify that the Playwright MCP server is properly configured and running:
+
+1. **Check for Playwright MCP tools availability**
+   - Attempt to list or detect tools with the `mcp__playwright__` prefix
+   - Required tools include: `mcp__playwright__browser_navigate`, `mcp__playwright__browser_snapshot`, `mcp__playwright__browser_screenshot`
+
+2. **If tools are NOT detected, STOP immediately and guide the user to install:**
+
+   Detect the current client environment and show the matching installation command:
+
+   **Claude Code**
+   ```bash
+   claude mcp add playwright -- npx @playwright/mcp@latest
+   ```
+
+   **Codex**
+   ```bash
+   codex mcp add playwright -- npx @playwright/mcp@latest
+   ```
+
+   **VS Code / Cursor / Kiro (IDE with MCP settings UI)**
+
+   Add to the MCP settings JSON (e.g. `.vscode/mcp.json`, `.cursor/mcp.json`, `.kiro/settings/mcp.json`):
+   ```json
+   {
+     "mcpServers": {
+       "playwright": {
+         "command": "npx",
+         "args": ["@playwright/mcp@latest"]
+       }
+     }
+   }
+   ```
+
+   **Claude Desktop**
+
+   Add to `claude_desktop_config.json`:
+   ```json
+   {
+     "mcpServers": {
+       "playwright": {
+         "command": "npx",
+         "args": ["@playwright/mcp@latest"]
+       }
+     }
+   }
+   ```
+
+   **Standalone MCP Server (headless environments or worker processes)**
+   ```bash
+   npx @playwright/mcp@latest --port 8931
+   ```
+   Then point the client config to:
+   ```json
+   {
+     "mcpServers": {
+       "playwright": {
+         "url": "http://localhost:8931/mcp"
+       }
+     }
+   }
+   ```
+
+   **Grant Tool Permissions (Claude Code / Codex)**
+   ```json
+   {
+     "permissions": {
+       "allow": ["mcp__playwright__*"]
+     }
+   }
+   ```
+
+3. **Ask the user to configure and restart the session**
+4. **Do NOT proceed to Step 1 until this check passes**
+
+### Step 0.5: Confirm the Project Root
+
+After verifying Playwright MCP, ask the user:
 
 > Which directory should I use as the project root for this run?
 
 - If the user provides a path, use it as `{project-root}`.
-- If the user says "no preference", skips the question, or does not answer, use `/tmp/doc-image-agent`.
+- If the user says "no preference", skips the question, or does not answer, use `/tmp/doc-snapshot-agent`.
 
 Create the directory if it does not exist. All subsequent paths (`cases/`, `output/`, `.cache/`, `scripts/`, `references/`) resolve under `{project-root}/`.
 
@@ -230,14 +309,28 @@ Also detect the target website or websites mentioned by the article.
 - ensure output directories exist
 - check screenshot cache for reusable images
 - load credentials from environment variables
-- confirm browser automation tooling is available
-- if Playwright MCP is the active browser stack, review `{project-root}/references/playwright-mcp.md` before interacting with the site
-- if Playwright MCP is required but not installed, install it and the needed browser runtime before continuing
+- **confirm Playwright MCP tools are available** — this skill REQUIRES Playwright MCP for all browser interactions
+- if Playwright MCP tools are not detected, stop and ask the user to configure the MCP server (see First-Time Setup Guide)
+- review `{project-root}/references/playwright-mcp.md` before interacting with the site
+- if the Chromium browser runtime is not installed, run `npx playwright install chromium` before continuing
 - if the target flow requires login or registration and the required credentials or account details are not already available, pause and ask the user before taking any account-specific action
 
-Preferred browser stack:
-- use Playwright MCP when available because it gives repeatable navigation, accessible page snapshots, JS evaluation, network inspection, and reliable screenshots
-- use other browser tooling only when Playwright MCP is unavailable in the current agent runtime
+**CRITICAL: Browser Tool Requirement**
+
+This skill uses **only** Playwright MCP tools for browser automation. Do NOT use:
+- direct Playwright library calls
+- generic browser navigation tools that are not part of the Playwright MCP server
+- any tool that does not have the `mcp__playwright__*` prefix
+
+All browser interactions must go through the Playwright MCP server tools:
+- `mcp__playwright__browser_navigate`
+- `mcp__playwright__browser_snapshot`
+- `mcp__playwright__browser_screenshot`
+- `mcp__playwright__browser_click`
+- `mcp__playwright__browser_fill_form`
+- etc.
+
+If these tools are not available in the current runtime, the workflow cannot proceed. Ask the user to configure the Playwright MCP server first.
 
 ### Step 2.5: Understand the Target Website Before Taking Screenshots
 
@@ -483,7 +576,7 @@ When this skill finishes, return a concise summary containing:
 ## Quick Reference
 
 ```text
-Project root (ask user, default /tmp/doc-image-agent):
+Project root (ask user, default /tmp/doc-snapshot-agent):
   {project-root}/
 
 Input:

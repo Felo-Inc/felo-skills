@@ -2,7 +2,7 @@
 
 Use browser automation to visit sites, sign in, navigate to the correct page state, and capture screenshots that match the document requirements.
 
-This is a reference document for `doc-image-agent`, not a standalone skill.
+This is a reference document for `doc-snapshot-agent`, not a standalone skill.
 
 ## Core Idea
 
@@ -13,11 +13,16 @@ Always:
 - re-check the page after every significant interaction
 - verify screenshots visually instead of assuming the page is correct
 
-## Recommended Tooling
+## Required Tooling
 
-The preferred browser stack for this package is Playwright MCP.
+This skill uses **Playwright MCP** as the only browser automation stack. All browser interactions must go through Playwright MCP tools (prefixed `mcp__playwright__*`).
 
-Why:
+Do NOT use:
+- direct Playwright library calls (e.g. `playwright - Navigate to a URL`)
+- generic browser navigation tools that are not part of the Playwright MCP server
+- any browser tool that does not have the `mcp__playwright__` prefix
+
+Why Playwright MCP:
 - it provides structured browser control through MCP tools
 - it exposes accessibility snapshots that are safer than clicking from visual guesses
 - it supports typed form filling, JS evaluation, console logs, network inspection, and screenshots in one workflow
@@ -25,22 +30,7 @@ Why:
 
 See `playwright-mcp.md` for the concrete command and tool patterns.
 
-Other browser automation stacks are acceptable only if they provide equivalent capabilities:
-- navigation
-- element inspection
-- typing and clicking
-- viewport resizing
-- waiting for content
-- screenshot capture
-- optional JavaScript evaluation
-
-Typical operations:
-- navigate to URL
-- inspect page structure
-- fill login forms
-- click buttons and links
-- wait for content to load
-- capture screenshots
+If Playwright MCP tools are not available in the current runtime, **stop and ask the user to configure the MCP server** before proceeding with any browser work.
 
 ## Standard Workflow
 

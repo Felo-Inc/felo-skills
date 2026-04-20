@@ -13,3 +13,4 @@ openspec/*
 AGENTS.md
 
 .claude
+.playwright-mcp/
