@@ -1,6 +1,6 @@
-# doc-image-agent
+# doc-snapshot-agent
 
-`doc-image-agent` is a skill package for automatically adding screenshots and generated images to Markdown documents.
+`doc-snapshot-agent` is a skill package for automatically adding screenshots and generated images to Markdown documents.
 
 It is designed for agent workflows that need to:
 - parse Markdown image markers
@@ -12,7 +12,7 @@ It is designed for agent workflows that need to:
 ## Package Structure
 
 ```text
-doc-image-agent/
+doc-snapshot-agent/
 ├── SKILL.md
 ├── references/
 │   ├── browser-automation.md

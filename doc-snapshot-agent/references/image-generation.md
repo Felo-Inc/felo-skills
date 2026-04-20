@@ -2,7 +2,7 @@
 
 Use this reference when the document needs conceptual visuals, diagrams, editorial illustrations, or any non-screenshot image.
 
-This is a reference document for `doc-image-agent`, not a standalone skill.
+This is a reference document for `doc-snapshot-agent`, not a standalone skill.
 
 ## Purpose
 

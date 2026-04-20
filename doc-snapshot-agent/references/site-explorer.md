@@ -2,7 +2,7 @@
 
 Use this reference when the document requires screenshots from a website that has not yet been mapped clearly.
 
-This is a reference document for `doc-image-agent`, not a standalone skill.
+This is a reference document for `doc-snapshot-agent`, not a standalone skill.
 
 ## Purpose
 

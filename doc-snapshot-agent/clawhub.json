@@ -1,0 +1,12 @@
+{
+  "name": "Doc Snapshot Agent",
+  "tagline": "Automatically add screenshots and generated images into Markdown documents",
+  "description": "Doc Snapshot Agent parses image markers in Markdown, captures website screenshots or generates conceptual images, and outputs an image-enriched Markdown file. Supports incremental reruns, semantic image placement, and structured output directories. Requires relevant credentials/API keys for protected sites and image generation.",
+  "category": "productivity",
+  "tags": ["documentation", "markdown", "screenshots", "image-generation", "browser-automation", "agent-workflow"],
+  "version": "1.0.0",
+  "license": "MIT",
+  "pricing": "free",
+  "support_url": "https://github.com/Felo-Inc/felo-skills/issues",
+  "homepage": "https://github.com/Felo-Inc/felo-skills"
+}
