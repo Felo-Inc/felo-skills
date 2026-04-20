@@ -399,7 +399,7 @@ bash <(curl -s https://raw.githubusercontent.com/Felo-Inc/felo-skills/main/scrip
 
 ```bash
 # Installs all skills that contain a SKILL.md (includes felo-twitter-writer and felo-superAgent)
-bash <(curl -s https://raw.githubusercontent.com/Felo-Inc/felo-skills/main/scripts/hermes-install.sh)
+bash <(curl -s https://raw.githubusercontent.com/Felo-Inc/felo-skills/main/scripts/install-hermes.sh)
 ```
 
 ---
