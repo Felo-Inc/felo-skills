@@ -202,19 +202,19 @@ felo style-library IMAGE --accept-language zh-Hans
 
 11 skills across search, content generation, web scraping, social media, knowledge base, shopping advice, and document illustration:
 
-| Skill | Description | Docs |
-|---|---|---|
-| **felo-search** | Real-time web search with AI answers. Triggers automatically. | [→](./felo-search/) |
-| **felo-slides** | Generate PPT from a prompt | [→](./felo-slides/) |
-| **felo-web-fetch** | Fetch and extract webpage content | [→](./felo-web-fetch/) |
-| **felo-youtube-subtitling** | Fetch YouTube video subtitles | [→](./felo-youtube-subtitling/) |
-| **felo-x-search** | Search X (Twitter) tweets, users, replies | [→](./felo-x-search/SKILL.md) |
-| **felo-livedoc** | Manage knowledge bases and semantic retrieval | [→](./felo-livedoc/) |
-| **apple-buy-advisor** | Research and compare Apple products before you buy | [→](./apple-buy-advisor/) |
-| **felo-twitter-writer** | Analyze tweet style DNA; compose tweets, threads, X posts with brand style | [→](./felo-twitter-writer/README.md) |
-| **felo-superAgent** | AI conversation with real-time streaming, brand style support, continuous threads | [→](./felo-superAgent/README.md) |
-| **felo-mindmap**            | Generate mindmaps with various layouts                        | [→](./felo-mindmap/)            |
-| **doc-snapshot-agent** | Automatically illustrate Markdown documents with screenshots and AI-generated images | [→](./doc-snapshot-agent/) |
+| Skill                       | Description                                                                          | Docs                                 |
+| --------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------ |
+| **felo-search**             | Real-time web search with AI answers. Triggers automatically.                        | [→](./felo-search/)                  |
+| **felo-slides**             | Generate PPT from a prompt                                                           | [→](./felo-slides/)                  |
+| **felo-web-fetch**          | Fetch and extract webpage content                                                    | [→](./felo-web-fetch/)               |
+| **felo-youtube-subtitling** | Fetch YouTube video subtitles                                                        | [→](./felo-youtube-subtitling/)      |
+| **felo-x-search**           | Search X (Twitter) tweets, users, replies                                            | [→](./felo-x-search/SKILL.md)        |
+| **felo-livedoc**            | Manage knowledge bases and semantic retrieval                                        | [→](./felo-livedoc/)                 |
+| **apple-buy-advisor**       | Research and compare Apple products before you buy                                   | [→](./apple-buy-advisor/)            |
+| **felo-twitter-writer**     | Analyze tweet style DNA; compose tweets, threads, X posts with brand style           | [→](./felo-twitter-writer/README.md) |
+| **felo-superAgent**         | AI conversation with real-time streaming, brand style support, continuous threads    | [→](./felo-superAgent/README.md)     |
+| **felo-mindmap**            | Generate mindmaps with various layouts                                               | [→](./felo-mindmap/)                 |
+| **doc-snapshot-agent**      | Automatically illustrate Markdown documents with screenshots and AI-generated images | [→](./doc-snapshot-agent/)           |
 
 ---
 
@@ -294,16 +294,17 @@ Trigger keywords: `superagent`, `super agent`, `stream chat`, `streaming convers
 
 **What Claude does automatically for skill-based conversations:**
 
-| Skill intent | Style category fetched | `--skill-id` passed |
-|---|---|---|
-| Write tweets | `TWITTER` | `twitter-writer` |
-| Logo / branding | `IMAGE` | `logo-and-branding` |
-| Product images | `IMAGE` | `ecommerce-product-image` |
-| General conversation | — | — |
+| Skill intent         | Style category fetched | `--skill-id` passed       |
+| -------------------- | ---------------------- | ------------------------- |
+| Write tweets         | `TWITTER`              | `twitter-writer`          |
+| Logo / branding      | `IMAGE`                | `logo-and-branding`       |
+| Product images       | `IMAGE`                | `ecommerce-product-image` |
+| General conversation | —                      | —                         |
 
 For skill-based new conversations, Claude fetches the matching style library, presents options, and passes the chosen style via `--ext '{"brand_style_requirement":"..."}'`. The style block includes `Style name`, `Style labels`, `Style DNA`, and optionally `Cover file ID` — passed completely, never truncated.
 
 **Thread and LiveDoc management:**
+
 - Claude reuses the same LiveDoc across the entire session
 - Every message after the first is a follow-up (`--thread-id`) by default
 - A new thread is only started when you say "new topic", "start over", or when a different skill ID is needed
@@ -392,6 +393,13 @@ cp -r doc-snapshot-agent ~/.codex/skills/
 ```bash
 # Installs all skills that contain a SKILL.md (includes felo-twitter-writer and felo-superAgent)
 bash <(curl -s https://raw.githubusercontent.com/Felo-Inc/felo-skills/main/scripts/openclaw-install.sh)
+```
+
+### Hermes
+
+```bash
+# Installs all skills that contain a SKILL.md (includes felo-twitter-writer and felo-superAgent)
+bash <(curl -s https://raw.githubusercontent.com/Felo-Inc/felo-skills/main/scripts/hermes-install.sh)
 ```
 
 ---
