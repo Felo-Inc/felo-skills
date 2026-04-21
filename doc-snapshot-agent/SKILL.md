@@ -1,59 +1,99 @@
 ---
 name: doc-snapshot-agent
-description: Automatically illustrate Markdown documents by turning image markers into screenshots or generated images, then writing an image-enriched Markdown output. Use this skill when a document needs screenshots, AI-generated visuals, image placement, or end-to-end document illustration automation.
-version: 1.0.0
-author: Felo Inc
+description: "Automatically illustrate Markdown documents by turning image markers into browser screenshots or AI-generated images, then writing an image-enriched Markdown output. Use when a document needs screenshots, generated visuals, semantic image placement, or end-to-end document illustration automation."
 license: MIT
 metadata:
+  slug: doc-snapshot-agent
+  version: 1.1.0
+  author: Felo Inc
+  changelog: Restructured SKILL.md (decision-first layout, Core Rules, Traps, Security sections); merged browser-automation and playwright-mcp references into browser-capture; moved install commands into mcp-setup.
   hermes:
     tags: [documentation, markdown, screenshots, image-generation, browser-automation, agent-workflow]
     homepage: https://github.com/Felo-Inc/felo-skills
+    requires:
+      bins: [node, npx, python]
+      mcp: [playwright]
+      env:
+        - name: OPENROUTER_API_KEY
+          required_for: generated-image markers
+        - name: PLAYWRIGHT_CRED_{SERVICE}_{FIELD}
+          required_for: sites that need authentication
 ---
 
-# Doc Snapshot Agent
+## When to Use
 
-`doc-snapshot-agent` is a single entry-point skill for automatically adding images to Markdown documents.
+Load this skill when a Markdown document needs real images — screenshots of live web pages, AI-generated editorial illustrations, or a rerun that only fixes image placement in an already-processed file.
 
-It supports:
-- browser screenshots for product pages, dashboards, docs sites, and web apps
-- AI-generated images for conceptual illustrations
-- incremental reruns and partial regeneration
-- semantic placement of images into the correct paragraph or section
-- structured output directories for reusable assets and final Markdown
+Use it when the user asks to:
 
-This package is intentionally published as **one main skill** plus supporting reference documents:
-- `{baseDir}/references/browser-automation.md`
-- `{baseDir}/references/playwright-mcp.md`
-- `{baseDir}/references/site-explorer.md`
-- `{baseDir}/references/image-generation.md`
-
-Load this skill whenever the user asks to:
 - add images to a Markdown article
 - process a case file with image markers
 - capture screenshots for documentation
 - generate article visuals and insert them into a document
 - rerun or fix image placement in an already processed document
 
-## What This Skill Produces
+Do not use it for pure text editing, proofreading, or translation — those tasks do not benefit from browser automation or image generation and should be handled directly.
 
-Input:
-- a Markdown document containing image markers and optionally an `Image Summary` table
+## Architecture
 
-Output:
-- captured screenshots in a raw folder
-- final image assets ready for Markdown references
-- a generated README with image metadata
-- an illustrated Markdown file with image markers replaced by real image references
+This skill has a single entry point (this file) plus four sibling references for depth. It does not create hidden memory folders, does not persist browser state, and does not send any data beyond what the target workflow requires.
 
-## Project Root
+All paths (input cases, output images, illustrated Markdown, cache) resolve under one `{project-root}` the user names at the start of the run. Browser work routes exclusively through the Playwright MCP server; generated images route through a bundled Python script that calls OpenRouter.
 
-All input, output, and cache paths are relative to a single project root directory (`{project-root}`).
+## Quick Start
 
-At the very beginning of every run, **ask the user** which directory to use as the project root. If the user declines or says they have no preference, default to `/tmp/doc-snapshot-agent`.
+1. **Check Playwright MCP tools** — confirm `mcp__playwright__browser_navigate` and other `mcp__playwright__*` tools are available. If missing, send the user the install snippet from `references/mcp-setup.md` and stop.
+2. **Confirm the project root** — ask once; default to `/tmp/doc-snapshot-agent` if the user has no preference.
+3. **Inspect existing artifacts** — reuse anything already on disk (see Incremental Execution).
+4. **Parse the case file** — merge markers from heading form, HTML-comment form, and the Image Summary table.
+5. **Capture, generate, place, write README** — follow the Workflow section.
 
-Once confirmed, **all subsequent paths** in this skill (cases/, output/, .cache/, etc.) resolve under `{project-root}/`.
+## Quick Reference
 
-## Recommended Directory Layout
+| Topic | File |
+|-------|------|
+| Install Playwright MCP for each client, grant permissions, runtime setup | `references/mcp-setup.md` |
+| Navigate, snapshot, login, capture, verify — full browser loop and tool patterns | `references/browser-capture.md` |
+| Build and maintain site-specific navigation knowledge | `references/site-explorer.md` |
+| Prompt construction and script usage for generated images | `references/image-generation.md` |
+| Image generation CLI | `scripts/generate_image.py` |
+
+## Approach Selection
+
+| Situation | Best path | Why |
+|-----------|-----------|-----|
+| Article already has screenshots in `output/{article-id}/raw/` and the user only wants the Markdown rebuilt | Skip capture, rerun Step 5 (Illustrated Markdown) | Browser work is expensive; Markdown regeneration is cheap |
+| Marker type is `screenshot` and the page is publicly reachable | Playwright MCP navigate → snapshot → capture | Reliable, inspectable, handles JS rendering |
+| Marker type is `screenshot` and the page is behind auth | Playwright MCP with `PLAYWRIGHT_CRED_*` env vars | Keeps secrets out of prompts and the transcript |
+| Marker type is `generated` (editorial, hero, conceptual) | `scripts/generate_image.py` via OpenRouter | Screenshots cannot render conceptual imagery |
+| Marker landed on the wrong paragraph | Reparse case file, reapply semantic placement | Re-capturing won't fix placement bugs |
+| Required MCP tools are missing in the runtime | Stop, point user to `references/mcp-setup.md` | Workflow cannot proceed without MCP |
+
+## Workflow
+
+### Step 0: Verify Playwright MCP
+
+Run this check at the start of **every** execution, not just the first time.
+
+1. Detect tools whose name starts with `mcp__playwright__`. Required: `browser_navigate`, `browser_snapshot`, `browser_take_screenshot`.
+2. If they are missing, stop and hand the user the matching install snippet from `references/mcp-setup.md` (Claude Code, Codex, VS Code/Cursor/Kiro, Claude Desktop, or standalone). Include the `permissions.allow: ["mcp__playwright__*"]` note for Claude Code and Codex.
+3. After the user installs and restarts the client, resume from here rather than restarting the run.
+
+Do **not** substitute direct Playwright library calls or any browser tool that lacks the `mcp__playwright__` prefix. If the prefix is missing, the call does not go through the MCP server.
+
+### Step 0.5: Confirm the project root
+
+Ask once:
+
+> Which directory should I use as the project root for this run?
+
+- If the user provides a path, use it as `{project-root}`.
+- If the user says "no preference", skips, or does not answer, default to `/tmp/doc-snapshot-agent`.
+- Create the directory if it does not exist.
+
+All subsequent paths (`cases/`, `output/`, `.cache/`, `scripts/`, `references/`) resolve under `{project-root}/`.
+
+Recommended layout inside `{project-root}/`:
 
 ```text
 {project-root}/
@@ -75,347 +115,74 @@ Once confirmed, **all subsequent paths** in this skill (cases/, output/, .cache/
 ```
 
 Conventions:
-- `{project-root}/cases/` stores the source Markdown file.
-- `{project-root}/output/{article-id}/raw/` stores original browser screenshots and should never be overwritten by later processing.
-- `{project-root}/output/{article-id}/` stores final images referenced by Markdown.
-- `{project-root}/output/markdowns/` stores the final illustrated Markdown.
-- `{project-root}/.cache/screenshots/` stores reusable screenshot cache entries.
+- `cases/` holds the source Markdown.
+- `output/{article-id}/raw/` holds original browser screenshots — **never overwrite** files here.
+- `output/{article-id}/` holds post-processed assets that the final Markdown references.
+- `output/markdowns/` holds the final illustrated Markdown.
+- `.cache/screenshots/` holds reusable screenshot cache entries.
 
-If the user specifies a different layout, follow the user instruction instead.
+If the user specifies a different layout, follow their instruction.
 
-## Credentials
+### Step 1: Parse the case file
 
-Some sites require authentication before the requested screenshot can be captured.
-
-Read website credentials from environment variables using this pattern:
-
-```text
-PLAYWRIGHT_CRED_{SERVICE}_{FIELD}
-```
-
-Examples:
-- `PLAYWRIGHT_CRED_FELO_EMAIL`
-- `PLAYWRIGHT_CRED_FELO_PASSWORD`
-
-Rules:
-- read credentials from the environment instead of hardcoding them
-- never print secrets back to the user
-- if credentials are missing, tell the user which variable names are required
-- if the workflow reaches a login, signup, registration, invite, verification, or onboarding gate that needs user-specific information, stop and ask the user how to proceed
-- do not create new accounts, accept invitations, solve email verification, or invent profile information without explicit user input
-- after the user provides credentials or instructions, continue from the interrupted step instead of restarting the whole run unless the user asks for a fresh run
-
-## Supported Marker Formats
-
-This skill must support both inline markers and summary tables.
-
-### Format A: Heading-Based Screenshot Marker
-
-```markdown
-### 📷 Screenshot: {marker-id} ({filename})
-Use: {why this screenshot exists}
-Processing: {post-processing instruction}
-Difference: {optional distinction from similar screenshots}
-```
-
-Fields:
-- `marker-id`: unique screenshot identifier such as `A1`, `B3-1`, or `D3`
-- `filename`: base filename without the marker prefix
-- `Use`: what the screenshot should communicate
-- `Processing`: crop, resize, or other post-processing needs
-- `Difference`: optional explanation for how this screenshot differs from similar ones
-
-### Format B: HTML Comment Image Marker
-
-Screenshot:
-
-```markdown
-<!-- IMAGE: screenshot (https://example.com/app)
-Description: Workspace dashboard showing project activity and team sidebar
-Filename: workspace-dashboard.png
--->
-```
-
-Generated image:
-
-```markdown
-<!-- IMAGE: generated
-Description: Editorial illustration of a collaborative AI workflow with folders and browser windows
-Filename: ai-workflow-hero.png
--->
-```
-
-### Image Summary Table
-
-A document may end with a summary table listing all required images:
-
-```markdown
-## Image Summary
-
-| # | Type | Description | Filename |
-|---|------|-------------|----------|
-| 1 | generated | Description... | `hero.png` |
-| 2 | screenshot | Description... | `dashboard.png` |
-```
-
-Important:
-- the summary table is the complete inventory of requested images
-- some images may also appear as inline markers in the body
-- some images may exist only in the summary table and must be placed intelligently during output generation
-
-## Incremental Execution and Resume Behavior
-
-Do not assume the workflow always starts from zero. Before doing any work, inspect the article state and continue from the right step.
-
-### Check Existing Artifacts
-
-For a given article id, inspect:
-- `{project-root}/output/{article-id}/raw/*.png`
-- `{project-root}/output/{article-id}/*.png`
-- `{project-root}/output/{article-id}/README.md`
-- `{project-root}/output/markdowns/{article-id}.md`
-- `{project-root}/.cache/screenshots/{article-id}/`
-
-### Decision Rules
-
-- **New article**: nothing exists -> run the full workflow.
-- **Screenshots exist but Markdown does not**: skip screenshot capture and rebuild only the Markdown and README.
-- **Markdown exists and the user asks for fixes**: reparse the source document and rebuild image placement without recapturing images.
-- **Some screenshots are missing**: capture only the missing ones, then continue.
-- **The user asks to recapture specific images**: regenerate only those images, then rebuild the Markdown.
-- **The user asks to start over**: ignore caches and rebuild everything from scratch.
-
-### Core Principles
-
-- default to incremental work
-- reuse screenshots whenever possible
-- treat Markdown regeneration as cheap and browser work as expensive
-- tell the user what will be skipped and what will be rerun
-
-## Workflow
-
-### Step 0: Verify Playwright MCP Server (MANDATORY)
-
-**This check MUST run at the start of EVERY execution, not just the first time.**
-
-Before any other work, verify that the Playwright MCP server is properly configured and running:
-
-1. **Check for Playwright MCP tools availability**
-   - Attempt to list or detect tools with the `mcp__playwright__` prefix
-   - Required tools include: `mcp__playwright__browser_navigate`, `mcp__playwright__browser_snapshot`, `mcp__playwright__browser_screenshot`
-
-2. **If tools are NOT detected, STOP immediately and guide the user to install:**
-
-   Detect the current client environment and show the matching installation command:
-
-   **Claude Code**
-   ```bash
-   claude mcp add playwright -- npx @playwright/mcp@latest
-   ```
-
-   **Codex**
-   ```bash
-   codex mcp add playwright -- npx @playwright/mcp@latest
-   ```
-
-   **VS Code / Cursor / Kiro (IDE with MCP settings UI)**
-
-   Add to the MCP settings JSON (e.g. `.vscode/mcp.json`, `.cursor/mcp.json`, `.kiro/settings/mcp.json`):
-   ```json
-   {
-     "mcpServers": {
-       "playwright": {
-         "command": "npx",
-         "args": ["@playwright/mcp@latest"]
-       }
-     }
-   }
-   ```
-
-   **Claude Desktop**
-
-   Add to `claude_desktop_config.json`:
-   ```json
-   {
-     "mcpServers": {
-       "playwright": {
-         "command": "npx",
-         "args": ["@playwright/mcp@latest"]
-       }
-     }
-   }
-   ```
-
-   **Standalone MCP Server (headless environments or worker processes)**
-   ```bash
-   npx @playwright/mcp@latest --port 8931
-   ```
-   Then point the client config to:
-   ```json
-   {
-     "mcpServers": {
-       "playwright": {
-         "url": "http://localhost:8931/mcp"
-       }
-     }
-   }
-   ```
-
-   **Grant Tool Permissions (Claude Code / Codex)**
-   ```json
-   {
-     "permissions": {
-       "allow": ["mcp__playwright__*"]
-     }
-   }
-   ```
-
-3. **Ask the user to configure and restart the session**
-4. **Do NOT proceed to Step 1 until this check passes**
-
-### Step 0.5: Confirm the Project Root
-
-After verifying Playwright MCP, ask the user:
-
-> Which directory should I use as the project root for this run?
-
-- If the user provides a path, use it as `{project-root}`.
-- If the user says "no preference", skips the question, or does not answer, use `/tmp/doc-snapshot-agent`.
-
-Create the directory if it does not exist. All subsequent paths (`cases/`, `output/`, `.cache/`, `scripts/`, `references/`) resolve under `{project-root}/`.
-
-### Step 1: Parse the Document and Build the Image Inventory
-
-Read the source Markdown and merge image requirements from three sources:
+Merge image requirements from three sources:
 
 1. inline heading-based screenshot markers
 2. inline `<!-- IMAGE: ... -->` markers
 3. the `Image Summary` table
 
-For each image, record:
-- type: `screenshot` or `generated`
-- filename
-- marker id if present
-- description or purpose text
-- source URL if present
-- post-processing instruction if present
-- exact location in the Markdown when there is an inline marker
-- whether the image still needs semantic placement
+For each image, record: type (`screenshot` or `generated`), filename, marker id if present, description or purpose, source URL if present, post-processing instruction if present, exact inline location if present, and whether semantic placement is still required. Also detect the target websites referenced by the article.
 
-Also detect the target website or websites mentioned by the article.
+### Step 2: Prepare the environment
 
-### Step 2: Prepare the Environment
+- create output directories
+- check the screenshot cache for reusable entries
+- load credentials from environment variables (pattern: `PLAYWRIGHT_CRED_{SERVICE}_{FIELD}`)
+- re-confirm Playwright MCP tools are present
+- if the Chromium runtime is missing, run `npx playwright install chromium` (see `references/mcp-setup.md`)
+- if the target flow needs login/signup/invite/verification and the required information is not already supplied, pause and ask the user before taking any account-specific action
 
-- ensure output directories exist
-- check screenshot cache for reusable images
-- load credentials from environment variables
-- **confirm Playwright MCP tools are available** — this skill REQUIRES Playwright MCP for all browser interactions
-- if Playwright MCP tools are not detected, stop and ask the user to configure the MCP server (see First-Time Setup Guide)
-- review `{project-root}/references/playwright-mcp.md` before interacting with the site
-- if the Chromium browser runtime is not installed, run `npx playwright install chromium` before continuing
-- if the target flow requires login or registration and the required credentials or account details are not already available, pause and ask the user before taking any account-specific action
+### Step 2.5: Understand the target site
 
-**CRITICAL: Browser Tool Requirement**
+Bad screenshots usually come from landing on the wrong page, not from the wrong capture command. Before capturing:
 
-This skill uses **only** Playwright MCP tools for browser automation. Do NOT use:
-- direct Playwright library calls
-- generic browser navigation tools that are not part of the Playwright MCP server
-- any tool that does not have the `mcp__playwright__*` prefix
-
-All browser interactions must go through the Playwright MCP server tools:
-- `mcp__playwright__browser_navigate`
-- `mcp__playwright__browser_snapshot`
-- `mcp__playwright__browser_screenshot`
-- `mcp__playwright__browser_click`
-- `mcp__playwright__browser_fill_form`
-- etc.
-
-If these tools are not available in the current runtime, the workflow cannot proceed. Ask the user to configure the Playwright MCP server first.
-
-### Step 2.5: Understand the Target Website Before Taking Screenshots
-
-Bad screenshots usually come from navigating to the wrong page, not from using the wrong screenshot command.
-
-Before capturing anything:
-
-1. Check whether site knowledge already exists under:
-   - `$IMAGE_AGENT_SITE_KNOWLEDGE_DIR/`
-   - `$IMAGE_AGENT_SITE_LEARNING_DIR/`
-
-2. Derive a stable `site-key` from the domain name:
-   - `memclaw.me` -> `memclaw`
-   - `app.felo.ai` -> `felo`
-
+1. Check for existing site knowledge under `$IMAGE_AGENT_SITE_KNOWLEDGE_DIR/` and `$IMAGE_AGENT_SITE_LEARNING_DIR/`.
+2. Derive a stable `site-key` from the domain (`memclaw.me` → `memclaw`, `app.felo.ai` → `felo`).
 3. If `{site-key}.md` exists and is recent, read it before browsing.
+4. If knowledge is missing or stale, run a structured site exploration — see `references/site-explorer.md` — and save findings for reuse.
+5. Map every screenshot description to a specific page or UI state: target URL or click path, required visible elements, scroll/tab/expand actions needed.
+6. Append new knowledge to the site knowledge files whenever browsing discovers something worth remembering.
 
-4. If site knowledge is missing or stale, perform a structured site exploration and save the findings into the site knowledge files. See `{project-root}/references/site-explorer.md`.
+### Step 3: Capture browser screenshots
 
-5. Map every screenshot description to a specific page or state.
-
-Common mapping mistakes:
-- taking a marketing homepage when the document actually asks for an authenticated workspace
-- taking a broad landing page when the description clearly asks for a specific panel or feature
-- ignoring keywords like `dashboard`, `session history`, `team members`, or `invite`
-
-6. Write a screenshot navigation plan for each image:
-- target URL or click path
-- key elements that must be visible
-- whether scrolling, expanding, or tab switching is required
-
-7. If new knowledge is discovered while browsing, append it to the site knowledge files so future runs do not repeat the same mistakes.
-
-### Step 3: Capture Browser Screenshots
-
-Use the browser automation reference in `{project-root}/references/browser-automation.md`.
-
-If Playwright MCP is available, also use `{project-root}/references/playwright-mcp.md` as the concrete execution guide for:
-- opening pages
-- reading the accessibility snapshot before acting
-- filling login forms
-- waiting for UI state changes
-- taking viewport, element, or full-page screenshots
-- checking console and network output when a page behaves unexpectedly
+Follow `references/browser-capture.md` for the full navigate → snapshot → act → wait → capture → verify loop and the concrete tool patterns.
 
 Typical flow:
 - open the target website
-- log in if required
-- navigate to the correct page or state for each screenshot
+- log in if required (credentials from env)
+- navigate to the correct page or UI state
 - wait for key content to load
-- resize the viewport if needed
+- resize the viewport if the requested layout needs it
 - save screenshots to `{project-root}/output/{article-id}/raw/`
 
 Naming rule:
-- if a marker id exists, save as `{marker-id}_{filename}`
+- if a marker id exists, save as `{marker-id}_{filename}` (e.g. `A1_workspace-dashboard.png`)
 - otherwise use the original filename
 
-Example:
-- `A1_workspace-dashboard.png`
+After each capture, open the image file and confirm it matches the description. DOM inspection is not a substitute for looking at the saved PNG.
 
-After taking each screenshot, verify that the captured image actually matches the description. Do not rely only on DOM text. Visual layout, modals, loading states, overlays, and empty panels must be checked against the real screenshot file.
+### Step 4: Post-process screenshots
 
-### Step 4: Post-Process Screenshots
+Apply the `Processing:` instruction if present (crop, resize, aspect-ratio adjustment). Copy from `raw/` into the final output directory — never edit `raw/` in place.
 
-Apply the requested processing instructions if present.
+- `raw/` keeps untouched originals.
+- `output/{article-id}/` holds the assets the Markdown references.
 
-Typical operations:
-- crop
-- resize
-- aspect-ratio adjustment
-- copy from `raw/` into the final output directory
+### Step 5: Generate the illustrated Markdown
 
-Principle:
-- `raw/` keeps untouched originals
-- final images in `{project-root}/output/{article-id}/` are the assets referenced by Markdown
+#### 5.1 Replace inline markers in place
 
-### Step 5: Generate the Illustrated Markdown
-
-This step has two jobs:
-- replace inline markers exactly where they appear
-- place unanchored images from the summary table into the most relevant paragraph
-
-#### 1. Replace Inline Markers In Place
-
-Heading marker example:
+Heading marker:
 
 ```markdown
 ### 📷 Screenshot: A1 (workspace-dashboard.png)
@@ -429,7 +196,7 @@ becomes:
 ![Authenticated workspace homepage](../{article-id}/A1_workspace-dashboard.png)
 ```
 
-HTML comment marker example:
+HTML comment marker:
 
 ```markdown
 <!-- IMAGE: screenshot (https://example.com/app)
@@ -444,50 +211,47 @@ becomes:
 ![Workspace dashboard showing Architecture Decisions](../{article-id}/architecture-decisions.png)
 ```
 
-#### 2. Semantically Place Images Without Inline Markers
+#### 5.2 Semantically place images that have no inline marker
 
 For images that appear only in the `Image Summary` table:
-- read the image description carefully
-- extract its important keywords and concepts
-- search the document body paragraph by paragraph
+
+- read the description carefully
+- extract its key concepts
+- search the document paragraph by paragraph
 - find the paragraph that discusses the same concept most directly
-- insert the image immediately after that paragraph, not just at the end of a broad section
+- insert the image immediately after that paragraph — not at the end of the section, not at the end of the article
 
-Common mistakes:
-- appending all leftover images to the end of the article
-- placing an image at the end of a high-level section instead of after the exact paragraph that discusses the feature
-- using only section headings instead of reading paragraph content
+Example: a description of `Share panel showing team members and invite controls` belongs next to the paragraph that mentions inviting teammates, not at the end of a general onboarding section.
 
-Example:
-- if the description says `Share panel showing team members and invite controls`, prefer the paragraph that mentions inviting teammates rather than the end of a general onboarding section
+#### 5.3 Handle generated images
 
-#### 3. Handle Generated Images
+For `generated` markers, follow `references/image-generation.md` and call the bundled script:
 
-For `generated` images, use the image-generation reference in `{project-root}/references/image-generation.md` and the bundled script in `{project-root}/scripts/generate_image.py`.
+```bash
+python {project-root}/scripts/generate_image.py "{description}" -o "{project-root}/output/{article-id}/{filename}"
+```
 
-If generation succeeds, insert the normal Markdown image reference.
-If generation fails, insert a warning block:
+For text-heavy images, use the stronger model:
+
+```bash
+python {project-root}/scripts/generate_image.py "{description}" -o "{project-root}/output/{article-id}/{filename}" -m google/gemini-3-pro-image-preview
+```
+
+If generation succeeds, insert the normal Markdown image reference. If it fails, insert a warning block and record the failure in the README:
 
 ```markdown
 > Warning: AI image generation failed for {filename}
 ```
 
-#### 4. Remove the Image Summary Table
+Generation prompt guidance: include the subject clearly, mention visual style if the article implies one, flag whether the image is for a technical article or tutorial, and state any required visible text explicitly.
 
-The `Image Summary` block is workflow metadata and should not remain in the final illustrated Markdown.
+#### 5.4 Remove the Image Summary table
 
-### Step 6: Write the README Inventory
+The `Image Summary` block is workflow metadata. Strip it from the final illustrated Markdown.
 
-Create `{project-root}/output/{article-id}/README.md` with metadata such as:
-- article id or title
-- completion timestamp
-- image list
-- mapping from marker ids to filenames
-- dimensions
-- post-processing notes
-- unfinished or failed items
+### Step 6: Write the README inventory
 
-Suggested format:
+Create `{project-root}/output/{article-id}/README.md`:
 
 ```markdown
 # {article-id} Illustration Output
@@ -511,95 +275,184 @@ Completed: {timestamp}
 - [ ] Any missing screenshot or failed generated image
 ```
 
-## Cache Policy
+Return a concise run summary containing: article id, what was reused vs newly generated, output Markdown path, image output directory, and any failed or missing images.
 
-Use a simple file-based screenshot cache:
-- cache directory: `{project-root}/.cache/screenshots/{article-id}/`
+## Marker Formats
+
+The skill supports three marker formats. A single document may mix them.
+
+### A. Heading-based screenshot marker
+
+```markdown
+### 📷 Screenshot: {marker-id} ({filename})
+Use: {why this screenshot exists}
+Processing: {post-processing instruction}
+Difference: {optional distinction from similar screenshots}
+```
+
+Fields: `marker-id` is a unique id like `A1`, `B3-1`, `D3`; `filename` is the base filename without the marker prefix; `Use` describes what the screenshot should communicate; `Processing` covers crop/resize; `Difference` disambiguates similar shots.
+
+### B. HTML comment marker
+
+Screenshot:
+
+```markdown
+<!-- IMAGE: screenshot (https://example.com/app)
+Description: Workspace dashboard showing project activity and team sidebar
+Filename: workspace-dashboard.png
+-->
+```
+
+Generated image:
+
+```markdown
+<!-- IMAGE: generated
+Description: Editorial illustration of a collaborative AI workflow with folders and browser windows
+Filename: ai-workflow-hero.png
+-->
+```
+
+### C. Image Summary table
+
+A document may end with a summary table listing every required image:
+
+```markdown
+## Image Summary
+
+| # | Type | Description | Filename |
+|---|------|-------------|----------|
+| 1 | generated | Description... | `hero.png` |
+| 2 | screenshot | Description... | `dashboard.png` |
+```
+
+Important:
+- the summary table is the complete inventory
+- some images also appear as inline markers in the body
+- some images exist only in the summary table and must be placed semantically during Step 5.2
+
+## Incremental Execution
+
+Do not assume the workflow starts from zero. Inspect state first, then continue from the right step.
+
+### Check existing artifacts
+
+For a given article id, inspect:
+
+- `{project-root}/output/{article-id}/raw/*.png`
+- `{project-root}/output/{article-id}/*.png`
+- `{project-root}/output/{article-id}/README.md`
+- `{project-root}/output/markdowns/{article-id}.md`
+- `{project-root}/.cache/screenshots/{article-id}/`
+
+### Decision rules
+
+- **New article** — nothing exists → run the full workflow.
+- **Screenshots exist but Markdown does not** — skip capture, rebuild Markdown and README.
+- **Markdown exists and user asks for fixes** — reparse case file, rebuild placement without recapturing.
+- **Some screenshots are missing** — capture only the missing ones, then continue.
+- **User asks to recapture specific images** — regenerate only those, then rebuild Markdown.
+- **User asks to start over** — ignore caches and rebuild everything.
+
+Core principles: default to incremental work, reuse screenshots whenever possible, treat Markdown regeneration as cheap and browser work as expensive, and tell the user what will be skipped vs rerun.
+
+### Cache policy
+
+Simple file-based cache:
+
+- directory: `{project-root}/.cache/screenshots/{article-id}/`
 - cache key: screenshot filename
 - if a matching cache file exists and the user did not ask for a refresh, reuse it
 - if the user explicitly asks to recapture or refresh, ignore cache entries
 
-## Special Cases
+## Core Rules
 
-### Generated Images
+### 1. MCP or nothing
 
-When an image type is `generated`, do not mark it as missing by default. Generate it.
+Every browser interaction routes through `mcp__playwright__*` tools. If those tools are absent, stop and ask the user to install (see `references/mcp-setup.md`). Do not fall back to direct Playwright or generic browser tools — they bypass the contract this skill relies on.
 
-Prerequisites:
-- `OPENROUTER_API_KEY` is available
-- Python `requests` is installed
+### 2. Snapshot before click, re-snapshot after change
 
-Default command:
+Clicks must reference refs from the latest accessibility snapshot, not memory. After navigation, modal open, tab switch, or accordion expand, snapshot again before the next action.
 
-```bash
-python {project-root}/scripts/generate_image.py "{description}" -o "{project-root}/output/{article-id}/{filename}"
-```
+### 3. Choose the interaction type deliberately
 
-Use a stronger model for text-heavy images:
+Single left click is the default. Use double click only when the page semantics, site knowledge, or visible UI cues clearly indicate "open", "rename", "drill into", or another double-click-specific behavior. Use right click only when you explicitly need a context menu. Do not use double click as a retry for a failed single click, and do not right click just to "see what happens". After any double click or right click, wait for the visible state change and snapshot again before the next action.
 
-```bash
-python {project-root}/scripts/generate_image.py "{description}" -o "{project-root}/output/{article-id}/{filename}" -m google/gemini-3-pro-image-preview
-```
+### 4. `raw/` is write-once
 
-Generation prompt guidance:
-- include the subject clearly
-- include visual style if the document suggests one
-- mention whether the image is for a technical article, tutorial, or product explainer
-- mention visible text explicitly if the image needs readable labels
+Original screenshots land in `output/{article-id}/raw/` and stay untouched. Crop, resize, and processing all happen into the parent `output/{article-id}/` directory. Never overwrite a `raw/` file.
 
-Failure handling:
-- add a warning block into the output Markdown
-- record the failure in the README remaining-work section
-- continue the rest of the workflow
+### 5. Reuse before recapturing
 
-### Multilingual Documents
+Browser work is the expensive step. Default to reusing existing screenshots and cache entries; only recapture when the user asks, the image is missing, or it visibly fails verification.
 
-If the document is language-specific, make sure the captured website matches that language. If the site supports language switching, switch before taking screenshots.
+### 6. Credentials live in the environment
 
-### Dynamic Pages
+Read them from `PLAYWRIGHT_CRED_{SERVICE}_{FIELD}` env vars. Never hardcode, never echo secrets back to the user, and if a required variable is missing, surface its exact name.
 
-Before taking screenshots:
-- wait for key content to load
-- close overlays or popups
-- wait for animations to settle
-- confirm the page is in the correct state
+### 7. Gated flows pause and ask
 
-## Output Requirements
+If the page is a sign-up, registration, invite, email verification, 2FA, or onboarding gate and the required user-specific information is not already supplied, stop and ask. Do not create accounts, accept invitations, or invent profile data without explicit user input. When the user answers, continue from the interrupted step rather than restarting.
 
-When this skill finishes, return a concise summary containing:
-- article id processed
-- what work was reused versus newly generated
-- output Markdown path
-- image output directory
-- any failed or missing images
+### 8. Verify the actual image
 
-## Quick Reference
+A DOM snapshot is not enough. After each capture, open the saved PNG and confirm the described content is visible, no modal or loading skeleton blocks it, and the language matches the article. If the image does not match, retake — do not paper over it in the README.
 
-```text
-Project root (ask user, default /tmp/doc-snapshot-agent):
-  {project-root}/
+### 9. Semantic placement over end-of-section dumping
 
-Input:
-  {project-root}/cases/{article-id}.md
+For images from the summary table, read the paragraph content and insert the image next to the paragraph that discusses the same concept. Do not append leftover images to the end of the article or the end of a broad section.
 
-Output:
-  {project-root}/output/{article-id}/raw/*.png
-  {project-root}/output/{article-id}/*.png
-  {project-root}/output/{article-id}/README.md
-  {project-root}/output/markdowns/{article-id}.md
+## Traps
 
-Credentials:
-  PLAYWRIGHT_CRED_{SERVICE}_{FIELD}
+- substituting a non-MCP browser tool because it is "faster" — breaks reproducibility and the MCP snapshot flow
+- clicking from memory instead of from the latest snapshot — works once, then flakes
+- using double click as a generic retry when a single click did nothing — usually opens the wrong state or hides the real issue
+- right clicking without a clear goal or without waiting for a context menu signal — often leaves the page in an ambiguous state
+- screenshotting before loading indicators clear — captures skeletons
+- forgetting to re-snapshot after a modal or tab opens — next click targets a stale ref
+- saving only the cropped asset and losing the `raw/` original — recovery requires a full recapture
+- appending all unanchored images to the end of the article instead of placing them semantically
+- hardcoding credentials or echoing them in prompts or the transcript
+- treating every run as a fresh start — recapturing images that already exist on disk
+- assuming a DOM assertion means the screenshot is correct — always review the PNG
+- capturing the wrong language version of the site for a language-specific article
 
-Cache:
-  {project-root}/.cache/screenshots/{article-id}/
+## External Endpoints
 
-References:
-  {project-root}/references/browser-automation.md
-  {project-root}/references/playwright-mcp.md
-  {project-root}/references/site-explorer.md
-  {project-root}/references/image-generation.md
+| Endpoint | Data sent | Purpose |
+|----------|-----------|---------|
+| User-requested websites | Browser requests, form input, cookies, and interactions needed for the task | Screenshot capture and authenticated navigation |
+| `https://openrouter.ai/api/v1/chat/completions` | Image generation prompt text and requested model id | Generated-image markers via `scripts/generate_image.py` |
+| `https://registry.npmjs.org` | Package metadata and tarballs during optional installation | Installing `@playwright/mcp` and the Chromium runtime |
 
-Bundled script:
-  {project-root}/scripts/generate_image.py
-```
+No other data is sent externally.
+
+## Security & Privacy
+
+Data that leaves your machine:
+
+- requests sent to the websites the user asked to capture
+- prompt text sent to OpenRouter when generating images
+- optional npm traffic when installing Playwright MCP or the Chromium runtime
+
+Data that stays local:
+
+- the source Markdown, generated screenshots, generated images, the illustrated Markdown, and the run README
+- the screenshot cache under `{project-root}/.cache/`
+- environment variables (credentials and API keys) — this skill reads them but never writes them into files or transcripts
+
+This skill does NOT:
+
+- create hidden memory files or persistent profile folders
+- persist browser session state across runs by default
+- upload screenshots, generated images, or source Markdown anywhere
+- create accounts, accept invitations, or complete verification flows on behalf of the user
+- hardcode or echo credentials, API keys, or personal data
+
+## Trust
+
+By running this skill, browser traffic goes to the websites you asked to capture, generation prompts go to OpenRouter, and optional package downloads go through npm. Only run it against sites and generation providers you trust. For destructive, financial, medical, or production flows, prefer staging environments and confirm with the user before proceeding.
+
+## Feedback
+
+Issues and improvements: https://github.com/Felo-Inc/felo-skills/issues

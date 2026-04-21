@@ -15,8 +15,8 @@ It is designed for agent workflows that need to:
 doc-snapshot-agent/
 ├── SKILL.md
 ├── references/
-│   ├── browser-automation.md
-│   ├── playwright-mcp.md
+│   ├── mcp-setup.md
+│   ├── browser-capture.md
 │   ├── site-explorer.md
 │   └── image-generation.md
 ├── scripts/
