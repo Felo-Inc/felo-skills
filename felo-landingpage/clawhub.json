@@ -1,0 +1,12 @@
+{
+  "name": "Felo Landing Page",
+  "tagline": "Generate landing pages with Felo Landing Page Task API in Claude Code",
+  "description": "Felo Landing Page creates hosted webpages from a prompt using the Felo Landing Page Task API: API key check, task creation, polling shared task history, task resume, and final ai_page_html output. Use from Claude Code when users ask to create landing pages, marketing pages, or single-page websites.",
+  "category": "productivity",
+  "tags": ["felo", "landing-page", "webpage", "website", "html", "api", "claude-code"],
+  "version": "1.0.0",
+  "license": "MIT",
+  "pricing": "free",
+  "support_url": "https://github.com/Felo-Inc/felo-skills/issues",
+  "homepage": "https://github.com/Felo-Inc/felo-skills"
+}
