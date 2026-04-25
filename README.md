@@ -15,7 +15,7 @@
   <a href="./felo-search/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="MIT License"></a>
 </p>
 
-**Felo AI CLI** — Real-time search, PPT generation, mindmap creation, web fetch, YouTube subtitles, and X (Twitter) search, SuperAgent conversation, and Twitter writing from the terminal. Also works as Claude Code skills. Supports Chinese, English, Japanese, and Korean.
+**Felo AI CLI** — Real-time search, PPT generation, mindmap creation, web fetch, YouTube subtitles, and X (Twitter) search, SuperAgent conversation, and Twitter writing from the terminal. Also works as Claude Code skills, including landing page creation. Supports Chinese, English, Japanese, and Korean.
 
 <p align="center">
   <a href="https://felo.ai">Felo AI</a> · <a href="https://openapi.felo.ai/docs/">Docs</a> · <a href="https://openapi.felo.ai/docs/api-reference/v2/chat.html">API Reference</a> · <a href="./docs/EXAMPLES.md">Examples</a> · <a href="./docs/FAQ.md">FAQ</a> · <a href="https://clawhub.ai/u/wangzhiming1999">ClawHub</a> · <a href="https://discord.gg/9W8NubHA">Discord</a> · <a href="https://x.com/felo_ai">X (Twitter)</a>
@@ -200,12 +200,13 @@ felo style-library IMAGE --accept-language zh-Hans
 
 ## Skills Overview
 
-11 skills across search, content generation, web scraping, social media, knowledge base, shopping advice, and document illustration:
+12 skills across search, content generation, web scraping, social media, knowledge base, shopping advice, and document illustration:
 
 | Skill                       | Description                                                                          | Docs                                 |
 | --------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------ |
 | **felo-search**             | Real-time web search with AI answers. Triggers automatically.                        | [→](./felo-search/)                  |
 | **felo-slides**             | Generate PPT from a prompt                                                           | [→](./felo-slides/)                  |
+| **felo-landingpage**        | Generate a hosted landing page/webpage from a prompt                                 | [→](./felo-landingpage/)             |
 | **felo-web-fetch**          | Fetch and extract webpage content                                                    | [→](./felo-web-fetch/)               |
 | **felo-youtube-subtitling** | Fetch YouTube video subtitles                                                        | [→](./felo-youtube-subtitling/)      |
 | **felo-x-search**           | Search X (Twitter) tweets, users, replies                                            | [→](./felo-x-search/SKILL.md)        |
@@ -320,6 +321,7 @@ For skill-based new conversations, Claude fetches the matching style library, pr
 # Via ClawHub (recommended)
 clawhub install felo-search
 clawhub install felo-slides
+clawhub install felo-landingpage
 clawhub install felo-mindmap
 clawhub install felo-web-fetch
 clawhub install felo-youtube-subtitling
@@ -344,6 +346,7 @@ git clone https://github.com/Felo-Inc/felo-skills.git
 cd felo-skills
 cp -r felo-search ~/.claude/skills/
 cp -r felo-slides ~/.claude/skills/
+cp -r felo-landingpage ~/.claude/skills/
 cp -r felo-web-fetch ~/.claude/skills/
 cp -r felo-youtube-subtitling ~/.claude/skills/
 cp -r felo-x-search ~/.claude/skills/
@@ -361,6 +364,7 @@ git clone https://github.com/Felo-Inc/felo-skills.git
 cd felo-skills
 cp -r felo-search ~/.gemini/skills/
 cp -r felo-slides ~/.gemini/skills/
+cp -r felo-landingpage ~/.gemini/skills/
 cp -r felo-web-fetch ~/.gemini/skills/
 cp -r felo-youtube-subtitling ~/.gemini/skills/
 cp -r felo-x-search ~/.gemini/skills/
@@ -378,6 +382,7 @@ git clone https://github.com/Felo-Inc/felo-skills.git
 cd felo-skills
 cp -r felo-search ~/.codex/skills/
 cp -r felo-slides ~/.codex/skills/
+cp -r felo-landingpage ~/.codex/skills/
 cp -r felo-web-fetch ~/.codex/skills/
 cp -r felo-youtube-subtitling ~/.codex/skills/
 cp -r felo-x-search ~/.codex/skills/

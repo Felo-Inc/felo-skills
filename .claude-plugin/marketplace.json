@@ -5,7 +5,7 @@
     "url": "https://github.com/Felo-Inc"
   },
   "metadata": {
-    "description": "Felo AI skills for Claude Code — real-time search, PPT generation, SuperAgent, LiveDoc knowledge base, web fetch, YouTube subtitles, and X (Twitter) search",
+    "description": "Felo AI skills for Claude Code — real-time search, PPT generation, landing page creation, SuperAgent, LiveDoc knowledge base, web fetch, YouTube subtitles, and X (Twitter) search",
     "version": "1.0.0"
   },
   "plugins": [
@@ -34,6 +34,15 @@
       "strict": false,
       "skills": [
         "./felo-slides"
+      ]
+    },
+    {
+      "name": "felo-landingpage",
+      "description": "Generate landing pages and hosted webpages from a prompt using Felo AI",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./felo-landingpage"
       ]
     },
     {

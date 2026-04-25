@@ -1,0 +1,4 @@
+interface:
+  display_name: "Felo Landing Page"
+  short_description: "Generate landing pages with the Felo Landing Page Task API."
+  default_prompt: "Generate a landing page for this topic:"
