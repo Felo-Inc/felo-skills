@@ -119,6 +119,17 @@ This outputs structured JSON including:
 - `ppt_business_id`
 - `error_message`
 
+### Step 3: Confirm terminal status
+
+The script polls the historical endpoint automatically. Wait for it to exit
+before responding:
+
+- Success: terminal status is `COMPLETED` or `SUCCESS`, and the script prints
+  `ppt_url` (fallback: `live_doc_url`)
+- Failure: terminal status is `FAILED` or `ERROR`; return the error format below
+- Timeout: include the `task_id` and tell the user to resume with `--task-id`
+  instead of creating a duplicate PPT task
+
 ### Step 4: Return structured result
 
 On success, return:
