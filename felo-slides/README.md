@@ -5,6 +5,8 @@ Generate presentation slides with the Felo PPT Task API (asynchronous workflow).
 ## Features
 
 - Generate a PPT deck from a single prompt
+- Generate a PPT from a local image, PDF, or document
+- Preserve an uploaded image as source material for the generated slides
 - Poll task status automatically until completion/failure/timeout
 - Return `ppt_url` immediately when the task is completed (fallback to `live_doc_url`)
 - Return `task_id` for follow-up tracking
@@ -66,6 +68,22 @@ Internal script example:
 node felo-slides/scripts/run_ppt_task.mjs --query "Felo product intro, 3 slides" --interval 10 --max-wait 1800
 ```
 
+Upload a local file or image as PPT context:
+
+```bash
+node felo-slides/scripts/run_ppt_task.mjs \
+  --query "Create exactly 2 slides and place the original image directly in the PPT" \
+  --file "/absolute/path/to/source.jpg" \
+  --interval 10 \
+  --max-wait 1800
+```
+
+The npm CLI supports the same workflow:
+
+```bash
+felo slides "Create 2 slides from this image" --file "/absolute/path/to/source.jpg"
+```
+
 ## Troubleshooting
 
 ### `FELO_API_KEY` is missing
@@ -86,6 +104,6 @@ Use the returned `task_id` to query historical endpoint again.
 
 ## Links
 
-- [PPT Task API](https://openapi.felo.ai/docs/api-reference/v2/ppt-tasks.html)
+- [PPT Task API](https://openapi.felo.ai/docs/api-reference/ppt-tasks)
 - [Felo Open Platform](https://openapi.felo.ai/docs/)
 - [Get API Key](https://felo.ai)

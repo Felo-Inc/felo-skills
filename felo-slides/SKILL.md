@@ -1,6 +1,6 @@
 ---
 name: felo-slides
-description: "Generate PPT/slides with Felo PPT Task API in Claude Code. Use when users ask to create/make/generate/export presentations or slide decks, or when explicit commands like /felo-slides are used. Handles API key check, task creation, polling, and final ppt_url output."
+description: "Generate PPT/slides from prompts, local images, PDFs, and other files with the Felo PPT Task API. Use when users ask to create, make, generate, or export presentations or slide decks; turn an attached/local file into slides; include an original image in a PPT; or explicitly invoke /felo-slides. Handles file upload, API key checks, task creation, polling, and final ppt_url output."
 ---
 
 # Felo Slides Skill
@@ -11,6 +11,8 @@ Trigger this skill for requests about creating presentation files:
 
 - Create/generate slides from a topic or outline
 - Turn notes into a PPT deck
+- Build slides from a local image, PDF, or document
+- Put an uploaded original image into the generated PPT
 - Build a presentation with a page count requirement
 - Export presentation content into a shareable slide link
 
@@ -75,6 +77,22 @@ node felo-slides/scripts/run_ppt_task.mjs \
   --timeout 60
 ```
 
+When the user provides a local image or file, pass its absolute path with
+`--file`. Include the desired use of the original asset in the prompt. For
+example:
+
+```bash
+node felo-slides/scripts/run_ppt_task.mjs \
+  --query "Create exactly 2 slides and place the uploaded original image directly in the PPT" \
+  --file "/absolute/path/to/source.jpg" \
+  --interval 10 \
+  --max-wait 1800 \
+  --timeout 60
+```
+
+Do not replace `--file` with a textual description when the user explicitly
+wants the original file or image used in the PPT.
+
 To apply a specific theme, first list available themes with `felo ppt-themes`, then pass the theme ID:
 
 ```bash
@@ -89,6 +107,7 @@ node felo-slides/scripts/run_ppt_task.mjs \
 Script behavior:
 
 - Creates task via `POST https://openapi.felo.ai/v2/ppts`
+- Supports optional `--file <path>` to upload one local file with `multipart/form-data`
 - Supports optional `--theme <id>` to apply a PPT theme (sends `ppt_config.ai_theme_id`)
 - Supports optional `--livedoc-id <id>` to reuse an existing LiveDoc instead of auto-creating a new one
 - Supports optional `--task-id <id>` to resume polling an existing task (skips creation)
@@ -195,5 +214,5 @@ node felo-slides/scripts/run_ppt_task.mjs \
 
 ## References
 
-- [Felo PPT Task API](https://openapi.felo.ai/docs/api-reference/v2/ppt-tasks.html)
+- [Felo PPT Task API](https://openapi.felo.ai/docs/api-reference/ppt-tasks)
 - [Felo Open Platform](https://openapi.felo.ai/docs/)

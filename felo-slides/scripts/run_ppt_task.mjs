@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+import { readFile } from 'node:fs/promises';
+import { basename, extname } from 'node:path';
+
 const DEFAULT_API_BASE = 'https://openapi.felo.ai';
 const DEFAULT_INTERVAL_SEC = 10;
 const DEFAULT_MAX_WAIT_SEC = 1800;
@@ -15,6 +18,7 @@ function usage() {
       '  --query <text>        PPT prompt (required unless --task-id is given)',
       '  --task-id <id>        Resume polling an existing task (skip creation)',
       '  --theme <id>          PPT theme ID (from ppt-themes)',
+      '  --file <path>         Upload a local file or image as PPT context',
       '  --livedoc-id <id>     Reuse an existing LiveDoc instead of auto-creating one',
       '  --interval <seconds>  Poll interval, default 10',
       '  --max-wait <seconds>  Max wait time, default 1800',
@@ -31,6 +35,7 @@ function parseArgs(argv) {
     query: '',
     taskId: '',
     theme: '',
+    file: '',
     livedocId: '',
     intervalSec: DEFAULT_INTERVAL_SEC,
     maxWaitSec: DEFAULT_MAX_WAIT_SEC,
@@ -55,6 +60,9 @@ function parseArgs(argv) {
       i += 1;
     } else if (a === '--theme') {
       out.theme = argv[i + 1] ?? '';
+      i += 1;
+    } else if (a === '--file') {
+      out.file = argv[i + 1] ?? '';
       i += 1;
     } else if (a === '--livedoc-id') {
       out.livedocId = argv[i + 1] ?? '';
@@ -81,6 +89,29 @@ function parseArgs(argv) {
 
 function normalizeStatus(v) {
   return String(v ?? '').trim().toUpperCase();
+}
+
+function getFileContentType(filePath) {
+  const types = {
+    '.bmp': 'image/bmp',
+    '.csv': 'text/csv',
+    '.doc': 'application/msword',
+    '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    '.gif': 'image/gif',
+    '.jpeg': 'image/jpeg',
+    '.jpg': 'image/jpeg',
+    '.md': 'text/markdown',
+    '.pdf': 'application/pdf',
+    '.png': 'image/png',
+    '.ppt': 'application/vnd.ms-powerpoint',
+    '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    '.svg': 'image/svg+xml',
+    '.txt': 'text/plain',
+    '.webp': 'image/webp',
+    '.xls': 'application/vnd.ms-excel',
+    '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  };
+  return types[extname(filePath).toLowerCase()] || 'application/octet-stream';
 }
 
 function sleep(ms) {
@@ -143,24 +174,49 @@ function extractTaskUrls(historicalData, createData) {
   };
 }
 
-async function createTask(apiKey, apiBase, query, timeoutMs, theme, livedocId) {
-  const reqBody = { query };
-  if (theme) {
-    reqBody.ppt_config = { ai_theme_id: theme };
+async function createTask(apiKey, apiBase, query, timeoutMs, theme, livedocId, filePath) {
+  let body;
+  const headers = {
+    Accept: 'application/json',
+    Authorization: `Bearer ${apiKey}`,
+  };
+
+  if (filePath) {
+    const fileBytes = await readFile(filePath);
+    body = new FormData();
+    body.append('query', query);
+    if (theme) {
+      body.append(
+        'ppt_config',
+        new Blob([JSON.stringify({ ai_theme_id: theme })], { type: 'application/json' })
+      );
+    }
+    if (livedocId) {
+      body.append('livedoc_short_id', livedocId);
+    }
+    body.append(
+      'file',
+      new Blob([fileBytes], { type: getFileContentType(filePath) }),
+      basename(filePath)
+    );
+  } else {
+    const reqBody = { query };
+    if (theme) {
+      reqBody.ppt_config = { ai_theme_id: theme };
+    }
+    if (livedocId) {
+      reqBody.livedoc_short_id = livedocId;
+    }
+    headers['Content-Type'] = 'application/json';
+    body = JSON.stringify(reqBody);
   }
-  if (livedocId) {
-    reqBody.livedoc_short_id = livedocId;
-  }
+
   const payload = await fetchJson(
     `${apiBase}/v2/ppts`,
     {
       method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(reqBody),
+      headers,
+      body,
     },
     timeoutMs
   );
@@ -196,6 +252,9 @@ async function main() {
     usage();
     process.exit(1);
   }
+  if (args.taskId && args.file) {
+    throw new Error('--file cannot be used with --task-id');
+  }
 
   const apiKey = process.env.FELO_API_KEY?.trim();
   if (!apiKey) {
@@ -219,7 +278,15 @@ async function main() {
     }
   } else {
     // Create a new task
-    createData = await createTask(apiKey, apiBase, args.query, timeoutMs, args.theme, args.livedocId || undefined);
+    createData = await createTask(
+      apiKey,
+      apiBase,
+      args.query,
+      timeoutMs,
+      args.theme,
+      args.livedocId || undefined,
+      args.file || undefined
+    );
     taskId = createData.task_id;
     if (args.verbose) {
       console.error(`Task ID: ${taskId}`);
@@ -282,4 +349,3 @@ main().catch((err) => {
   console.error(`ERROR: ${err?.message || err}`);
   process.exit(1);
 });
-

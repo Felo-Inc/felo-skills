@@ -89,11 +89,17 @@ program
     "1200"
   )
   .option("--theme <id>", "PPT theme ID (from ppt-themes command)")
+  .option("--file <path>", "upload a local file or image and use it as PPT context")
   .option("--task-id <id>", "resume polling an existing task (skip creation)")
   .option("--livedoc-id <id>", "reuse an existing LiveDoc short_id instead of auto-creating a new one")
   .action(async (query, opts) => {
     if (!query && !opts.taskId) {
       console.error("Error: provide a <query> or --task-id to resume an existing task");
+      flushStdioThenExit(1);
+      return;
+    }
+    if (opts.taskId && opts.file) {
+      console.error("Error: --file cannot be used with --task-id");
       flushStdioThenExit(1);
       return;
     }
@@ -108,6 +114,7 @@ program
       pptConfig,
       taskId: opts.taskId,
       livedocShortId: opts.livedocId || undefined,
+      filePath: opts.file || undefined,
     });
     process.exitCode = code;
     flushStdioThenExit(code);

@@ -23,4 +23,14 @@ describe('CLI command registration', () => {
     assert.strictEqual(result.status, 0);
     assert.match(result.stdout, /Research and compare Apple products before you buy/);
   });
+
+  it('shows file upload support for slides', () => {
+    const result = spawnSync(process.execPath, [cliPath, 'slides', '--help'], {
+      encoding: 'utf8',
+    });
+
+    assert.strictEqual(result.status, 0);
+    assert.match(result.stdout, /--file <path>/);
+    assert.match(result.stdout, /upload a local file or image/i);
+  });
 });

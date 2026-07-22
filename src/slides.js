@@ -3,6 +3,8 @@ import {
   fetchWithTimeoutAndRetry,
   NO_KEY_MESSAGE,
 } from "./search.js";
+import { readFile } from "node:fs/promises";
+import { basename, extname } from "node:path";
 
 const DEFAULT_API_BASE = "https://openapi.felo.ai";
 const DEFAULT_REQUEST_TIMEOUT_MS = 60_000;
@@ -45,6 +47,29 @@ function normalizeTaskStatus(status) {
     .toUpperCase();
 }
 
+function getFileContentType(filePath) {
+  const types = {
+    ".bmp": "image/bmp",
+    ".csv": "text/csv",
+    ".doc": "application/msword",
+    ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ".gif": "image/gif",
+    ".jpeg": "image/jpeg",
+    ".jpg": "image/jpeg",
+    ".md": "text/markdown",
+    ".pdf": "application/pdf",
+    ".png": "image/png",
+    ".ppt": "application/vnd.ms-powerpoint",
+    ".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    ".svg": "image/svg+xml",
+    ".txt": "text/plain",
+    ".webp": "image/webp",
+    ".xls": "application/vnd.ms-excel",
+    ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  };
+  return types[extname(filePath).toLowerCase()] || "application/octet-stream";
+}
+
 /**
  * Create a PPT task. Returns { task_id, livedoc_short_id, ppt_business_id } or throws.
  * Uses fetchWithTimeoutAndRetry for 5xx retry (per PPT Task API error codes).
@@ -54,26 +79,52 @@ function normalizeTaskStatus(status) {
  * @param {string} apiBase
  * @param {{ ai_theme_id?: string }} [pptConfig]
  * @param {string} [livedocShortId]
+ * @param {string} [filePath]
  */
-async function createPptTask(apiKey, query, timeoutMs, apiBase, pptConfig, livedocShortId) {
+async function createPptTask(apiKey, query, timeoutMs, apiBase, pptConfig, livedocShortId, filePath) {
   const url = `${apiBase}/v2/ppts`;
-  const body = { query: query.trim() };
-  if (pptConfig && Object.keys(pptConfig).length > 0) {
-    body.ppt_config = pptConfig;
+  let body;
+  const headers = {
+    Accept: "application/json",
+    Authorization: `Bearer ${apiKey}`,
+  };
+
+  if (filePath) {
+    const fileBytes = await readFile(filePath);
+    body = new FormData();
+    body.append("query", query.trim());
+    if (pptConfig && Object.keys(pptConfig).length > 0) {
+      body.append(
+        "ppt_config",
+        new Blob([JSON.stringify(pptConfig)], { type: "application/json" })
+      );
+    }
+    if (livedocShortId) {
+      body.append("livedoc_short_id", livedocShortId);
+    }
+    body.append(
+      "file",
+      new Blob([fileBytes], { type: getFileContentType(filePath) }),
+      basename(filePath)
+    );
+  } else {
+    body = { query: query.trim() };
+    if (pptConfig && Object.keys(pptConfig).length > 0) {
+      body.ppt_config = pptConfig;
+    }
+    if (livedocShortId) {
+      body.livedoc_short_id = livedocShortId;
+    }
+    headers["Content-Type"] = "application/json";
+    body = JSON.stringify(body);
   }
-  if (livedocShortId) {
-    body.livedoc_short_id = livedocShortId;
-  }
+
   const res = await fetchWithTimeoutAndRetry(
     url,
     {
       method: "POST",
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
+      headers,
+      body,
     },
     timeoutMs
   );
@@ -181,7 +232,8 @@ export async function slides(query, options = {}) {
         requestTimeoutMs,
         apiBase,
         options.pptConfig,
-        options.livedocShortId
+        options.livedocShortId,
+        options.filePath
       );
       taskId = createResult.task_id;
 
