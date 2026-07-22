@@ -49,7 +49,7 @@ $env:FELO_API_KEY="..."             # Windows (PowerShell)
 | Command                                  | Description                                           |
 | ---------------------------------------- | ----------------------------------------------------- |
 | `felo search "<query>"`                  | Search for current info (weather, news, prices, etc.) |
-| `felo slides "<prompt>"`                 | Generate PPT; returns link when done                  |
+| `felo slides "<prompt>" [--file <path>]` | Generate PPT from a prompt or local file              |
 | `felo mindmap "<query>"`                 | Generate mindmap; returns link immediately            |
 | `felo web-fetch --url <url>`             | Fetch webpage content (markdown/text/html)            |
 | `felo youtube-subtitling -v <url-or-id>` | Fetch YouTube video subtitles                         |
@@ -77,6 +77,7 @@ felo search "MacBook Air M3 price" --json
 ```bash
 felo slides "Felo product intro, 3 slides"
 felo slides "Q4 2024 business review, 10 pages" --poll-timeout 300
+felo slides "Create 2 slides and include the original image" --file "/absolute/path/to/source.jpg"
 ```
 
 **Mindmap**
