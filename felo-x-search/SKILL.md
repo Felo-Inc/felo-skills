@@ -26,7 +26,7 @@ Explicit commands: `/felo-x-search`, "search X", "search twitter"
 Do NOT use for:
 
 - General web search (use `felo-search`)
-- Webpage extraction (use `felo-web-extract`)
+- Webpage extraction (use `felo-web-fetch`)
 - Generating slides (use `felo-slides`)
 
 ## Setup
